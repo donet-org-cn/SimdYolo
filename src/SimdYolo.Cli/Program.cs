@@ -35,7 +35,9 @@ try
     int size = args.Length > sizeIndex ? int.Parse(args[sizeIndex]) : 640;
     int threads = command == "bench" && args.Length > 5 ? int.Parse(args[5]) : 0;
     // using 保证命令结束时释放后端和 CPU 工作线程。profile 回调会同步 GPU，属于诊断模式。
+    long loadStarted = Stopwatch.GetTimestamp();
     using var detector = new YoloDetector(path, new() { Device = device, Width = size, Height = size, CpuThreads = threads, LayerCompleted = command == "profile" ? t => Console.WriteLine($"{t.Name} {t.Operation} {t.Milliseconds:F3} ms") : null });
+    double modelLoadMs = Stopwatch.GetElapsedTime(loadStarted).TotalMilliseconds;
     Console.WriteLine(detector.BackendName); if (detector.FallbackReason is { } reason) Console.WriteLine("Fallback: " + reason);
     // detect：PPM 解码位于计时外；耗时包含填边、推理和检测后处理，输出为原图坐标 JSON。
     if (command == "detect")
@@ -94,19 +96,21 @@ try
     string? outputPrefix = args.Length > 10 ? args[10] : null;
     if (durationSeconds < 0 || !double.IsFinite(durationSeconds)) throw new ArgumentException("Duration must be finite and nonnegative.");
     // 预热不纳入正式延迟样本；FirstInferenceMs 只记录首次预热，未预热时保持 0。
-    double firstInferenceMs = 0;
+    double firstInferenceMs = 0, readyToFirstOutputMs = 0;
+    var warmupWatch = Stopwatch.StartNew();
     for (int i = 0; i < warmup; i++)
     {
         var firstWatch = Stopwatch.StartNew(); detector.PredictRaw(input);
-        if (i == 0) firstInferenceMs = firstWatch.Elapsed.TotalMilliseconds;
+        if (i == 0) { firstInferenceMs = firstWatch.Elapsed.TotalMilliseconds; readyToFirstOutputMs = startup.Elapsed.TotalMilliseconds; }
     }
+    double warmupMs = warmupWatch.Elapsed.TotalMilliseconds;
     double startupMs = startup.Elapsed.TotalMilliseconds;
     // 写 ready.json 后等待外部 go 标记，使资源采样器与推理窗口同步。
     // 等待与 ready 文件写入均在正式计时之外；超过两分钟抛出 TimeoutException。
     if (signalDirectory is not null)
     {
         Directory.CreateDirectory(signalDirectory);
-        File.WriteAllText(Path.Combine(signalDirectory, "ready.json"), JsonSerializer.Serialize(new { Backend = detector.BackendName, StartupMs = startupMs, FirstInferenceMs = firstInferenceMs, BaselineWorkingSetMiB = baselineWorkingSet / 1048576.0 }));
+        File.WriteAllText(Path.Combine(signalDirectory, "ready.json"), JsonSerializer.Serialize(new { Backend = detector.BackendName, StartupMs = startupMs, ModelLoadMs = modelLoadMs, FirstInferenceMs = firstInferenceMs, ReadyToFirstOutputMs = readyToFirstOutputMs, WarmupMs = warmupMs, BaselineWorkingSetMiB = baselineWorkingSet / 1048576.0 }));
         var signalTimeout = Stopwatch.StartNew();
         while (!File.Exists(Path.Combine(signalDirectory, "go")))
         {
@@ -138,7 +142,7 @@ try
     double median = Percentile(.5);
     // CpuPercent 按逻辑处理器总容量归一化；CpuMsPerFrame 是进程全部线程累计 CPU 时间除以帧数。
     // ThroughputFps 按完整窗口计算，FramesPerSecond 是 1000/中位延迟；二者定义不同。
-    Console.WriteLine(JsonSerializer.Serialize(new { Version = "SimdYolo " + typeof(YoloDetector).Assembly.GetName().Version!.ToString(3), Model = Path.GetFileName(path), Shape = input.Shape, Outputs = result!.Select(t => t.Shape), Iterations = samples.Length, Warmup = warmup, CpuThreads = threads > 0 ? threads : Environment.ProcessorCount, StartupMs = startupMs, FirstInferenceMs = firstInferenceMs, detector.PipelineCacheLoaded, detector.CachedConvolutionShapes, detector.ReplayedFrames, WindowSeconds = windowSeconds, CpuSeconds = cpuSeconds, CpuPercent = cpuSeconds / windowSeconds / Environment.ProcessorCount * 100, CpuMsPerFrame = cpuSeconds * 1000 / samples.Length, ThroughputFps = samples.Length / windowSeconds, MedianMs = median, P95Ms = Percentile(.95), MinMs = times[0], MeanMs = times.Average(), FramesPerSecond = 1000 / median, SamplesMs = samples, WorkingSetMB = Environment.WorkingSet / 1048576.0 }, new JsonSerializerOptions { WriteIndented = true }));
+    Console.WriteLine(JsonSerializer.Serialize(new { Version = "SimdYolo " + typeof(YoloDetector).Assembly.GetName().Version!.ToString(3), Model = Path.GetFileName(path), Shape = input.Shape, Outputs = result!.Select(t => t.Shape), Iterations = samples.Length, Warmup = warmup, CpuThreads = threads > 0 ? threads : Environment.ProcessorCount, StartupMs = startupMs, ModelLoadMs = modelLoadMs, FirstInferenceMs = firstInferenceMs, ReadyToFirstOutputMs = readyToFirstOutputMs, WarmupMs = warmupMs, detector.PipelineCacheLoaded, detector.CachedConvolutionShapes, detector.ReplayedFrames, WindowSeconds = windowSeconds, CpuSeconds = cpuSeconds, CpuPercent = cpuSeconds / windowSeconds / Environment.ProcessorCount * 100, CpuMsPerFrame = cpuSeconds * 1000 / samples.Length, ThroughputFps = samples.Length / windowSeconds, MedianMs = median, P95Ms = Percentile(.95), MinMs = times[0], MeanMs = times.Average(), FramesPerSecond = 1000 / median, SamplesMs = samples, WorkingSetMB = Environment.WorkingSet / 1048576.0 }, new JsonSerializerOptions { WriteIndented = true }));
 }
 catch (Exception e) { Console.Error.WriteLine(e.ToString()); Environment.ExitCode = 1; }
 

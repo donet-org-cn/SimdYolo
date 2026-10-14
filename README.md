@@ -4,9 +4,30 @@
 
 C# / .NET 10 的 YOLO 推理库，包含目标检测、实例分割和姿态估计。主库为纯托管 C# 程序集：模型解析、计算图、CPU 算子、图像预处理和结果解码均由 C# 实现，CPU 使用 .NET SIMD / intrinsics。没有外部 NuGet 运行依赖，不调用 Python、PyTorch、LibTorch、TorchSharp、ONNX Runtime、BLAS/MKL/OpenBLAS 或其他原生数学运行库，也不在运行时把 `.pt` 转成 ONNX。GPU 通过 P/Invoke 调用系统 Vulkan / Metal API，执行包内嵌入的 SPIR-V / MSL 着色器。
 
-0.8.0 开发版新增 **YOLO26 检测、实例分割和姿态推理**，直接加载官方 `.pt` 或 ONNX，支持无 DFL 回归、SPPF 残差、Proto26 多尺度融合、Pose26 坐标公式和端到端实例附加字段。新增 `ModelInfo.Read`，不初始化 GPU、不加载权重存储即可读取类别标签。官方 nano 模型已在 CPU/Vulkan、静态/动态输入及 batch=2 上验证，记录见 [YOLO26 验证](artifacts/validation/0.8.0/yolo26.md)。上面的 0.7.1 Release 是旧版本，不包含本次新功能；现有性能排名保留原始 0.7.0 测量。
+当前实现为 **0.8.1**，优化权重加载、会话首帧和稳态执行。PT 连续 storage 使用批量转换，ONNX 解析借用 protobuf 数据视图；PT 复用模块路由工作区，CPU 对完整写入的临时结果省去预清零，以弱引用缓存整组 Winograd 权重面板。注意力批次 MatMul 直接按广播偏移读取输入、写入输出，省去逐 head 的整矩阵复制；无 DFL 的单桶检测头直接使用回归值并以 SIMD 还原坐标。YOLO26 检测、分割、姿态 ONNX 输出头严格匹配后融合为两阶段 TopK，保留全部实例字段，并可在 Vulkan 执行和捕获命令重放。仍使用 FP32；主库没有增加 Python、ORT 或原生数学依赖。
+
+0.8.0 新增 **YOLO26 检测、实例分割和姿态推理**，直接加载官方 `.pt` 或 ONNX，支持无 DFL 回归、SPPF 残差、Proto26 多尺度融合、Pose26 坐标公式和端到端实例附加字段。新增 `ModelInfo.Read`，不初始化 GPU、不加载权重存储即可读取类别标签。官方 nano 模型已在 CPU/Vulkan、静态/动态输入及 batch=2 上验证，记录见 [YOLO26 验证](artifacts/validation/0.8.0/yolo26.md)。上面的 0.7.1 Release 是旧版本，不包含这些新功能；下方标为 0.7.0 的表格保留当时的原始测量。
 
 0.7.1 补齐中文代码文档：类、接口、构造、方法、参数、返回值、属性和实际异常，以及 CPU SIMD、模型解析和 GPU 资源生命周期说明。NuGet 包包含 `SimdYolo.xml`，安装后 IDE 可直接显示中文提示。计算代码保持 0.7.0 的实现；下方速度表及原始报告来自 0.7.0 冻结程序集，0.7.1 的文档覆盖、代码一致性与回归结果单独记录在 [中文注释验证](artifacts/validation/0.7.1/chinese-documentation.md)。
+
+## 0.8.1 本轮实测
+
+[0.8.0→0.8.1 优化对照](artifacts/optimization-0.8.1.md)完成 352 个独立进程窗口：11 模型、PT/ONNX、CPU/Vulkan，每个版本与配置各 4 窗口，采用 ABBA 顺序。统一 FP32、batch=1、640×640、12 线程，预热 60 帧，每窗口至少 4 秒、40 帧。下表为各窗口指标的中位数，箭头表示旧版→新版；单位为 ms，每帧托管分配单列为 MiB。
+
+| 模型 / 后端 | 模型加载 ms | 首次前向 ms | 程序内至首输出 ms | 稳态 ms | 托管分配 MiB/帧 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| yolov8n.pt / CPU | 181.20→92.91 | 265.38→265.64 | 456.68→368.10 | 27.14→26.18 | 2.934→2.915 |
+| yolo26n.pt / CPU | 172.62→101.87 | 261.14→258.90 | 442.81→370.86 | 29.47→28.00 | 6.416→0.337 |
+| yolo26n-seg.onnx / CPU | 116.56→172.34 | 338.89→318.40 | 469.70→559.96 | 41.13→36.73 | 10.128→3.731 |
+| yolo26n-seg.onnx / Vulkan | 531.59→505.22 | 397.47→370.95 | 975.31→890.57 | 17.56→14.52 | 3.906→3.169 |
+
+加载、首次前向及稳态分别计时，不能把加载收益说成首次前向收益：v8 PT 的首次前向基本不变；26 分割 ONNX CPU 的加载和程序内至首输出的汇总中位数反而增加，虽稳态更快。该配置四个新版窗口的加载为 102.46–267.00 ms、至首输出为 430.06–607.02 ms，波动大，不能说每个窗口都回退。程序内至首输出不含 .NET 宿主启动和入口方法执行前的 JIT；新进程不代表清空了系统文件缓存、GPU 驱动或管线缓存。托管分配也不等于进程 RSS 或显存。
+
+[原版 PyTorch、我们的 PT/ONNX、ORT 的 CPU/GPU 对照与排名](artifacts/runtime-comparison-0.8.1.md)完成 **176/176 窗口、36,460 次推理，224/224 输出校验通过**。CPU ORT 两轮明显波动，例如 v8 为 50.94/25.47 ms、11n 为 24.38/47.81 ms；26n、26n-seg、26n-pose 的 CPU 汇总仍由 ORT 领先，不能宣称我们稳定全胜。GPU 数值来自本机 Vulkan/CUDA，**Metal 尚无硬件实测**。
+
+本轮 Release 构建零警告、零错误；CPU/Vulkan 回归 **117 项通过**，关闭 AVX 与关闭全部硬件指令各 **94 项通过**。352 个生命周期窗口的首帧/末帧共 **896/896 输出校验通过**，包含 TopK 分数、唯一候选配对、分割系数及关键点。冻结程序集、原始 JSON、复现方法及其他动态/图像验证见 [VALIDATION.md](VALIDATION.md)；新版 [NuGet 包](artifacts/SimdYolo.0.8.1.nupkg)的内容、依赖和中文 XML 检查见[包审查记录](artifacts/validation/0.8.1/package-audit.json)，实际消费验证见[独立 NuGet 消费记录](artifacts/validation/0.8.1/package-consumer.json)。
+
+## 0.7.0 历史实测
 
 0.7.0 继续使用纯 C#、FP32 CPU 计算，新增实际地址对应的缓存行对齐、16/48 列点卷积调度、F4 卷积边界 SIMD、窄平面 depthwise padding SIMD、卷积尾部四/八元素 SIMD 激活、8×8 SIMD 转置、严格匹配的 ONNX 检测头融合及 2×2 平均池化专用循环。保持既有专属 CPU 执行器和 SIMD 指数路径。32 列内核、F6 和分块大小调参没有稳定收益，未设为发布路径。GPU 实现和着色器保持不变，本次重新测量 Vulkan、原版 PyTorch CUDA 和 ORT CUDA；Metal 尚无 macOS 硬件验证。
 
@@ -221,7 +242,7 @@ Vulkan 使用 F2/F4 Winograd、低通道卷积和多种列宽的分块内核，�
 
 0.5 的 Vulkan 为适用固定权重逐点卷积使用 vec4 读写与 32/64 输出行分块；符合边界/对齐条件的 3×3 depthwise 也有 vec4 路径。Winograd 按形状在 32×32 / 64×32 / 64×64 计算块间选核，适用的 F4 变换使用向量化读写。形状、设备存储偏移、通道尾部或可变权重不适用时保留通用路径。
 
-ONNX 的末轴 ReduceMax 和 GatherElements 有 Vulkan 路径；YOLOv10 导出的端到端头按精确数据流、常量和使用方匹配，在 batch=1 / 适用布局下融合为设备两阶段 TopK，默认启用，可用 `SIMDYOLO_GPU_ONNX_E2E=0` 关闭。其他变体回到原算子图。`.pt` 的专用 TopK 默认在 Vulkan 执行，`SIMDYOLO_GPU_TOPK=0` 也会禁用专用头路径。通用 ONNX TopK 仍默认走 CPU，其独立 GPU 路径仅在显式设置 `SIMDYOLO_GPU_ONNX_TOPK=1` 或 `SIMDYOLO_GPU_TOPK=1` 时启用。
+ONNX 的末轴 ReduceMax 和 GatherElements 有 Vulkan 路径；YOLOv10 和 YOLO26 导出的端到端头按精确数据流、常量和使用方匹配，在适用布局下融合为设备两阶段 TopK，默认启用，可用 `SIMDYOLO_GPU_ONNX_E2E=0` 关闭。YOLO26 模式保留分割系数和关键点，支持已验证的静态/动态批次；其他变体回到原算子图。`.pt` 的专用 TopK 默认在 Vulkan 执行，`SIMDYOLO_GPU_TOPK=0` 也会禁用专用头路径。通用 ONNX TopK 仍默认走 CPU，其独立 GPU 路径仅在显式设置 `SIMDYOLO_GPU_ONNX_TOPK=1` 或 `SIMDYOLO_GPU_TOPK=1` 时启用。
 
 Vulkan 默认将驱动 pipeline cache 和形状选核结果保存到系统临时目录的 `SimdYolo/VulkanCache`，可用 `SIMDYOLO_VULKAN_CACHE_DIR` 指定目录，或以 `SIMDYOLO_VULKAN_CACHE=0` 禁用。缓存绑定设备/驱动标识，选核记录还绑定嵌入着色器哈希及路由选项；损坏、不兼容或无法读写时继续使用未缓存路径。缓存命中不代表新形状已编译/选核，首次遇到新形状仍须预热。会话释放时保存新增结果；`PipelineCacheLoaded` / `CachedConvolutionShapes` 可观察恢复状态。
 
@@ -258,20 +279,28 @@ python tools/compare-python.py --models yolov8n yolo11n --model-dir .cache --ite
 ```powershell
 dotnet build -c Release
 dotnet build tools/OrtBenchmark/OrtBenchmark.csproj -c Release
-python tools/compare-runtimes.py --vision --threads 12 --warmup 30 --iterations 40 --duration 8 --repeats 2 --engines torch-cpu net-cpu net-onnx-cpu ort-net-cpu net-vulkan net-onnx-vulkan torch-cuda ort-net-cuda --input .cache/speed-comparison/bus-input.f32 --output artifacts/optimized-runtime-comparison.json
+python tools/compare-runtimes.py --model-dir models/pt --onnx-dir models/onnx --ultralytics-dir .cache/yolo26-release-reference --models yolov8n yolov9t yolov10n yolo11n yolo26n yolov8n-seg yolo11n-seg yolo26n-seg yolov8n-pose yolo11n-pose yolo26n-pose --threads 12 --warmup 60 --iterations 40 --duration 4 --repeats 2 --engines torch-cpu net-cpu net-onnx-cpu ort-net-cpu net-vulkan net-onnx-vulkan torch-cuda ort-net-cuda --input .cache/image-validation/input.f32 --output artifacts/runtime-comparison-0.8.1.json
 ```
 
-该命令重测 8 个模型的四种 CPU 和四种 GPU 配置，两轮共 128 个窗口，写到 `artifacts/optimized-runtime-comparison.json`、`.md`、`.png` 和 `.svg`。`cpu-runtime-comparison.*` 提取同一次完整报告的 64 个 CPU 窗口，未重复计时。真实采样时间戳、CPU ms/帧、全进程 RSS、私有提交量及整卡 GPU/显存均保存在 JSON。历史证据保存在 `artifacts/baselines/`，不混入当前排名。
+该命令测量 11 个模型的四种 CPU 和四种 GPU 配置，两轮共 176 个窗口，写到 `artifacts/runtime-comparison-0.8.1.json`、`.md`、`.png` 和 `.svg`。`optimized-runtime-comparison.*`、`cpu-runtime-comparison.*` 保留 0.7.0 的原始记录。真实采样时间戳、CPU ms/帧、全进程 RSS、私有提交量及整卡 GPU/显存均保存在 JSON；加载、首帧、预热时间分别记录，不混进稳态排名。
 
-正式 ORT 对照使用 .NET 宿主和官方 Managed 绑定，输入/输出均在主机，输出复制为托管数组，与 `PredictRaw` 的返回方式一致。开发环境需要已有的 `numpy`、`psutil`、CPU PyTorch、Ultralytics，以及 `.cache/torch-cu126` 中的 CUDA PyTorch、`.cache/ort-gpu` 中的官方 ORT GPU 包和 `.cache/validation` 中的静态 640 ONNX。工具直接预加载 CUDA/cuDNN DLL，不启动 Python 来执行 ORT，主推理库也没有新增 ORT 依赖。本机 NuGet ORT GPU 原生构建有 Pascal 内核兼容问题，所以对照通过 .NET 调用官方 GPU wheel 中已验证的同版本 DLL；JSON 保存原生 DLL 哈希。
+正式 ORT 对照使用 .NET 宿主和官方 Managed 绑定，输入/输出均在主机，输出复制为托管数组，与 `PredictRaw` 的返回方式一致。开发环境需要已有的 `numpy`、`psutil`、CPU PyTorch、Ultralytics，以及 `.cache/torch-cu126` 中的 CUDA PyTorch、`.cache/ort-gpu` 中的官方 ORT GPU 包。此次使用 Ultralytics 8.4.0 兼容 YOLO26 官方检查点；可用 `--ultralytics-dir` 指定已安装目录、`--net-cli` 指定冻结 CLI。工具直接预加载 CUDA/cuDNN DLL，不启动 Python 来执行 ORT，主推理库也没有新增 ORT 依赖。本机 NuGet ORT GPU 原生构建有 Pascal 内核兼容问题，所以对照通过 .NET 调用官方 GPU wheel 中已验证的同版本 DLL；JSON 保存原生 DLL 哈希。
 
 正式比较使用 bus 示例图预处理后的同一个张量；输入不存在时先生成，再运行上面的全后端命令：
 
 ```powershell
-dotnet src/SimdYolo.Cli/bin/Release/net10.0/SimdYolo.Cli.dll preprocess .cache/image-validation/image.ppm .cache/speed-comparison/bus-input.f32 640
+dotnet src/SimdYolo.Cli/bin/Release/net10.0/SimdYolo.Cli.dll preprocess .cache/image-validation/image.ppm .cache/image-validation/input.f32 640
 ```
 
-不指定 `--input` 时使用固定种子的随机张量。可调整 `--repeats`，或用 `--engines torch-cpu net-onnx-cpu net-onnx-vulkan` 检查本库的 ONNX 路径。`--render-only --output artifacts/cpu-runtime-comparison.json` 只更新 Markdown/图表，保留原始 JSON，不重新计时。脚本逐个校验所有输出；这些计时均是网络和解码头的基准，排除图片预处理、NMS 和最终 mask 后处理。Metal 尚未在这台 Windows 机器上测试。
+不指定 `--input` 时使用固定种子的随机张量。可调整 `--repeats`，或用 `--engines torch-cpu net-onnx-cpu net-onnx-vulkan` 检查本库的 ONNX 路径。`--render-only --output artifacts/runtime-comparison-0.8.1.json` 只更新 Markdown/图表，保留原始 JSON，不重新计时。脚本逐个校验所有输出，端到端 TopK 核对完整候选、类别和分割/姿态附加字段；这些计时均是网络和解码头的基准，排除图片预处理、NMS 和最终 mask 后处理。Metal 尚未在这台 Windows 机器上测试。
+
+版本优化收益使用同一 .NET 测量宿主，只替换主 DLL，并以旧版、新版、新版、旧版的 ABBA 次序启动独立进程：
+
+```powershell
+python tools/compare-lifecycle.py --baseline-dir <冻结的旧版目录> --candidate-dir src/SimdYolo/bin/Release/net10.0 --input .cache/image-validation/input.f32 --repeats 2 --warmup 60 --duration 4 --output .cache/lifecycle-comparison.json
+```
+
+这里的 `<冻结的旧版目录>` 必须含对应版本的 `SimdYolo.dll`，可以从旧 NuGet 包解压。工具保存加载、首帧、稳态、分配量和首帧/最后一帧原始输出；GPU 缓存状态逐窗口记录。`--cache-mode isolated` 使用每窗口独立应用缓存目录，仍不清空系统或驱动缓存。程序内至首输出的耗时不包含 dotnet 宿主启动；进程总耗时还包含预热、稳态和写盘，不能作为首输出耗时。
 
 ## CLI 与验证
 

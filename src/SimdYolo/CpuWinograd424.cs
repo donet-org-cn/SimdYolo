@@ -41,7 +41,7 @@ internal static class CpuWinograd424
         int oc = weights[0].Length / ic, tw = (width + 3) / 4;
         int tiles = checked(((h + 3) / 4) * tw), panels = (tiles + 23) / 24;
         int inputStride = checked(ic * 24 + 16), productStride = checked(oc * 24 + 16);
-        var packedWeights = weights.Select(weight => CpuPointwise24.Prepare(weight, oc, ic)).ToArray();
+        var packedWeights = CpuWeightBatch<CpuPointwise24.Matrix>.Prepare(weights, oc, ic, CpuPointwise24.Prepare);
         float[] input = x.Data; float[]? biases = bias?.Data;
         var output = Tensor.TemporaryUninitialized(batch, oc, h, width); float[] target = output.Data;
         int degree = backend.Parallel.MaxDegreeOfParallelism;

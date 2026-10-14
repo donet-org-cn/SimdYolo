@@ -1,5 +1,9 @@
 # 纯 C# 跑 YOLO：我把它和 PyTorch、ORT 放在同一台电脑上实测
 
+> **0.8.1 更新：** 首次加载、首帧和稳态推理已重新实测，当前 CPU/GPU 排名及优化前后对照见 [0.8.1 性能结果](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/optimization-0.8.1.md)。
+>
+> 本文下方的旧速度表和性能插图属于 **0.7.x 历史记录**，不代表当前版本速度，也不用于宣传当前性能；评估新版本请以这份 0.8.1 实测为准，其中同时保留跨窗口波动和未领先的结果。
+
 ![SimdYolo：纯 C# 主库，直接加载 .pt 与 ONNX，支持检测、分割和姿态](assets/01-wechat-cover.png)
 
 **源码仓库：** [https://github.com/hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)

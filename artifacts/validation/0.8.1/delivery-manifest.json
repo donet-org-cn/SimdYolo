@@ -1,0 +1,924 @@
+{
+  "Version": "0.8.1",
+  "CreatedUtc": "2026-10-14T14:48:36.597984+00:00",
+  "SourceParentCommit": "284f94cdd0fb785673af1f6c55df102ffcd52f8b",
+  "Scope": "Fingerprints of this workspace and frozen experiment, not a claim of bit-identical rebuilds on every machine.",
+  "SimdYoloDllSha256": "74a09c65fd9b535746ca1e6fc56e62cedac6ef0c27d3f38421f7c98ab221ab91",
+  "PackageSha256": "35999a7cd92fef6569ca47501cc2e0e037f31a2183b4d6e04bd68ae6d080aae1",
+  "InputSha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af",
+  "Performance": {
+    "RuntimeWindows": 176,
+    "LifecycleWindows": 352,
+    "TimingFrames": 36460,
+    "LifecycleOutputValidation": {
+      "Windows": 352,
+      "PassedWindows": 352,
+      "OutputChecks": 896,
+      "PassedOutputChecks": 896
+    },
+    "CacheMode": "inherited",
+    "MetalMeasured": false
+  },
+  "PackageAudit": {
+    "Status": "passed",
+    "XmlMembers": 1147,
+    "ExternalNugetDependencies": [],
+    "Models": 33
+  },
+  "IndependentPackageConsumer": {
+    "Configurations": 12,
+    "LabelMaps": 33,
+    "Status": "passed"
+  },
+  "ValidationCounting": "PT oracle640 is a subset of ONNX oracle640. Portable/software runs repeat applicable cases. Package smoke checks do not replace official numerical checks.",
+  "RawOutputScope": "Lifecycle first/last .f32 files remain in local .cache; published JSON retains all shapes, bytes, SHA256 and independent checks. Tools recreate measurements and validate moved identical files.",
+  "HistoricalFilesUnmodified": {
+    "optimized-runtime-comparison.json": "278461517703bef74de53f5cdc5d68a32cd8a53db55b0eb676c693af6dfd413c",
+    "cpu-runtime-comparison.json": "1251f511a9a8ed81107587605fcb96e57c3732c7d19400820fbc1d0ed7c04abf",
+    "SimdYolo.0.8.0.nupkg": "933244425898a5ea78db4bc468887013b6c271f8343580cc794b18cba5ba72c1"
+  },
+  "ModelManifest": {
+    "File": "models/manifest.json",
+    "Bytes": 20832,
+    "Sha256": "e7ffe44f9adc11ac282adad966116349e662a5383ee02ee8314709ee2727a431"
+  },
+  "EvidenceFiles": [
+    {
+      "File": "artifacts/lifecycle-comparison-0.8.1.json",
+      "Bytes": 6406477,
+      "Sha256": "cc15ae3a02a2edb1eb9e15ab710395e1979e073354196ecc2fb7fe4910a29ba9"
+    },
+    {
+      "File": "artifacts/optimization-0.8.1.md",
+      "Bytes": 49784,
+      "Sha256": "2b9ce45bc2c86f28b13e6419b5f05f044af416efe603c086a96ea5d8413153f0"
+    },
+    {
+      "File": "artifacts/runtime-comparison-0.8.1.json",
+      "Bytes": 2161984,
+      "Sha256": "0244d2dbc682581cc737178228dce69cc7787e5a2d55becdb7599cdd64f12328"
+    },
+    {
+      "File": "artifacts/runtime-comparison-0.8.1.md",
+      "Bytes": 42111,
+      "Sha256": "6946f2be09505ed30bdd29d37031982f1c647c96d52921bc6e623d261699de2f"
+    },
+    {
+      "File": "artifacts/runtime-comparison-0.8.1.png",
+      "Bytes": 269475,
+      "Sha256": "72aa6c93ba86a0788a07a5f6bb69583d9c475ba1d20dcc54d41e8cd21d64452e"
+    },
+    {
+      "File": "artifacts/runtime-comparison-0.8.1.svg",
+      "Bytes": 202077,
+      "Sha256": "5877b9e66ea9ba7e0a6d8112f6e5ff9ebddf6535c37da2a4137ecedbf134589e"
+    },
+    {
+      "File": "artifacts/SimdYolo-articles-0.8.1.zip",
+      "Bytes": 1894470,
+      "Sha256": "6fe2863eed76f16522ec630bfc9e3b8b5d734173ffab7e07088a4aa8b9d46318"
+    },
+    {
+      "File": "artifacts/SimdYolo.0.8.1.nupkg",
+      "Bytes": 758058,
+      "Sha256": "35999a7cd92fef6569ca47501cc2e0e037f31a2183b4d6e04bd68ae6d080aae1"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/core-portable.txt",
+      "Bytes": 15340,
+      "Sha256": "e4f62617be5cadc3fa8398d519e7a7620fb87729373d55c8c99bc626194007c3"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/core-software.txt",
+      "Bytes": 15340,
+      "Sha256": "e4f62617be5cadc3fa8398d519e7a7620fb87729373d55c8c99bc626194007c3"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/core-vulkan.txt",
+      "Bytes": 18988,
+      "Sha256": "1c68efb6521fecb21af21de3ccda029a0a4f5441acc2765c067241adbc48818e"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/dynamic-oracle192.json",
+      "Bytes": 11622,
+      "Sha256": "5116990fcc3ff48020a57bd6f5de675ef42af3df99083c6e3a075c0ebb43938f"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/dynamic-oracle192.txt",
+      "Bytes": 18872,
+      "Sha256": "fe2f774071ae803076dcc2b944c1e51f50e0fb35c7929c6ffbac8047fec9168d"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-onnx-cpu.json",
+      "Bytes": 1534,
+      "Sha256": "f40f6bd7f51bcdd7d61dd82f8d9e905e8401220e8ec3e267e2e03c7679e33285"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-onnx-cpu.txt",
+      "Bytes": 3894,
+      "Sha256": "4fb06a71e2aca769fd156a7afe305a93a722dd622ccf0b8fdfd96123491a9acb"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-onnx-vulkan.json",
+      "Bytes": 1550,
+      "Sha256": "fc3dc7c128f8fda61d0dec94713b0a9d11256ff81f563c7885251916ee2b25e7"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-onnx-vulkan.txt",
+      "Bytes": 4154,
+      "Sha256": "b7694adb36dbdafe373b1bb53211092f86e3d0e841686603ee8cfb74704e0197"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-pt-cpu.json",
+      "Bytes": 1520,
+      "Sha256": "9572fea0e587bc35809bf518f84ac3837d040a4796dbcc73a43c349350217897"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-pt-cpu.txt",
+      "Bytes": 3842,
+      "Sha256": "f38122b3021f11fd846503dc5db4fcefa602b38242b39ee6795941cafb97ede9"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-pt-vulkan.json",
+      "Bytes": 1537,
+      "Sha256": "90868f46359b570090f80e13674fb5a0e9e1141e3c04b2a902cb88f24325bca9"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/images-pt-vulkan.txt",
+      "Bytes": 4104,
+      "Sha256": "d7f0fdaafd9781ef9ad8365975d2a20988018b5c065c8878f06b27cdf3232738"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/lifecycle-outputs.json",
+      "Bytes": 1331879,
+      "Sha256": "8e9ae6e8c722b1f2b59331c27ec0c92a8160c32f20e3c18c4ad4576835711fb9"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/model-labels.json",
+      "Bytes": 5528,
+      "Sha256": "177da775dcd4f5431b16727ec54a20261330135fac6774816ba9013863865b96"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/onnx-oracle640.json",
+      "Bytes": 17716,
+      "Sha256": "fdf9b49e8bc46c3e2ac86d323f4c69d570b56443faeb704b4cf4cd239e1931f5"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/onnx-oracle640.txt",
+      "Bytes": 27168,
+      "Sha256": "ab706e23e59e3e33ca4af252596f312297652c00a4d32da886ef0790284d689d"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/package-audit.json",
+      "Bytes": 20929,
+      "Sha256": "c95c42656f074018f3d24439da27e14d87cd54b03a2e2e8e3b70157ebf33d7b6"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/package-consumer.json",
+      "Bytes": 9577,
+      "Sha256": "ea9d143dadc92b1d4d9f6fc8544a608e54c8338f69cd81d5741e368c584b0f08"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/package-helper-build.log",
+      "Bytes": 257,
+      "Sha256": "91cda5bb091bb64300672e1b3da19772d26accbd752587d136a82e467cca51e0"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/package-helper.log",
+      "Bytes": 95,
+      "Sha256": "7bea13c799927f9bb79543ae5e2642c8936fb39afbc1edea7ff449e13d03fa44"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/package-pack.log",
+      "Bytes": 73,
+      "Sha256": "491426c49479f08eedf93c53873fa7efa477dfc141bd10b29ee8712c29b870cb"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/pt-oracle640.json",
+      "Bytes": 7039,
+      "Sha256": "97886db77e4b37b42e7f82561d9b6245e8e41eb07cd26731c06c68820458d4e4"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/reader-storage-verification.json",
+      "Bytes": 4157,
+      "Sha256": "a89b6a1e4851d0b9ae339f71b7834b2640b1837eae23c1b8ca4d003b98fd3b2a"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/replay.txt",
+      "Bytes": 798,
+      "Sha256": "91bc070fc18a40c46652d26fb7596999577bf6de05d8462e81ca26e211520ea2"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/weight-batch-micro.json",
+      "Bytes": 620,
+      "Sha256": "fcd151d6a6667d181c11b1508e2c06f0e841d07105c0be560e0c1d24aa29c00b"
+    },
+    {
+      "File": "artifacts/validation/0.8.1/yolo26-replay.json",
+      "Bytes": 1059,
+      "Sha256": "3560e08fcf188874220a3eca1c196e30291ba791791a68b658d32e9f4d6a47d1"
+    },
+    {
+      "File": "docs/articles/manifest.json",
+      "Bytes": 6736,
+      "Sha256": "d537a7a4c2e1b67ccce73c32b8302a04433ec21286eb642ae28815b3dc9a36ee"
+    }
+  ],
+  "SourceFiles": [
+    {
+      "File": ".gitattributes",
+      "Bytes": 342,
+      "Sha256": "1f7097c74b73818ba283dae490e604eff346beea7603856964d9a8c76f08a3a9"
+    },
+    {
+      "File": "Directory.Build.props",
+      "Bytes": 288,
+      "Sha256": "7f2fa077792f360e4df3d650fdb1373471309d9b7cbc2602ab0bc0a62c6f7069"
+    },
+    {
+      "File": "README.md",
+      "Bytes": 33832,
+      "Sha256": "48d218c1b41130c06ac5a12ff1f09e87f14ddbce5bfe9b66586f975bfeb26feb"
+    },
+    {
+      "File": "SimdYolo.sln",
+      "Bytes": 4562,
+      "Sha256": "fcc3ee598a46b114815e9c76029728c466b9a509bb8168702fb5dfec745afd46"
+    },
+    {
+      "File": "THIRD_PARTY_NOTICES.md",
+      "Bytes": 2049,
+      "Sha256": "c70d6f098b2dabfb2cffbf5cbe04e4df83323e4502473c21b848c944ac6651d2"
+    },
+    {
+      "File": "VALIDATION.md",
+      "Bytes": 16653,
+      "Sha256": "d4839e064f80b02ab9e66337a370077a193644012e95847542695cc1cadde38e"
+    },
+    {
+      "File": "models/README.md",
+      "Bytes": 3583,
+      "Sha256": "feed1ddfab744866c7f2650a215d2d966f8afc5fcbf538bdfa8be12461c89240"
+    },
+    {
+      "File": "src/SimdYolo.Cli/Program.cs",
+      "Bytes": 15296,
+      "Sha256": "301d3540c14bf8187efa03af26c9a3aff304a6f527497ef32e30dadc7180bfde"
+    },
+    {
+      "File": "src/SimdYolo.Cli/SimdYolo.Cli.csproj",
+      "Bytes": 184,
+      "Sha256": "50f29dc2067aa3dcb8f891c956f0922bf6905914c5ae58358e34b9867cb6a500"
+    },
+    {
+      "File": "src/SimdYolo/Compute.cs",
+      "Bytes": 48016,
+      "Sha256": "7b412ee41546edb602af21974159dd1e1fbbae6f544da69db491188416a26a5a"
+    },
+    {
+      "File": "src/SimdYolo/CpuActivation.cs",
+      "Bytes": 7430,
+      "Sha256": "975d2852698e864b8d7fc0435482ba53213436898de530d59cd64a721c1870f9"
+    },
+    {
+      "File": "src/SimdYolo/CpuAverageTwo.cs",
+      "Bytes": 4544,
+      "Sha256": "d3cf3f32c6024a5a2b941e8d8d779aa41061a538c61c311c7cf7130c5e4e966e"
+    },
+    {
+      "File": "src/SimdYolo/CpuConvolution.cs",
+      "Bytes": 13601,
+      "Sha256": "ee7157e1ef71adfde62df8841c8d4f4de3244c6e007ab0b09ce2b147e2592a51"
+    },
+    {
+      "File": "src/SimdYolo/CpuConvolutionPack.cs",
+      "Bytes": 15900,
+      "Sha256": "4afe25d0d09315515b45a6fdc63fb8f243fecf11c9f0cd05d6a961ffda4d1dda"
+    },
+    {
+      "File": "src/SimdYolo/CpuDepthwisePadded.cs",
+      "Bytes": 9207,
+      "Sha256": "2f6bebd842d1b8351ca753a1515d8c884924eb5156d0f237d8d41d6480c6e31b"
+    },
+    {
+      "File": "src/SimdYolo/CpuDfl.cs",
+      "Bytes": 3492,
+      "Sha256": "7a43074825e0b632d06ff54a62036b82ac5e7bee2f597dc8075a83c14e3a9f79"
+    },
+    {
+      "File": "src/SimdYolo/CpuEndToEnd.cs",
+      "Bytes": 11752,
+      "Sha256": "2477024d8429380f74f57307af26bd4b6d1e0e04966473b0ac61b34415300170"
+    },
+    {
+      "File": "src/SimdYolo/CpuEpilogue.cs",
+      "Bytes": 1822,
+      "Sha256": "6f6e5c2d156e55c01c2105826c8985b092700b1dea9c698fe799ccdd0cb93768"
+    },
+    {
+      "File": "src/SimdYolo/CpuExecutor.cs",
+      "Bytes": 20874,
+      "Sha256": "f7dd443dd41c581059c98ed122483c034739aef142a301799f3c599f2459b60e"
+    },
+    {
+      "File": "src/SimdYolo/CpuGemm.cs",
+      "Bytes": 20081,
+      "Sha256": "c1857882e472101e6ad96c110a9b2f82d54221edcad59b131d461afd585eeec7"
+    },
+    {
+      "File": "src/SimdYolo/CpuGemmPortable.cs",
+      "Bytes": 11082,
+      "Sha256": "d0f187ee3205d1004df9fe180abb843fce8bf3d7f2e07b51f89b9cbc12e42529"
+    },
+    {
+      "File": "src/SimdYolo/CpuHead.cs",
+      "Bytes": 5909,
+      "Sha256": "462d3265c187b40df9d7667dbc0f25d872efc8f10e862a975484c553ed47346d"
+    },
+    {
+      "File": "src/SimdYolo/CpuPackedGemm.cs",
+      "Bytes": 10848,
+      "Sha256": "0081aa14b201243a7d07ba91171b8ebdb79f041a4954a2776375f9d30cad76ec"
+    },
+    {
+      "File": "src/SimdYolo/CpuPointwise.cs",
+      "Bytes": 7151,
+      "Sha256": "1205a57fba48045f04cd497d5a8e8bfa8cc62d5dd3cb2f0a1017669b8f1e475f"
+    },
+    {
+      "File": "src/SimdYolo/CpuPointwise24.cs",
+      "Bytes": 17529,
+      "Sha256": "22ebdd14a13f9ef5c6f80c523213afbe837246f36ad3b5c2e41afbe9f732ed59"
+    },
+    {
+      "File": "src/SimdYolo/CpuPointwiseAligned.cs",
+      "Bytes": 6564,
+      "Sha256": "79c843a746bc697e64ed88c1812076df06803df3d19a7f165ae2fffcf333d50e"
+    },
+    {
+      "File": "src/SimdYolo/CpuPointwiseAlignedSmall.cs",
+      "Bytes": 7575,
+      "Sha256": "93832c999f509ff110030bb7cf6c617be4a0f8bfde25ba805450e66c4136bbe9"
+    },
+    {
+      "File": "src/SimdYolo/CpuPose.cs",
+      "Bytes": 4061,
+      "Sha256": "b1bc0996a50b3ba290ca8682cbe1b416da7c1985a7e5fc7267f4ae17fc127a9b"
+    },
+    {
+      "File": "src/SimdYolo/CpuScheduling.cs",
+      "Bytes": 5058,
+      "Sha256": "230fe533638c1303c96d45d90138dad5e061fba377e4db0dbf23d2a0e6bdaa4e"
+    },
+    {
+      "File": "src/SimdYolo/CpuSpatial.cs",
+      "Bytes": 25776,
+      "Sha256": "389dda024bc696a7855b5926fc408108aefb598bce32bc9d63414bb2f3646002"
+    },
+    {
+      "File": "src/SimdYolo/CpuTensorPool.cs",
+      "Bytes": 5410,
+      "Sha256": "48915c9e7aa21b9fb67f305cad55e48594ba7613dc1985a6983d6dd65b1c7d88"
+    },
+    {
+      "File": "src/SimdYolo/CpuTranspose.cs",
+      "Bytes": 6289,
+      "Sha256": "92f06b9a973d20ec865efa4c06d89e0e0e27e304e3172534a96b485bb082a406"
+    },
+    {
+      "File": "src/SimdYolo/CpuWeightBatch.cs",
+      "Bytes": 3731,
+      "Sha256": "c95a7a06cdeab5a98315e61e88c3b29700c9ec41bd79a0c8455aa43ce3010d8b"
+    },
+    {
+      "File": "src/SimdYolo/CpuWinograd.cs",
+      "Bytes": 13853,
+      "Sha256": "2b847b7a17e95eba6ead31ee17fc0521c0cb17e3dea0f30f231a8743893a67e5"
+    },
+    {
+      "File": "src/SimdYolo/CpuWinograd24.cs",
+      "Bytes": 6617,
+      "Sha256": "e64fa1ead0723764c28ba652db4274b6f44b95c1bae8c3f1db6841142b90cb29"
+    },
+    {
+      "File": "src/SimdYolo/CpuWinograd4.cs",
+      "Bytes": 25025,
+      "Sha256": "c94b3a941c0bfb070bd8c8245e2912c4c4857fdcdc50552348f63b7a276b68ba"
+    },
+    {
+      "File": "src/SimdYolo/CpuWinograd424.cs",
+      "Bytes": 6325,
+      "Sha256": "1cd6f5039f56540a9d5f449ec0300308d9aad6a738bc9472ba4b7e58e283e25b"
+    },
+    {
+      "File": "src/SimdYolo/CpuWinogradPanels.cs",
+      "Bytes": 50232,
+      "Sha256": "ce4de033da2761d54a2e079a15fa7e8cd57999367428bd110548a925ccad0bd2"
+    },
+    {
+      "File": "src/SimdYolo/DeviceExecution.cs",
+      "Bytes": 15993,
+      "Sha256": "30dea3b6b4fdf4f43556e5017369c7fe58b592aa9a34aea79454cebe7514a705"
+    },
+    {
+      "File": "src/SimdYolo/KernelFusion.cs",
+      "Bytes": 1774,
+      "Sha256": "5bc7555989978bd012972f6f980b43ef39622364b1dfeecec1cb75b7e12ff92d"
+    },
+    {
+      "File": "src/SimdYolo/MetadataLiteral.cs",
+      "Bytes": 6054,
+      "Sha256": "8356df1dd51cdc5bfd2b77d13c72c1580e05e8d17d761dc323b1cfa35303db7c"
+    },
+    {
+      "File": "src/SimdYolo/MetalBackend.cs",
+      "Bytes": 26875,
+      "Sha256": "2158e7cb6fd5f2c2ac5bbfc5da7efe115d73bd012e5fb6f6e3377b95701fecdc"
+    },
+    {
+      "File": "src/SimdYolo/ModelInfo.cs",
+      "Bytes": 12393,
+      "Sha256": "52ebcd4780208004fa16c6bdff8b8294f6c3d461d0e17a90b7c289cc191e3326"
+    },
+    {
+      "File": "src/SimdYolo/OnnxConcatConv.cs",
+      "Bytes": 4981,
+      "Sha256": "2ed5c0752c3aa54563ba22a83987dc9c3bad4a7952ad4e92d82b23c00b2c7d17"
+    },
+    {
+      "File": "src/SimdYolo/OnnxCpuZeroAdd.cs",
+      "Bytes": 4533,
+      "Sha256": "1fcee23f5c6b8342df6328ab0d76f65825faaed439706a45f0b1b8b5f88f9bae"
+    },
+    {
+      "File": "src/SimdYolo/OnnxDeviceOperations.cs",
+      "Bytes": 5060,
+      "Sha256": "af960fbcffdfb025ad6087cdf12cf902d9fe78af1ace2d4ebf40f50c4e482d9b"
+    },
+    {
+      "File": "src/SimdYolo/OnnxEndToEnd.cs",
+      "Bytes": 14063,
+      "Sha256": "66da50514175f68d1824666751f30ad4b8d6a0e73734a325ae876faa3788291c"
+    },
+    {
+      "File": "src/SimdYolo/OnnxHead.cs",
+      "Bytes": 10426,
+      "Sha256": "73d6cf61b52c0a416e3931b1ed572e85daf009350564686f826b60915b127ac0"
+    },
+    {
+      "File": "src/SimdYolo/OnnxMetadataReader.cs",
+      "Bytes": 6527,
+      "Sha256": "4a7bd79478ab5792c066e0c792e8087f21851970dd1ca413f26c772ddcdc82e8"
+    },
+    {
+      "File": "src/SimdYolo/OnnxModel.cs",
+      "Bytes": 37199,
+      "Sha256": "3d7ba607201d6958ed524f117c54be3e60a89bc9ab58ba59e8be8e3da7c34562"
+    },
+    {
+      "File": "src/SimdYolo/OnnxOptimization.cs",
+      "Bytes": 16012,
+      "Sha256": "4fcfedd95c454d8343e5411a239141221ca86600228c4eb26175221db7b1f9f1"
+    },
+    {
+      "File": "src/SimdYolo/OnnxReader.cs",
+      "Bytes": 20304,
+      "Sha256": "2437c5755a803f81d327d7b2f8e44a3e45efb9d566d6bc8f77a7aa73c2374153"
+    },
+    {
+      "File": "src/SimdYolo/OnnxReduction.cs",
+      "Bytes": 3648,
+      "Sha256": "f2845c71cc1dcf0c4099991090a0e59a531378f8023544b14fefd80a27831cff"
+    },
+    {
+      "File": "src/SimdYolo/OnnxSigmoidConcat.cs",
+      "Bytes": 6107,
+      "Sha256": "2030ccede00e25f13647ada99364424ee609fb7b1e4d83477479ac45015c8d92"
+    },
+    {
+      "File": "src/SimdYolo/OnnxYolo26Head.cs",
+      "Bytes": 13738,
+      "Sha256": "e0f9171dd2b52506b2d65cd8b183e952ceabef544baca23c76faaf38d6b6777a"
+    },
+    {
+      "File": "src/SimdYolo/PickleReader.cs",
+      "Bytes": 24903,
+      "Sha256": "f01cc61cab229f048fa94119783a31090f33ced9ae4c6fb73318f4de27961898"
+    },
+    {
+      "File": "src/SimdYolo/PtModel.cs",
+      "Bytes": 40384,
+      "Sha256": "042ae30dc355bc9e30ce802ea3bcdb5131549598d2bcb22e1c90c64d900da02d"
+    },
+    {
+      "File": "src/SimdYolo/SimdYolo.csproj",
+      "Bytes": 653,
+      "Sha256": "5625a2d78457982fedd6389f0f9898cb5afb6e0bafc8b879735a90f90ae160a8"
+    },
+    {
+      "File": "src/SimdYolo/Tensor.cs",
+      "Bytes": 9439,
+      "Sha256": "dc6ecadd6243370147246e1075ec2a9aed53ab4d30995f7eb5b34e91bd58a4ad"
+    },
+    {
+      "File": "src/SimdYolo/TensorStorageReader.cs",
+      "Bytes": 6861,
+      "Sha256": "4dd8fe68f85aac96e656213d6c3868351de5ab065763808df71dd5e5999f521a"
+    },
+    {
+      "File": "src/SimdYolo/VisionDecoder.cs",
+      "Bytes": 9626,
+      "Sha256": "315cb92fca22122bfb7d2b03dee0cb348b0e026e819b30342febed12c1ef1e6a"
+    },
+    {
+      "File": "src/SimdYolo/VulkanBackend.cs",
+      "Bytes": 73497,
+      "Sha256": "124fca58cfa5f4402118bca103c30b4e898d2b3de6d5391e169f2bf3d6fd6acd"
+    },
+    {
+      "File": "src/SimdYolo/VulkanDepthwise3x3.cs",
+      "Bytes": 3691,
+      "Sha256": "31f953ac31467ef63fc4f5bd4f819bd29a2e2a9a75f0ad0c3a37acbf4d567ea9"
+    },
+    {
+      "File": "src/SimdYolo/VulkanDownloads.cs",
+      "Bytes": 2546,
+      "Sha256": "99f4937f5b2da188bfd7f3878335b352ea22eb95b30ba2db0326ccc8e062b5c4"
+    },
+    {
+      "File": "src/SimdYolo/VulkanExecution.cs",
+      "Bytes": 42663,
+      "Sha256": "605a56758f4d8de75cd776f48560f7d5c891c9523c0e8515c20607b393b6cebf"
+    },
+    {
+      "File": "src/SimdYolo/VulkanLowChannels.cs",
+      "Bytes": 3584,
+      "Sha256": "701ca5ce555e09579d7a47209d41ebbb1e433db7cf2a4e7d9cb0a7244c197ba8"
+    },
+    {
+      "File": "src/SimdYolo/VulkanPipelineCache.cs",
+      "Bytes": 14704,
+      "Sha256": "aa8d194913af5ccebdac2ca94ae689abb699b4b895e77cd83e01f101c48102bd"
+    },
+    {
+      "File": "src/SimdYolo/VulkanPointwisePacked.cs",
+      "Bytes": 3945,
+      "Sha256": "59b21b7dda3f647c12693d40556d9aeb205cee9a8e9a9704b87e4aa586647074"
+    },
+    {
+      "File": "src/SimdYolo/VulkanPointwisePacked32.cs",
+      "Bytes": 3943,
+      "Sha256": "7fa066becfff741c07c71547a4967764dcb77b6b2a3bb67060d2598788af95b0"
+    },
+    {
+      "File": "src/SimdYolo/VulkanRegisterPointwise.cs",
+      "Bytes": 3972,
+      "Sha256": "5b105229b6abad87adb9a305cd61d72858b4f0b6c105bf3882cb712a8dac31a3"
+    },
+    {
+      "File": "src/SimdYolo/VulkanReplay.cs",
+      "Bytes": 8458,
+      "Sha256": "3a2ca8485193e99e1d153cf63fd4dbeb674879903c23bd19df6c7dbb9ac1fddf"
+    },
+    {
+      "File": "src/SimdYolo/VulkanTopK.cs",
+      "Bytes": 8795,
+      "Sha256": "75d393a721995054eb9afb9456c6ded343101610b73a44e3aed63dc3f15b51fe"
+    },
+    {
+      "File": "src/SimdYolo/VulkanTransposeConv.cs",
+      "Bytes": 2013,
+      "Sha256": "f86b965dfe04f0cd5ec5bbda5cd92a044a1034d0e063c26a7761cbcbee1c6550"
+    },
+    {
+      "File": "src/SimdYolo/VulkanWinograd.cs",
+      "Bytes": 16075,
+      "Sha256": "c8d11cf6f20f24c3813c571286b14366b5ed2e41e149826245295fb3ae1d1882"
+    },
+    {
+      "File": "src/SimdYolo/YoloDetector.cs",
+      "Bytes": 37685,
+      "Sha256": "0ce97ff457f44af7723b3b6919f42cffab350af65b4222438734109950a9303f"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuActivationTests.cs",
+      "Bytes": 4567,
+      "Sha256": "5acc2af92ed2ea237f5f4ce9a4271ad8452c952bbc7893781cca42817d7ebf1e"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuAverageTwoTests.cs",
+      "Bytes": 3374,
+      "Sha256": "eceb85c5821f50f9de4763a064b4ea12a349cdbb867efc976b3880b83ca7bb17"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuConcatTests.cs",
+      "Bytes": 8448,
+      "Sha256": "0752cb2428af3741152e82c7bb0de2e5335eeb4067059d389e41057b05f67cee"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuConvolutionAlignedTests.cs",
+      "Bytes": 4468,
+      "Sha256": "cf426540d966e91eda54e5ffab14a8fa1e1aeedf5d01e98ac3571b32ba657ad2"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuConvolutionPackTests.cs",
+      "Bytes": 7013,
+      "Sha256": "afffb1a9ae688f8abf879e5f87c99bed1430fa63192c2c39669d664ddf17990a"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuDepthwisePaddedTests.cs",
+      "Bytes": 4377,
+      "Sha256": "8e16330b1558b6eb776e428b1cec5238564c47ee88899417da3ac7ab75e9fa2f"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuDepthwiseThreeTests.cs",
+      "Bytes": 4980,
+      "Sha256": "1b9879463dca9bbe90bb62849b3085bcc3dc95e7b03d9d7f648e93b4185f3977"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuExecutorTests.cs",
+      "Bytes": 12284,
+      "Sha256": "da81c0d72392630790dea5bf6e412477b9c21d2e5d4d359231538474df0d5771"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuGemm24Tests.cs",
+      "Bytes": 7151,
+      "Sha256": "2e62d1ba96512610e96f307e6d63ed76fc22cf8e963b6db965d02cd332b10a8a"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuHeadCoordinatesTests.cs",
+      "Bytes": 4835,
+      "Sha256": "b2f2ac840c6d63bea0972ef84c048246f8b8f4c6cfe85b76772a38296b47456a"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuHeadOptimizationTests.cs",
+      "Bytes": 9124,
+      "Sha256": "96fb8de9e4033f5b0cadcd7df201b3e0faa03154ae453ceca34a9bc8c5c5d910"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuMatMulOffsetsTests.cs",
+      "Bytes": 15027,
+      "Sha256": "dd7bcbaa4e764ce76a838dff81d3a045a450974cf351f6765f4dc3f28d06a002"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuOnnxEndToEndTests.cs",
+      "Bytes": 6182,
+      "Sha256": "28c0706ea803474777e2031e3bb26aa0dee170394094d49597cce13c51095e59"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuPackedGemmTests.cs",
+      "Bytes": 7679,
+      "Sha256": "81165a78b6c54cd89f8fdffeb04496af2131c26de5fe74473657a4c477871ce1"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuPointwise24Tests.cs",
+      "Bytes": 6588,
+      "Sha256": "24171cbfc8e74a16145b70d8f410c075b7bb6fcadbaeeadd168a4a3b1afde3fb"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuPointwiseAlignedTests.cs",
+      "Bytes": 8518,
+      "Sha256": "46940f9fd8b00335aafb1f223525859c4bb2cc8de6e0e095c8b0fb779bd954c3"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuPtEndToEndTests.cs",
+      "Bytes": 8098,
+      "Sha256": "4443d6da28fc0d79c5d2a63e8858f9deb2a4b0cfa2d452a8fcff4cf8c3210349"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuTransposeSimdTests.cs",
+      "Bytes": 4214,
+      "Sha256": "b9a8bbddbb30b38eba7c4c10699a0117252395a6b9aace14e1123a7481265847"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuWeightBatchTests.cs",
+      "Bytes": 13724,
+      "Sha256": "14db9e2d229e5862e8999c32649e42822f5277f16d9104b6653bb439e02546cd"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuWinograd424Tests.cs",
+      "Bytes": 13898,
+      "Sha256": "0c84ae636a0a7332d09d31f86ca119751e7f2c9ea63f9fc5ff078dd4271a5d7d"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/CpuWinogradPanelTests.cs",
+      "Bytes": 7679,
+      "Sha256": "3e4765f75adba4f34b316dbdcb327c0c3fba72a82bd64d79fe4db7c7be1b90bc"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/GpuConvolutionKernelTests.cs",
+      "Bytes": 4748,
+      "Sha256": "321caad5fae3cf57f231677bed1f9e3f747293f5a715c2f78c5bfa0525508999"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/GpuDepthwiseVectorTests.cs",
+      "Bytes": 4729,
+      "Sha256": "3b66c779d364a4e9495b28e89ba31b143aa30ba815665ef306a01f178431acc9"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/GpuPackedPointwise32Tests.cs",
+      "Bytes": 5033,
+      "Sha256": "cdc93d1726d774f9b54a9a3150679a124de1edd108bfeaa2f732ef1349c96ea5"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/GpuTopKTests.cs",
+      "Bytes": 11454,
+      "Sha256": "22a2bc3c33ac074226abcf958ae5c2df386b9fbb651a5e9394228e6ff0db606a"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/ModelInfoTests.cs",
+      "Bytes": 6930,
+      "Sha256": "0af430ef03ac3d289e313cfc130700fc5aa94fb9148a2caf4f63ca40f91c669f"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/ModelReaderOptimizationTests.cs",
+      "Bytes": 19584,
+      "Sha256": "df0d89a81ee4f3ed146fa35a8ec99dc94696f44d65491acd4b73bcc922d3df2e"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/OnnxConcatConvRegression.cs",
+      "Bytes": 5890,
+      "Sha256": "86f6ec29fdef2a9114e8c0a49c6f68ea879f1110e219e1f5fafb9be029eeb533"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/OnnxCpuZeroAddTests.cs",
+      "Bytes": 9917,
+      "Sha256": "740ab9cbdfe47c9fb14021b524482dd9dec7adea6ac35522cba323824c77193b"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/OnnxDeviceHeadTests.cs",
+      "Bytes": 9543,
+      "Sha256": "978a95b722ed1e6451b2037dee3b7509ca680535e18ed09b14e9403c09930dc0"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/OnnxEndToEndTests.cs",
+      "Bytes": 14546,
+      "Sha256": "2c125097f22df7c7a94e2293e70ef4416cc02a0e1bdf6953afe4bab63108dc3a"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/OnnxFixtures.cs",
+      "Bytes": 8103,
+      "Sha256": "648137deed00c6c092372d9cd392dcd82ddc267623c88f8bdf657843b9035dce"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/OnnxYolo26HeadTests.cs",
+      "Bytes": 14417,
+      "Sha256": "24891d3d4e542dafb48d1065c8553a853908f46280fac9ae8d5a0d9e7dd95789"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/Program.cs",
+      "Bytes": 42383,
+      "Sha256": "c0ec77c19f67f1447c31d3f546a8e9cb4d3ab48af10cbaf892769a90a9b82a3e"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/PtRoutingReuseTests.cs",
+      "Bytes": 2664,
+      "Sha256": "956a06a2d603cb3bddaf833cfd595b186a258fc7767f89f61eab97b47ee176ab"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/SimdYolo.Tests.csproj",
+      "Bytes": 191,
+      "Sha256": "c40e302f40114fad229f477c19ec9e8f70cf6d79c4c3422710a58740ee8de282"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/VulkanDependencyTests.cs",
+      "Bytes": 3733,
+      "Sha256": "259017f6d76694fd2742a1151e53720818736f8753ec68f57d09e1d99e1ee732"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/VulkanPipelineCacheTests.cs",
+      "Bytes": 4059,
+      "Sha256": "e7d95f98c0df1c6e9121b532b0108f351a8b7514ab6e425b3244d027550a120e"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/VulkanReplayTests.cs",
+      "Bytes": 5933,
+      "Sha256": "f0a311e94ae25f00980f94cac9cf4ca520f37a82f9c11996f169d048ba9b5637"
+    },
+    {
+      "File": "tests/SimdYolo.Tests/Yolo26Tests.cs",
+      "Bytes": 7114,
+      "Sha256": "e0c09f55f7926785b6b0eecc6995a74af6ff1719630e3f697b8f80e6001fd9ef"
+    },
+    {
+      "File": "tools/LifecycleBenchmark/LifecycleBenchmark.csproj",
+      "Bytes": 480,
+      "Sha256": "e1a45a196f53d958d63dddae9ba94830a93f1725c7f1c632a613ab10316fd723"
+    },
+    {
+      "File": "tools/LifecycleBenchmark/Program.cs",
+      "Bytes": 9925,
+      "Sha256": "a1addbb83a6ec9ef89a53eef4c4433a64b5e9d8c9b7d647bfb699ad55afa530a"
+    },
+    {
+      "File": "tools/LifecycleBenchmark/README.md",
+      "Bytes": 4335,
+      "Sha256": "7ca465072d4d4cdb8f004789a26111f94c3e63192592b6770989fe8cc6c3a5d1"
+    },
+    {
+      "File": "tools/OrtBenchmark/OrtBenchmark.csproj",
+      "Bytes": 382,
+      "Sha256": "1430a3c096e80d5f171584ee2d0c67385a6aed9a483a1c74f4fef3ecc6f18db0"
+    },
+    {
+      "File": "tools/OrtBenchmark/Program.cs",
+      "Bytes": 10050,
+      "Sha256": "cf7d4ff61c2a9415b990534cfd4987f5b7e046d71b6231507d8452d2673550a3"
+    },
+    {
+      "File": "tools/PackageAudit/PackageAudit.csproj",
+      "Bytes": 103,
+      "Sha256": "485e171e44ee6360533652433989d3b90ab763b8f7cebf63ee46fd066e074996"
+    },
+    {
+      "File": "tools/PackageAudit/Program.cs",
+      "Bytes": 12638,
+      "Sha256": "dd5f80833b4855efb4dca97bb68bcad433269a17108aef241433dcf78d322be7"
+    },
+    {
+      "File": "tools/PackageAudit/README.md",
+      "Bytes": 1769,
+      "Sha256": "da0ad788262009bc2591b7bcabc67391f08dfa7d726288d81c09cd915c2b29f4"
+    },
+    {
+      "File": "tools/PackageConsumer/NuGet.Config",
+      "Bytes": 131,
+      "Sha256": "2f202b3ef18b17022100c21886ea89fd8a5efdd3c8eacf695e7ce8f90703e5d0"
+    },
+    {
+      "File": "tools/PackageConsumer/PackageConsumer.csproj",
+      "Bytes": 313,
+      "Sha256": "307194bae604152207b85b362b036a9b677c6dd8bb6f7f8fc606c002c097303f"
+    },
+    {
+      "File": "tools/PackageConsumer/Program.cs",
+      "Bytes": 3942,
+      "Sha256": "b0af201d669f7aacf284f3b5e873bcf81a1ead6597fb02fc86aa0c7d94265d7b"
+    },
+    {
+      "File": "tools/PackageConsumer/README.md",
+      "Bytes": 890,
+      "Sha256": "fee69e5cf7d7465869d951c88d7d26bae4a9505a6dfe2831353d3cc3218a7e48"
+    },
+    {
+      "File": "tools/audit-package.py",
+      "Bytes": 12135,
+      "Sha256": "18f557d53b1683836724ccb8eba085cfada4b54c3a509259c016d1676b05797e"
+    },
+    {
+      "File": "tools/benchmark.ps1",
+      "Bytes": 1321,
+      "Sha256": "e8e8412cd477fb222ce595596829856c8a85abba45cc496297f5787852d8b4c9"
+    },
+    {
+      "File": "tools/build-shaders.ps1",
+      "Bytes": 471,
+      "Sha256": "e2074c1ee7bf7b3ff1fcbdb6949c9fac84684727db7a2489909a4a7978e9a48b"
+    },
+    {
+      "File": "tools/compare-lifecycle.py",
+      "Bytes": 17222,
+      "Sha256": "3e47b1a140bedf3443fb6328010580f316c76137e73723fe11e2eb0e38213c57"
+    },
+    {
+      "File": "tools/compare-python.py",
+      "Bytes": 14663,
+      "Sha256": "ca01b22e940aefeaedc1ab4fc8d0704ed144398ca45769e7f3e098bde5c13596"
+    },
+    {
+      "File": "tools/compare-runtimes.py",
+      "Bytes": 65044,
+      "Sha256": "364e9a47a3ea4e0a0550ab25ccbca5a75087367cccff374da51e12be8a36afae"
+    },
+    {
+      "File": "tools/download-models.ps1",
+      "Bytes": 793,
+      "Sha256": "fa07ed6bce13b8bc70ea7e3f4e00c09fc8bb4910d5488352b5d7e60aad6c62c2"
+    },
+    {
+      "File": "tools/output_validation.py",
+      "Bytes": 4583,
+      "Sha256": "60ea9c1ae888fa199cc8e3eda245e6c935ff7e642ace2e5e8cce253ca6542c0b"
+    },
+    {
+      "File": "tools/render-optimization.py",
+      "Bytes": 30095,
+      "Sha256": "7cb6d6365b4ce364d1d2378a3e4c7b13be959b27c8620446ca901ba05977019e"
+    },
+    {
+      "File": "tools/validate-image.py",
+      "Bytes": 7005,
+      "Sha256": "4498e4f3b90bb6e8d25a7cec368efbe256df99878a9a4ca2adb91e25f8cc4b25"
+    },
+    {
+      "File": "tools/validate-lifecycle.py",
+      "Bytes": 27050,
+      "Sha256": "515d50421c5f5111ac865c98987746d2297df0d7cf16ac6bcfa5df5076284846"
+    },
+    {
+      "File": "tools/validate-reference.py",
+      "Bytes": 6462,
+      "Sha256": "30243f53c2e2e8be4e42b49232b8269ca9443566676684fa9de7acaaf1f52c24"
+    }
+  ]
+}

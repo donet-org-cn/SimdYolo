@@ -344,7 +344,7 @@ internal static class CpuSpatial
     public static Tensor MaxPool(Tensor x, int[] kernel, int[] stride, int[] pad, int oh, int ow)
     {
         int channels = x.Shape[0] * x.Shape[1], h = x.Shape[2], w = x.Shape[3];
-        var output = Tensor.Temporary(x.Shape[0], x.Shape[1], oh, ow); float[] data = x.Data, target = output.Data;
+        var output = Tensor.TemporaryUninitialized(x.Shape[0], x.Shape[1], oh, ow); float[] data = x.Data, target = output.Data;
         var horizontal = ArrayPool<float>.Shared.Rent(channels * h * ow);
         try
         {

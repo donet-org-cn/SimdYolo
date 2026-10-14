@@ -42,6 +42,59 @@ internal static class CpuGemm
         else for (int i = 0; i < a.Length; i++) CpuGemmPortable.Multiply(a[i], b[i], c[i], m, n, k, parallel);
     }
 
+    /// <summary>直接读取共享数组中的各批次矩阵，按批次和列面板一次调度，将结果写入连续输出批次而不复制整矩阵。</summary>
+    /// <param name="a">保存全部左矩阵的源数组，允许与右矩阵共享数组。</param>
+    /// <param name="b">保存全部右矩阵的源数组。</param>
+    /// <param name="c">连续保存各批次 C[M,N] 的目标数组；非零 K 时不得与输入数组相同。</param>
+    /// <param name="aOffsets">各左矩阵在 a 中的元素起始偏移；广播批次可重复引用同一偏移。</param>
+    /// <param name="bOffsets">各右矩阵在 b 中的元素起始偏移，数量必须与 aOffsets 相同。</param>
+    /// <param name="m">每个左矩阵和输出矩阵的行数。</param>
+    /// <param name="n">每个右矩阵和输出矩阵的列数。</param>
+    /// <param name="k">每个矩阵乘积的归约深度。</param>
+    /// <param name="parallel">当前 CPU 后端的线程预算、取消令牌和调度选项。</param>
+    /// <exception cref="ArgumentException">形状、批次数、偏移、缓冲区范围不合法，或非零 K 的输出与输入共享数组。</exception>
+    /// <exception cref="OverflowException">矩阵元素数、工作项数或偏移范围的受检查运算溢出。</exception>
+    /// <exception cref="AggregateException">并行调度中的回调或临时工作区清理失败。</exception>
+    /// <exception cref="OperationCanceledException">并行调度的取消令牌已请求取消。</exception>
+    internal static void MultiplyOffsetsBatch(float[] a, float[] b, float[] c, int[] aOffsets, int[] bOffsets,
+                                               int m, int n, int k, ParallelOptions parallel)
+    {
+        if (m < 0 || n < 0 || k < 0 || aOffsets.Length != bOffsets.Length) throw new ArgumentException("Invalid offset GEMM batch.");
+        int mk = checked(m * k), kn = checked(k * n), mn = checked(m * n), count = aOffsets.Length;
+        int total = checked(count * mn);
+        if (c.Length < total) throw new ArgumentException("Offset GEMM output is too short.");
+        for (int batch = 0; batch < count; batch++)
+            if (aOffsets[batch] < 0 || bOffsets[batch] < 0 ||
+                a.Length < checked(aOffsets[batch] + mk) || b.Length < checked(bOffsets[batch] + kn))
+                throw new ArgumentException("Offset GEMM input range is invalid.");
+        if (count == 0 || m == 0 || n == 0) return;
+        if (k == 0) { Array.Clear(c, 0, total); return; }
+        if (ReferenceEquals(c, a) || ReferenceEquals(c, b)) throw new ArgumentException("Offset GEMM output must not alias an input array.");
+        if (!Avx.IsSupported || !Fma.IsSupported)
+        {
+            CpuGemmPortable.MultiplyOffsetsBatchCore(a, b, c, aOffsets, bOffsets, m, n, k, parallel);
+            return;
+        }
+        int panels = checked((int)(((long)n + 15) / 16)), work = checked(count * panels);
+        // 同一线程打包当前右矩阵列面板，再直接计算其全部输出行；不同任务拥有独占的输出列。
+        void Panel(int index, float[] packed)
+        {
+            int batch = index / panels, column = index % panels * 16, take = Math.Min(16, n - column);
+            Pack(b, packed, column, take, n, k, bOffsets[batch]);
+            MultiplyAvx(a, packed, c, m, n, k, column, take, cOffset: batch * mn, aOffset: aOffsets[batch]);
+        }
+        if ((long)count * m * n * k > 262144 && parallel.MaxDegreeOfParallelism != 1)
+            CpuScheduling.For(0, work, parallel, () => ArrayPool<float>.Shared.Rent(checked(k * 16)),
+                (index, _, packed) => { Panel(index, packed); return packed; },
+                packed => ArrayPool<float>.Shared.Return(packed));
+        else
+        {
+            var packed = ArrayPool<float>.Shared.Rent(checked(k * 16));
+            try { for (int index = 0; index < work; index++) Panel(index, packed); }
+            finally { ArrayPool<float>.Shared.Return(packed); }
+        }
+    }
+
     /// <summary>验证矩阵批次数与长度，按 B 的 16 列面板分配任务，并在所有输出行间复用打包输入。</summary>
     /// <param name="a">各批次的行主序左矩阵 A[M,K]。</param>
     /// <param name="b">各批次的行主序右矩阵 B[K,N]。</param>
@@ -60,7 +113,8 @@ internal static class CpuGemm
             if (a[t].Length < checked(m * k) || b[t].Length < checked(k * n) || c[t].Length < checked(m * n)) throw new ArgumentException("Invalid GEMM buffer.");
         if (m == 0 || n == 0) return;
         if (k == 0) { foreach (var output in c) Array.Clear(output, 0, m * n); return; }
-        var weights = CpuPackedGemm.Use(m) && constant ? a.Select(weight => CpuPackedGemm.Prepare(weight, m, k, true)).ToArray() : null;
+        var weights = CpuPackedGemm.Use(m) && constant ? CpuWeightBatch<CpuPackedGemm.Matrix>.Prepare(a, m, k,
+            static (weight, rows, depth) => CpuPackedGemm.Prepare(weight, rows, depth, true)) : null;
         int panels = (n + 15) / 16;
         // 为当前批次打包一个 B 列面板，并计算所有输出行的乘积。
         // 参数 index：工作线程、任务或输出元素的索引。
@@ -92,10 +146,12 @@ internal static class CpuGemm
     /// <param name="take">当前面板中实际有效的位置数。</param>
     /// <param name="n">右矩阵与输出矩阵的列数 N，亦为输出行跨度。</param>
     /// <param name="k">矩阵乘法的归约长度 K。</param>
-    private static unsafe void Pack(float[] b, float[] packed, int column, int take, int n, int k)
+    /// <param name="offset">右矩阵在源数组中的元素起始偏移。</param>
+    private static unsafe void Pack(float[] b, float[] packed, int column, int take, int n, int k, int offset = 0)
     {
-        fixed (float* source = b, target = packed)
+        fixed (float* sourceStart = b, target = packed)
         {
+            float* source = sourceStart + offset;
             if (take == 16)
                 for (int p = 0; p < k; p++)
                 {
@@ -122,11 +178,20 @@ internal static class CpuGemm
     /// <param name="take">当前面板中实际有效的位置数。</param>
     /// <param name="bOffset">打包右矩阵在输入缓冲区中的起始偏移。</param>
     /// <param name="cOffset">结果矩阵在输出缓冲区中的起始偏移。</param>
-    internal static unsafe void MultiplyAvx(float[] a, float[] b, float[] c, int m, int n, int k, int column, int take, int bOffset = 0, int cOffset = 0)
+    /// <param name="aOffset">左矩阵在源数组中的元素起始偏移；位于可选参数末尾以保留原有右矩阵和输出偏移的位置。</param>
+    /// <remarks>调用方须提前验证形状、面板宽度及三个数组的完整范围；内核不重复执行每面板验证。</remarks>
+    internal static unsafe void MultiplyAvx(float[] a, float[] b, float[] c, int m, int n, int k, int column, int take,
+                                             int bOffset = 0, int cOffset = 0, int aOffset = 0)
     {
-        fixed (float* ap = a, bStart = b, cStart = c)
+        if (m == 0 || take == 0) return;
+        if (k == 0)
         {
-            float* bp = bStart + bOffset, cp = cStart + cOffset;
+            for (int row = 0; row < m; row++) c.AsSpan(cOffset + row * n + column, take).Clear();
+            return;
+        }
+        fixed (float* aStart = a, bStart = b, cStart = c)
+        {
+            float* ap = aStart + aOffset, bp = bStart + bOffset, cp = cStart + cOffset;
             int depth = take == 16 && k >= 256 && m >= 32 ? 128 : k;
             for (int begin = 0; begin < k; begin += depth)
             {

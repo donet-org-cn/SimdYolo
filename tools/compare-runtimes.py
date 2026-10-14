@@ -5,9 +5,11 @@ Uses existing isolated .cache/reference, .cache/torch-cu126 and .cache/ort-gpu.
 Never installs packages and never becomes a dependency of SimdYolo.
 """
 import argparse
+import ast
 import ctypes
 import gc
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -23,6 +25,8 @@ os.environ.setdefault("YOLO_CONFIG_DIR", str(ROOT / ".cache"))
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".cache"))
 import numpy as np
 import psutil
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from output_validation import compare
 
 ENGINES = {
     "net-cpu": ".NET SIMD CPU (.pt)",
@@ -106,15 +110,39 @@ class GpuSampler:
             self.lib.nvmlShutdown()
 
 
-def activate_packages(engine):
+def activate_packages(engine, ultralytics_dir=None):
     # Select one build in a fresh process. ORT workers do not import torch, so
     # the Python torch module cannot inflate the ORT RSS comparison.
     if engine.startswith("torch"):
-        for directory in [ROOT / ".cache/reference", ROOT / ".cache/torch-cu126" if engine == "torch-cuda" else None]:
-            if directory is not None and directory.is_dir():
-                sys.path.insert(0, str(directory))
+        selected = Path(ultralytics_dir or ROOT / ".cache/reference").resolve()
+        if not (selected / "ultralytics").is_dir():
+            raise RuntimeError(f"Ultralytics package directory is missing: {selected}")
+        cuda_packages = (ROOT / ".cache/torch-cu126").resolve()
+        if engine == "torch-cpu":
+            # 在导入 torch 前移除已知 CUDA wheel 路径，再静态检查最终选中的 wheel。
+            sys.path[:] = [entry for entry in sys.path if not Path(entry or os.curdir).resolve().is_relative_to(cuda_packages)]
+        directories = [selected, cuda_packages if engine == "torch-cuda" else None, ROOT / ".cache/reference"]
+        for directory in reversed(list(dict.fromkeys(directory for directory in directories if directory is not None and directory.is_dir()))):
+            sys.path.insert(0, str(directory))
     elif engine == "ort-cuda" and (ROOT / ".cache/ort-gpu").is_dir():
         sys.path.insert(0, str(ROOT / ".cache/ort-gpu"))
+
+
+def ensure_cpu_torch_package():
+    """在导入前读取官方 wheel 的版本声明，禁止 CPU 基准意外加载 CUDA torch。"""
+    spec = importlib.util.find_spec("torch")
+    if spec is None or not spec.submodule_search_locations:
+        raise RuntimeError("A CPU-only PyTorch package is required for torch-cpu")
+    version = Path(next(iter(spec.submodule_search_locations))) / "version.py"
+    if not version.is_file():
+        raise RuntimeError(f"Cannot verify that selected PyTorch wheel is CPU-only: {version}")
+    for statement in ast.parse(version.read_text(encoding="utf-8")).body:
+        targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target] if isinstance(statement, ast.AnnAssign) else []
+        if any(isinstance(target, ast.Name) and target.id == "cuda" for target in targets):
+            if not isinstance(statement.value, ast.Constant) or statement.value.value is not None:
+                raise RuntimeError(f"torch-cpu selected a CUDA/unknown PyTorch wheel; CUDA torch was not imported: {version}")
+            return
+    raise RuntimeError(f"PyTorch cuda build declaration is missing: {version}")
 
 
 def flatten_tensors(value, torch):
@@ -126,17 +154,24 @@ def flatten_tensors(value, torch):
 def worker(args):
     started = time.perf_counter()
     baseline_rss = psutil.Process().memory_info().rss / 1048576
-    activate_packages(args.engine)
     array = np.fromfile(args.input, dtype=np.float32).reshape(1, 3, args.size, args.size)
     metadata = {"Engine": args.engine, "BaselineWorkingSetMiB": baseline_rss, "CpuThreads": args.threads}
+    import_started = time.perf_counter()
+    activate_packages(args.engine, args.ultralytics_dir)
     if args.engine.startswith("torch"):
+        if args.engine == "torch-cpu":
+            ensure_cpu_torch_package()
         import torch
         import ultralytics
+        import_ms = (time.perf_counter() - import_started) * 1000
+        if args.engine == "torch-cpu" and torch.version.cuda is not None:
+            raise RuntimeError("CPU benchmark must use a CPU-only PyTorch build")
         torch.set_num_threads(args.threads)
         torch.set_num_interop_threads(1)
         torch.backends.cudnn.benchmark = True
         torch.backends.cudnn.allow_tf32 = False
         torch.backends.cuda.matmul.allow_tf32 = False
+        model_started = time.perf_counter()
         checkpoint = torch.load(args.model, map_location="cpu", weights_only=False)
         model = (checkpoint.get("ema") or checkpoint["model"]).float().eval()
         model.fuse(verbose=False)
@@ -146,6 +181,8 @@ def worker(args):
         if cuda and not torch.cuda.is_available():
             raise RuntimeError("Requested CUDA is unavailable; CPU fallback is forbidden")
         model = model.to("cuda" if cuda else "cpu")
+        model_load_ms = (time.perf_counter() - model_started) * 1000
+        end_to_end = bool(getattr(head, "end2end", False))
         del checkpoint
         gc.collect()
         host_input = torch.from_numpy(array)
@@ -163,11 +200,14 @@ def worker(args):
             return [t.numpy() for t in result]
 
         metadata.update({"Version": torch.__version__, "Ultralytics": ultralytics.__version__,
+                         "UltralyticsDirectory": str(args.ultralytics_dir.resolve()), "EndToEnd": end_to_end, "ClassCount": int(head.nc),
                          "Cuda": torch.version.cuda, "Cudnn": torch.backends.cudnn.version() if cuda else None,
                          "Backend": "PyTorch CUDA" if cuda else "PyTorch CPU", "Fusion": "stock model.fuse()"})
         context = torch.inference_mode()
     else:
         import onnxruntime as ort
+        import_ms = (time.perf_counter() - import_started) * 1000
+        model_started = time.perf_counter()
         cuda = args.engine == "ort-cuda"
         if cuda:
             if "CUDAExecutionProvider" not in ort.get_available_providers():
@@ -185,6 +225,7 @@ def worker(args):
         session.disable_fallback()
         if cuda and session.get_providers()[0] != "CUDAExecutionProvider":
             raise RuntimeError("ONNX Runtime unexpectedly fell back to CPU")
+        model_load_ms = (time.perf_counter() - model_started) * 1000
         input_name = session.get_inputs()[0].name
 
         def infer():
@@ -200,12 +241,18 @@ def worker(args):
         context = contextlib.nullcontext()
     with context:
         first_ms = None
+        ready_to_first_output_ms = None
+        warmup_started = time.perf_counter()
         for _ in range(args.warmup):
             tick = time.perf_counter_ns()
             infer()
             if first_ms is None:
                 first_ms = (time.perf_counter_ns() - tick) / 1e6
-        metadata.update({"StartupMs": (time.perf_counter() - started) * 1000, "FirstInferenceMs": first_ms})
+                ready_to_first_output_ms = (time.perf_counter() - started) * 1000
+        warmup_ms = (time.perf_counter() - warmup_started) * 1000
+        metadata.update({"ImportMs": import_ms, "ModelLoadMs": model_load_ms,
+                         "StartupMs": (time.perf_counter() - started) * 1000, "FirstInferenceMs": first_ms,
+                         "ReadyToFirstOutputMs": ready_to_first_output_ms, "WarmupMs": warmup_ms})
         write_json(args.signal / "ready.json", metadata)
         deadline = time.perf_counter() + 120
         while not (args.signal / "go").exists():
@@ -227,6 +274,19 @@ def worker(args):
         if not all(np.isfinite(o).all() for o in outputs):
             raise RuntimeError("Non-finite inference output")
         np.savez(args.signal / "outputs.npz", *outputs)
+        if args.engine == "torch-cpu" and end_to_end:
+            # 完整候选只在计时及资源窗口结束后生成；既不改变稳态延迟，也不污染采样 RSS。
+            postprocess = head.postprocess
+            try:
+                head.postprocess = lambda predictions, *unused: predictions
+                dense = flatten_tensors(model(host_input), torch)[0].detach().numpy()
+            finally:
+                head.postprocess = postprocess
+            if dense.ndim != 3 or not np.isfinite(dense).all():
+                raise RuntimeError("Invalid complete decoded candidate oracle")
+            dense_path = args.signal / "dense-reference.npz"
+            np.savez(dense_path, dense_reference=dense, nc=np.array(int(head.nc), dtype=np.int32))
+            metadata["Oracle"] = {"EndToEnd": True, "ClassCount": int(head.nc), "DenseReferenceFile": str(dense_path)}
         median = statistics.median(samples)
         write_json(args.signal / "result.json", {**metadata, "Model": args.model.name, "Shape": list(array.shape),
                    "Outputs": [list(o.shape) for o in outputs], "Iterations": len(samples), "Warmup": args.warmup,
@@ -292,25 +352,29 @@ def run_case(model, engine, repeat, args, input_path, gpu):
     elif engine.startswith("net"):
         path = onnx if "onnx" in engine else pt
         backend = "vulkan" if "vulkan" in engine else "cpu"
-        cli = ROOT / "src/SimdYolo.Cli/bin/Release/net10.0/SimdYolo.Cli.dll"
+        cli = getattr(args, "net_cli", ROOT / "src/SimdYolo.Cli/bin/Release/net10.0/SimdYolo.Cli.dll")
         command = ["dotnet", str(cli), "bench", str(path), backend, str(args.size), str(args.iterations), str(args.threads), str(args.warmup),
                    str(input_path), str(args.duration), str(signal), str(signal / "output")]
     else:
         path = onnx if engine.startswith("ort") else pt
         command = [sys.executable, str(Path(__file__).resolve()), "--worker", "--engine", engine, "--model", str(path),
                    "--size", str(args.size), "--threads", str(args.threads), "--warmup", str(args.warmup), "--iterations", str(args.iterations),
-                   "--duration", str(args.duration), "--input", str(input_path), "--signal", str(signal)]
+                   "--duration", str(args.duration), "--input", str(input_path), "--signal", str(signal),
+                   "--ultralytics-dir", str(getattr(args, "ultralytics_dir", ROOT / ".cache/reference"))]
     environment = os.environ.copy()
     # Ambient PYTHONPATH must not accidentally select CUDA torch for CPU workers.
     environment.pop("PYTHONPATH", None)
     with (signal / "stdout.log").open("w", encoding="utf-8") as stdout, (signal / "stderr.log").open("w", encoding="utf-8") as stderr:
+        process_started = time.perf_counter()
         child = subprocess.Popen(command, cwd=ROOT, stdout=stdout, stderr=stderr, env=environment)
         try:
             deadline = time.perf_counter() + 240
             while not (signal / "ready.json").exists():
                 if child.poll() is not None or time.perf_counter() > deadline:
-                    raise RuntimeError(f"Worker failed before warmup: {engine} {model}; logs: {signal}")
+                    raise RuntimeError(f"Worker failed before ready: {engine} {model}; logs: {signal}")
                 time.sleep(.05)
+            # 外部进程启动到全部预热完成的 ready 观测；这个数不是首个输出时间。
+            process_startup_ms = (time.perf_counter() - process_started) * 1000
             process = psutil.Process(child.pid)
             previous_cpu = sum(process.cpu_times()[:2])
             start = previous_time = time.perf_counter()
@@ -341,31 +405,32 @@ def run_case(model, engine, repeat, args, input_path, gpu):
         arrays = [np.fromfile(signal / f"output.{i}.f32", dtype=np.float32).reshape(shape) for i, shape in enumerate(record["Outputs"])]
         metadata = json.loads((signal / "ready.json").read_text(encoding="utf-8-sig"))
         record.update({"Version": record.get("Version", "SimdYolo（版本未记录）"), "Engine": engine, "BaselineWorkingSetMiB": metadata["BaselineWorkingSetMiB"], "Backend": metadata["Backend"]})
+        record.update({key: metadata[key] for key in ("ImportMs", "ModelLoadMs", "FirstInferenceMs", "ReadyToFirstOutputMs", "WarmupMs", "StartupMs") if key in metadata})
     else:
         record = json.loads((signal / "result.json").read_text(encoding="utf-8"))
         with np.load(signal / "outputs.npz") as archive:
             arrays = [archive[key].copy() for key in archive.files]
-    record.update({"Model": model, "Repeat": repeat, "ProcessId": child.pid, "ModelFormat": path.suffix,
+    record.update({"Model": model, "Repeat": repeat, "ProcessId": child.pid, "ProcessStartupMs": process_startup_ms, "ModelFormat": path.suffix,
                    "Timing": "host-to-host FP32 forward and decoded head; no image processing or NMS",
                    "Resources": summarize_resources(samples, idle, psutil.virtual_memory().total)})
     return record, arrays
 
 
-def check_outputs(model, actual, reference):
+def check_outputs(model, actual, reference, end_to_end=None, dense=None, nc=0):
     if len(actual) != len(reference):
         raise AssertionError(f"Output count mismatch: {model}")
     checks = []
-    for a, b in zip(actual, reference):
+    if end_to_end is None:
+        end_to_end = model.startswith(("yolov10", "yolo26"))
+    for index, (a, b) in enumerate(zip(actual, reference)):
         if a.shape != b.shape or not np.isfinite(a).all():
             raise AssertionError(f"Invalid output shape/values: {model}")
-        if model.startswith("yolov10"):
-            # v10 TopK order is not semantic; compare selected rows sorted by
-            # class, score and coordinates, as in the independent validator.
-            def ordered(value):
-                return np.array([v[np.lexsort((v[:, 3], v[:, 2], v[:, 1], v[:, 0], v[:, 4], v[:, 5]))] for v in value])
-            a, b = ordered(a), ordered(b)
-        passed = bool(np.allclose(a, b, atol=.003, rtol=.0003))
-        checks.append({"Shape": list(a.shape), "MaxAbsError": float(np.abs(a-b).max()), "Passed": passed})
+        selected = end_to_end and index == 0
+        a, b, passed = compare(a, b, selected, dense if selected else None, nc)
+        checks.append({"Shape": list(a.shape), "MaxAbsError": float(np.max(np.abs(a-b), initial=0)),
+                       "Validation": "TopK scores and unique complete anchor/class/payload pairing" if selected and dense is not None
+                           else "Unique complete row pairing" if selected else "Elementwise FP32",
+                       "Passed": passed})
         if not passed:
             raise AssertionError(f"Output mismatch {model}: {checks[-1]}")
     return checks
@@ -508,6 +573,28 @@ def render_repeat_limits(report):
     return lines
 
 
+def render_startup_timings(report):
+    """启动拆分独立展示，外部等待全部预热就绪的时间不冒充首次输出时间。"""
+    if not any("ProcessStartupMs" in record for record in report["Records"]):
+        return []
+    lines = ["## 首次推理与启动拆分", "",
+             "下表是各独立进程重复值的中位数，单位 ms。模型加载只计构造/权重读取、融合和设备或 ORT 会话创建，不含读输入文件及推理。首次推理只计第一次前向及全部输出回读；程序内至首输出从基准设置入口计起，不含 Python/.NET 宿主启动。", "",
+             "全部预热包含首次推理。外部启动至 ready 从控制器调用 Popen 到观测预热完成文件，包含宿主、导入、设置、首次推理及剩余预热，还包含约 50 ms 轮询粒度的观测误差；它不等于首次输出时间。原 StartupMs 仍按程序内入口至全部预热完成定义写入 JSON。Python 导入列只计 torch/Ultralytics 或 ORT 导入及选包检查；numpy/psutil 在 worker 入口前导入，其成本由外部启动指标覆盖。N/A 表示此后端未提供该字段，不估算或补零。", "",
+             "每轮使用新进程，但系统文件缓存及已存在的 GPU 管线缓存可能已热；不能将这些数据解释为清空所有系统/磁盘缓存后的首次安装启动。", "",
+             "| 模型 | 后端 | 模型加载 | 首次推理 | 程序内至首输出 | 全部预热 | 外部启动至 ready | Python 导入 |",
+             "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
+    groups = {}
+    for record in report["Records"]:
+        groups.setdefault((record["Model"], record["Engine"]), []).append(record)
+    for (model, engine), records in groups.items():
+        cells = [model, ENGINES[engine]]
+        for field in ("ModelLoadMs", "FirstInferenceMs", "ReadyToFirstOutputMs", "WarmupMs", "ProcessStartupMs", "ImportMs"):
+            values = [record.get(field) for record in records]
+            cells.append(f"{statistics.median(values):.2f}" if all(value is not None for value in values) else "N/A")
+        lines.append("| " + " | ".join(cells) + " |")
+    return lines + [""]
+
+
 def write_cpu_report(report, destination, no_plot):
     """Render this CPU run without borrowing GPU results from another release."""
     versions = sorted({str(record["Version"]) for record in report["Records"]
@@ -528,6 +615,7 @@ def write_cpu_report(report, destination, no_plot):
              f"统一 FP32 / batch=1 / {report['Size']}×{report['Size']}、同一输入张量，CPU 线程上限 {report['Threads']}；预热 {report['Warmup']} 次，每窗口至少 {report['DurationSeconds']:g} 秒、{report['MinimumIterations']} 次，每配置 {report.get('Repeats', 1)} 个独立窗口。排除图片预处理、NMS、mask 后处理及冷首帧。", ""]
     lines += render_speed_rankings(report)
     lines += render_repeat_limits(report)
+    lines += render_startup_timings(report)
     groups = {}
     for record in report["Records"]:
         groups.setdefault(record["Model"], {}).setdefault(record["Engine"], []).append(record)
@@ -567,7 +655,7 @@ def write_cpu_report(report, destination, no_plot):
     for record in report["Records"]:
         resources = record["Resources"]
         lines.append(f"| {record['Model']} | {ENGINES[record['Engine']]} | {record.get('Repeat', 1)} | {record['MedianMs']:.2f} | {record['P95Ms']:.2f} | {record['ThroughputFps']:.1f} | {record['CpuPercent']:.2f} | {resources['MeanSystemCpuPercent']:.2f} | {record['CpuMsPerFrame']:.2f} | {resources['MeanWorkingSetMiB']:.1f} | {resources['MeanWorkingSetPercent']:.2f} |")
-    lines += ["", "单进程采样、全部延迟、CPU 时间、RSS/私有提交量峰值、输出正确性、版本、输入与模型 SHA256 均在同名 JSON。启动/首帧时间单独保留，不计入稳态速度。输出按 `atol=0.003, rtol=0.0003` 对照本次原版 PyTorch CPU；v10 TopK 行先排序。", "",
+    lines += ["", "单进程采样、全部延迟、CPU 时间、RSS/私有提交量峰值、输出正确性、版本、输入与模型 SHA256 均在同名 JSON。启动/首帧时间单独保留，不计入稳态速度。输出字段按 `atol=0.003, rtol=0.0003` 对照本次原版 PyTorch CPU；端到端 TopK 分数使用 `atol=0.0000002, rtol=0.0003`，并对完整解码候选作唯一 anchor/class 配对，连同 mask 系数及关键点整行校验，允许合法同分排序差异。完整候选在计时后生成，未计入延迟或资源窗口。", "",
               "本次结果取决于 CPU、宿主、线程策略、模型和输入，不能外推到其他机器、模型规模、FP16/INT8 或 torch.compile。", "",
               "参考：[ORT 线程与自旋](https://onnxruntime.ai/docs/performance/tune-performance/threading.html)。", ""]
     destination.with_suffix(".md").write_text("\n".join(lines), encoding="utf-8")
@@ -593,6 +681,7 @@ def write_report(report, destination, no_plot):
              f"统一 FP32 / batch=1 / {report['Size']}×{report['Size']}、同一输入张量，CPU 线程上限 {report['Threads']}；预热 {report['Warmup']} 次，每窗口至少 {report['DurationSeconds']:g} 秒、{report['MinimumIterations']} 次，每配置 {report.get('Repeats', 1)} 个独立窗口。GPU 包含输入上传和全部输出回读；排除图片预处理、NMS、mask 后处理及冷首帧。", ""]
     lines += render_speed_rankings(report)
     lines += render_repeat_limits(report)
+    lines += render_startup_timings(report)
     methods = ["## 计时与资源口径", "",
              "各配置独立进程、串行运行。显示值相同仍可能有名次差异；原始中位数完全相同则并列，第一名次数分别计入，因此合计可能超过模型数。缺项显示 N/A，四配置及全部重复窗口齐全后才排名和统计第一。", "",
              "GPU 耗时全部包含输入上传、全部输出回读。计时包含网络前向与输出头解码，排除加载、首次编译、图片预处理、NMS、mask 后处理。PyTorch 使用原版 Ultralytics fuse()，没有 torch.compile；ORT 开启所有图优化，顺序执行、默认线程自旋，CUDA 卷积自动选择算法，关闭 TF32。", "",
@@ -610,7 +699,7 @@ def write_report(report, destination, no_plot):
     for r in report["Records"]:
         s = r["Resources"]
         resources.append(f"| {r['Model']} | {ENGINES[r['Engine']]} | {r.get('Repeat', 1)} | {r['MedianMs']:.2f} | {r['P95Ms']:.2f} | {r['ThroughputFps']:.1f} | {r['CpuPercent']:.2f} | {s['MeanSystemCpuPercent']:.2f} | {r['CpuMsPerFrame']:.2f} | {s['MeanWorkingSetMiB']:.1f} | {s['MeanWorkingSetPercent']:.2f} | {fmt(s['MeanGpuPercent'])} | {fmt(s['MeanDeviceVramMiB'])} |")
-    resources += ["", "单进程采样、全部延迟、CPU 时间、RSS/私有提交量峰值、GPU/显存原始时间序列、输出正确性、版本、输入与模型 SHA256 均在同名 JSON。启动/首帧时间单独保留，不计入稳态速度。输出按 `atol=0.003, rtol=0.0003` 对照本次原版 PyTorch CPU；v10 TopK 行先排序。", "",
+    resources += ["", "单进程采样、全部延迟、CPU 时间、RSS/私有提交量峰值、GPU/显存原始时间序列、输出正确性、版本、输入与模型 SHA256 均在同名 JSON。启动/首帧时间单独保留，不计入稳态速度。输出字段按 `atol=0.003, rtol=0.0003` 对照本次原版 PyTorch CPU；端到端 TopK 分数使用 `atol=0.0000002, rtol=0.0003`，并对完整解码候选作唯一 anchor/class 配对，连同 mask 系数及关键点整行校验，允许合法同分排序差异。完整候选在计时后生成，未计入延迟或资源窗口。", "",
               "参考：[ORT CUDA 配置](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)、[ORT 线程与自旋](https://onnxruntime.ai/docs/performance/tune-performance/threading.html)、[NVML GPU 忙碌率定义](https://docs.nvidia.com/deploy/nvml-api/latest/api/structnvmlUtilization__t.html)。", ""]
     groups = {}
     for r in report["Records"]:
@@ -699,6 +788,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-dir", type=Path, default=ROOT / ".cache")
     parser.add_argument("--onnx-dir", type=Path, default=ROOT / ".cache/validation")
+    parser.add_argument("--net-cli", type=Path, default=ROOT / "src/SimdYolo.Cli/bin/Release/net10.0/SimdYolo.Cli.dll",
+                        help="冻结基线或候选 SimdYolo CLI DLL；主库哈希取同目录 SimdYolo.dll")
+    parser.add_argument("--ultralytics-dir", type=Path, default=ROOT / ".cache/reference",
+                        help="原版 Ultralytics 包目录；YOLO26 可用 .cache/yolo26-release-reference")
     parser.add_argument("--models", nargs="+", default=["yolov8n", "yolov9t", "yolov10n", "yolo11n"])
     parser.add_argument("--vision", action="store_true")
     parser.add_argument("--engines", nargs="+", choices=list(ENGINES), default=DEFAULT_ENGINES)
@@ -718,6 +811,8 @@ def main():
     parser.add_argument("--model", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--signal", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    args.net_cli = args.net_cli.resolve()
+    args.ultralytics_dir = args.ultralytics_dir.resolve()
     if min(args.size, args.threads, args.warmup, args.iterations, args.repeats) < 1 or args.size % 32 or args.duration < 2 or args.sample_interval <= 0:
         parser.error("Use positive sizes/threads/counts, size divisible by 32, duration >=2 seconds")
     if args.worker:
@@ -731,6 +826,12 @@ def main():
         return
     if "torch-cpu" not in args.engines:
         parser.error("torch-cpu must be included as the output oracle")
+    if not (args.ultralytics_dir / "ultralytics").is_dir():
+        parser.error(f"Missing Ultralytics package directory: {args.ultralytics_dir}")
+    if any(engine.startswith("net-") for engine in args.engines):
+        for path in (args.net_cli, args.net_cli.with_name("SimdYolo.dll")):
+            if not path.is_file():
+                parser.error(f"Missing selected .NET CLI/library: {path}")
     if args.vision:
         args.models += ["yolov8n-seg", "yolov8n-pose", "yolo11n-seg", "yolo11n-pose"]
     args.models = list(dict.fromkeys(args.models))
@@ -755,7 +856,16 @@ def main():
               "DurationSeconds": args.duration, "MinimumIterations": args.iterations, "SampleIntervalSeconds": args.sample_interval,
               "Status": "running", "Repeats": args.repeats, "Models": args.models, "Engines": args.engines, "InputSha256": sha256(input_path),
               "InputDescription": str(input_path),
-              "SimdYoloDllSha256": sha256(ROOT / "src/SimdYolo.Cli/bin/Release/net10.0/SimdYolo.dll"),
+              "NetCliPath": str(args.net_cli), "UltralyticsDirectory": str(args.ultralytics_dir),
+              "SimdYoloDllSha256": sha256(args.net_cli.with_name("SimdYolo.dll")) if args.net_cli.with_name("SimdYolo.dll").is_file() else None,
+              "StartupTimingDefinitions": {
+                  "ProcessStartupMs": "External Popen invocation to ready-file observation, including runtime startup, setup, imports, first inference and all warmup; target readiness poll interval is 50 ms. Not time to first output.",
+                  "ImportMs": "Python framework/package selection and import. numpy/psutil were imported before worker entry; their cost is captured by ProcessStartupMs.",
+                  "ModelLoadMs": "Model construction/loading/fusion and device placement; ORT includes provider/DLL preparation and session creation. Excludes input-file read and inference.",
+                  "FirstInferenceMs": "First host-visible warmup forward only, including input transfer and all output synchronization when using GPU.",
+                  "ReadyToFirstOutputMs": "Worker benchmark-setup entry through the first host-visible output; excludes interpreter/dotnet host startup.",
+                  "WarmupMs": "All warmup forwards, including the first one.",
+                  "StartupMs": "Original definition retained: worker benchmark-setup entry through completion of all warmup; excludes host startup."},
               "OrtNativeDllSha256": {p.name: sha256(p) for p in (ROOT / ".cache/ort-gpu/onnxruntime/capi").glob("onnxruntime*.dll")},
               "ModelsSha256": {model: {"pt": sha256(args.model_dir / f"{model}.pt"), "onnx": sha256(args.onnx_dir / f"{model}.onnx")} for model in args.models}, "Records": []}
     randomizer = random.Random(20261013)
@@ -767,12 +877,25 @@ def main():
                 rest = [e for e in args.engines if e != "torch-cpu"]
                 randomizer.shuffle(rest)
                 reference = None
+                reference_dense, reference_nc, reference_end_to_end = None, 0, False
                 for engine in ["torch-cpu", *rest]:
                     print(f"START repeat={repeat} {model} {engine}", flush=True)
                     record, outputs = run_case(model, engine, repeat, args, input_path, gpu)
                     if reference is None:
                         reference = outputs
-                    record["Correctness"] = check_outputs(model, outputs, reference)
+                        reference_end_to_end = bool(record.get("EndToEnd", False))
+                        reference_nc = int(record.get("ClassCount", 0))
+                        if reference_end_to_end:
+                            oracle = record.get("Oracle")
+                            if not oracle:
+                                raise AssertionError(f"Complete end-to-end candidate oracle missing: {model}")
+                            dense_path = Path(oracle["DenseReferenceFile"])
+                            with np.load(dense_path) as archive:
+                                reference_dense = archive["dense_reference"].copy()
+                                if int(archive["nc"]) != reference_nc:
+                                    raise AssertionError(f"Oracle class count mismatch: {model}")
+                            oracle.update({"Sha256": sha256(dense_path), "Shape": list(reference_dense.shape)})
+                    record["Correctness"] = check_outputs(model, outputs, reference, reference_end_to_end, reference_dense, reference_nc)
                     report["Records"].append(record)
                     write_json(args.output, report)
                     s = record["Resources"]

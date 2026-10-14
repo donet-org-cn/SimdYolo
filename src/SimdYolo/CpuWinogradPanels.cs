@@ -55,7 +55,8 @@ internal static class CpuWinogradPanels
         int tw = (width + size - 1) / size, tiles = checked(((h + size - 1) / size) * tw);
         // 增加一个缓存行的间隔，避免 2 的幂次通道数使全部变换坐标集中映射到少数 L1 缓存组。
         int panels = (tiles + 15) / 16, inputStride = checked(ic * 16 + 16), productStride = checked(oc * 16 + 16);
-        var packedWeights = CpuPackedGemm.Use(oc) && constant ? weights.Select(weight => CpuPackedGemm.Prepare(weight, oc, ic, true)).ToArray() : null;
+        var packedWeights = CpuPackedGemm.Use(oc) && constant ? CpuWeightBatch<CpuPackedGemm.Matrix>.Prepare(weights, oc, ic,
+            static (weight, rows, depth) => CpuPackedGemm.Prepare(weight, rows, depth, true)) : null;
         float[] input = x.Data; float[]? biases = bias?.Data;
         var output = Tensor.TemporaryUninitialized(batch, oc, h, width); float[] target = output.Data;
         int degree = backend.Parallel.MaxDegreeOfParallelism;

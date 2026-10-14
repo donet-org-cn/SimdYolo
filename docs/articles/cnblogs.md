@@ -1,5 +1,9 @@
 # SimdYolo：纯 C# YOLO 推理实现，CPU SIMD / Vulkan 架构与 PyTorch、ORT 实测
 
+> **0.8.1 更新：** 首次加载、首帧和稳态推理已重新实测，当前 CPU/GPU 排名及优化前后对照见 [0.8.1 性能结果](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/optimization-0.8.1.md)。
+>
+> 本文下方的旧速度表和性能插图属于 **0.7.x 历史记录**，不代表当前版本速度，也不用于宣传当前性能；评估新版本请以这份 0.8.1 实测为准，其中同时保留跨窗口波动和未领先的结果。
+
 ![SimdYolo 技术文章封面：模型解析、SIMD 内核、图融合与实测复现](assets/02-cnblogs-cover.png)
 
 **项目仓库：** [https://github.com/hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)

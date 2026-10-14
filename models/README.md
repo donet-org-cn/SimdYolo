@@ -1,6 +1,6 @@
 # 随仓库分发的 YOLO 模型
 
-这里包含 **11 个原始 PyTorch `.pt` 检查点和 22 个 ONNX 导出**，覆盖检测、分割和姿态。模型通过 Git LFS 保存；所有原始文件保持不变，来源、输入尺寸、opset 和 SHA256 见 [manifest.json](manifest.json)。YOLO26 需要本次 0.8.0 开发版源码，旧版 Release 不包含其解析和解码支持。
+这里包含 **11 个原始 PyTorch `.pt` 检查点和 22 个 ONNX 导出**，覆盖检测、分割和姿态。模型通过 Git LFS 保存；所有原始文件保持不变，来源、输入尺寸、opset 和 SHA256 见 [manifest.json](manifest.json)。YOLO26 需要 0.8.0 或更新源码，当前主分支 0.8.1 还优化了加载、CPU 批次 GEMM 和 ONNX 输出头；旧版 0.7.1 Release 不包含这些新功能。
 
 | 模型 | 任务 | `.pt` | 640×640 ONNX / opset 17 | 动态 ONNX / opset 17 | 128×128 ONNX / opset 12 |
 | --- | --- | --- | --- | --- | --- |

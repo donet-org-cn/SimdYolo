@@ -1,0 +1,8 @@
+{
+  "description": "Single-threaded FP32 constant weight descriptor preparation, five alternating rounds with 50000 repetitions. The old path repeats per-matrix preparation and LINQ ToArray; the new path reuses a weak batch cache after validating shape and source identities.",
+  "doesNotMeasureFullModelInference": true,
+  "results": [
+    { "count": 16, "rows": 32, "depth": 32, "oldMedianNs": 546.27, "newMedianNs": 119.848, "oldBytesPerCall": 264, "newBytesPerCall": 0 },
+    { "count": 36, "rows": 80, "depth": 80, "oldMedianNs": 813.492, "newMedianNs": 83.016, "oldBytesPerCall": 424, "newBytesPerCall": 0 }
+  ]
+}

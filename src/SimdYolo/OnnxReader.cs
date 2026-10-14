@@ -1,4 +1,3 @@
-using System.Buffers.Binary;
 using System.Text;
 
 namespace SimdYolo;
@@ -13,19 +12,32 @@ internal sealed class Proto
     /// <returns>以字段号组织的 protobuf 消息。</returns>
     /// <exception cref="InvalidDataException">字段号无效、wire type 不支持，或消息被截断。</exception>
     /// <exception cref="OverflowException">字段号或字段字节长度超过 Int32 范围。</exception>
-    public static Proto Parse(byte[] bytes)
+    public static Proto Parse(byte[] bytes) => ParseCore(bytes, copyBytes: true);
+    /// <summary>解析借用模型缓冲区的消息视图；不复制 graph 和 raw_data 等大型长度分隔字段。</summary>
+    /// <param name="bytes">由调用方保持存活且在解析期间不修改的 protobuf 消息。</param>
+    /// <returns>其字节字段引用输入缓冲区的 protobuf 消息。</returns>
+    /// <exception cref="InvalidDataException">字段号无效、wire type 不支持，或消息被截断。</exception>
+    /// <exception cref="OverflowException">字段号或字段字节长度超过 Int32 范围。</exception>
+    internal static Proto ParseView(ReadOnlyMemory<byte> bytes) => ParseCore(bytes, copyBytes: false);
+    /// <summary>根据缓冲区所有权要求解析 protobuf 字段，并统一校验每个字节范围。</summary>
+    /// <param name="bytes">消息字节缓冲区。</param>
+    /// <param name="copyBytes">是否为每个字节字段分配独立数组。</param>
+    /// <returns>解析完成的 protobuf 消息。</returns>
+    /// <exception cref="InvalidDataException">字段号无效、wire type 不支持，或消息被截断。</exception>
+    /// <exception cref="OverflowException">字段号或字段字节长度超过 Int32 范围。</exception>
+    private static Proto ParseCore(ReadOnlyMemory<byte> bytes, bool copyBytes)
     {
-        var p = new Proto(); int i = 0;
+        var p = new Proto(); int i = 0; ReadOnlySpan<byte> span = bytes.Span;
         while (i < bytes.Length)
         {
-            ulong tag = Varint(bytes, ref i); int field = checked((int)(tag >> 3)); object value;
+            ulong tag = Varint(span, ref i); int field = checked((int)(tag >> 3)); object value;
             if (field == 0) throw new InvalidDataException("Invalid protobuf tag.");
             switch (tag & 7)
             {
-                case 0: value = Varint(bytes, ref i); break;
-                case 1: Check(bytes, i, 8); value = bytes.AsSpan(i, 8).ToArray(); i += 8; break;
-                case 2: int length = checked((int)Varint(bytes, ref i)); Check(bytes, i, length); value = bytes.AsSpan(i, length).ToArray(); i += length; break;
-                case 5: Check(bytes, i, 4); value = bytes.AsSpan(i, 4).ToArray(); i += 4; break;
+                case 0: value = Varint(span, ref i); break;
+                case 1: Check(span, i, 8); value = copyBytes ? bytes.Slice(i, 8).ToArray() : (object)bytes.Slice(i, 8); i += 8; break;
+                case 2: int length = checked((int)Varint(span, ref i)); Check(span, i, length); value = copyBytes ? bytes.Slice(i, length).ToArray() : (object)bytes.Slice(i, length); i += length; break;
+                case 5: Check(span, i, 4); value = copyBytes ? bytes.Slice(i, 4).ToArray() : (object)bytes.Slice(i, 4); i += 4; break;
                 default: throw new InvalidDataException("Unsupported protobuf wire type.");
             }
             if (!p.Fields.TryGetValue(field, out var list)) p.Fields[field] = list = [];
@@ -38,13 +50,13 @@ internal sealed class Proto
     /// <param name="i">准备读取的起始字节位置。</param>
     /// <param name="n">需要读取的字节数量。</param>
     /// <exception cref="InvalidDataException">所请求的字节范围超出消息内容。</exception>
-    private static void Check(byte[] data, int i, int n) { if (n < 0 || i < 0 || n > data.Length - i) throw new InvalidDataException("Truncated protobuf."); }
+    private static void Check(ReadOnlySpan<byte> data, int i, int n) { if (n < 0 || i < 0 || n > data.Length - i) throw new InvalidDataException("Truncated protobuf."); }
     /// <summary>读取最多 64 位的 protobuf 无符号变长整数，并更新读取位置。</summary>
     /// <param name="bytes">待解析的 protobuf 消息字节内容。</param>
     /// <param name="i">读取游标；方法完成时指向未消费的下一个字节。</param>
     /// <returns>解析的无符号整数。</returns>
     /// <exception cref="InvalidDataException">变长整数被截断或超过 64 位范围。</exception>
-    internal static ulong Varint(byte[] bytes, ref int i)
+    internal static ulong Varint(ReadOnlySpan<byte> bytes, ref int i)
     {
         ulong v = 0;
         for (int shift = 0; shift < 64; shift += 7)
@@ -57,7 +69,27 @@ internal sealed class Proto
     /// <summary>按保存顺序枚举指定字段的字节内容。</summary>
     /// <param name="f">protobuf 字段号。</param>
     /// <returns>字段的字节数组序列；字段缺失时为空。</returns>
-    public IEnumerable<byte[]> Bytes(int f) => Fields.GetValueOrDefault(f, []).Cast<byte[]>();
+    public IEnumerable<byte[]> Bytes(int f)
+    {
+        if (Fields.TryGetValue(f, out var fields))
+            foreach (object value in fields) yield return value is byte[] array ? array : ((ReadOnlyMemory<byte>)value).ToArray();
+    }
+    /// <summary>按保存顺序枚举字节字段的只读视图，不为借用字段创建副本。</summary>
+    /// <param name="f">protobuf 字段号。</param>
+    /// <returns>字段的字节视图序列；字段缺失时为空。</returns>
+    public IEnumerable<ReadOnlyMemory<byte>> Buffers(int f)
+    {
+        if (Fields.TryGetValue(f, out var fields))
+            foreach (object value in fields) yield return value is byte[] array ? array.AsMemory() : (ReadOnlyMemory<byte>)value;
+    }
+    /// <summary>读取指定字段的第一个只读字节视图。</summary>
+    /// <param name="f">protobuf 字段号。</param>
+    /// <returns>第一个字段的字节视图；字段缺失时返回 null。</returns>
+    public ReadOnlyMemory<byte>? Buffer(int f)
+    {
+        if (!Fields.TryGetValue(f, out var fields) || fields.Count == 0) return null;
+        return fields[0] is byte[] array ? array.AsMemory() : (ReadOnlyMemory<byte>)fields[0];
+    }
     /// <summary>读取指定字段的第一个字节块。</summary>
     /// <param name="f">protobuf 字段号。</param>
     /// <returns>第一个字节数组；字段缺失时返回 null。</returns>
@@ -66,7 +98,7 @@ internal sealed class Proto
     /// <param name="f">protobuf 字段号。</param>
     /// <param name="fallback">属性未声明或值缺失时使用的默认值。</param>
     /// <returns>字段文本；字段缺失时返回默认文本。</returns>
-    public string Text(int f, string fallback = "") => Byte(f) is { } b ? Encoding.UTF8.GetString(b) : fallback;
+    public string Text(int f, string fallback = "") => Buffer(f) is { } b ? Encoding.UTF8.GetString(b.Span) : fallback;
     /// <summary>读取指定字段的第一个整数，并保留其二进制补码解释。</summary>
     /// <param name="f">protobuf 字段号。</param>
     /// <param name="fallback">属性未声明或值缺失时使用的默认值。</param>
@@ -80,22 +112,29 @@ internal sealed class Proto
         var list = new List<long>();
         foreach (object a in Fields.GetValueOrDefault(f, []))
             if (a is ulong u) list.Add(unchecked((long)u));
-            else { var b = (byte[])a; int i = 0; while (i < b.Length) list.Add(unchecked((long)Varint(b, ref i))); }
+            else { ReadOnlyMemory<byte> b = a is byte[] array ? array.AsMemory() : (ReadOnlyMemory<byte>)a; int i = 0; while (i < b.Length) list.Add(unchecked((long)Varint(b.Span, ref i))); }
         return list.ToArray();
     }
     /// <summary>读取重复或 packed 小端 FP32 字段。</summary>
     /// <param name="f">protobuf 字段号。</param>
     /// <returns>按出现顺序展开的 FP32 数组。</returns>
     /// <exception cref="InvalidDataException">packed FP32 字节长度不是 4 的整数倍。</exception>
+    /// <exception cref="OverflowException">重复字段的累计元素数量超过 Int32 范围。</exception>
     public float[] Floats(int f)
     {
-        var list = new List<float>();
-        foreach (var b in Bytes(f))
+        int count = 0;
+        foreach (var b in Buffers(f))
         {
             if (b.Length % 4 != 0) throw new InvalidDataException("Invalid packed float.");
-            for (int i = 0; i < b.Length; i += 4) list.Add(BinaryPrimitives.ReadSingleLittleEndian(b.AsSpan(i)));
+            count = checked(count + b.Length / 4);
         }
-        return list.ToArray();
+        float[] values = GC.AllocateUninitializedArray<float>(count); int offset = 0;
+        foreach (var b in Buffers(f))
+        {
+            int length = b.Length / 4;
+            TensorStorageReader.Read(b.Span, values.AsSpan(offset, length), TensorStorageKind.Float32); offset += length;
+        }
+        return values;
     }
 }
 
@@ -153,24 +192,28 @@ internal sealed record OnnxGraph(List<OnnxNode> Nodes, Dictionary<string, Tensor
     /// <exception cref="OverflowException">张量尺寸、字节长度或外部 offset/length 超过受支持整数范围。</exception>
     public static OnnxGraph Load(string path)
     {
-        var model = Proto.Parse(File.ReadAllBytes(path)); var graph = Proto.Parse(model.Byte(7) ?? throw new InvalidDataException("ONNX graph missing."));
-        foreach (var op in model.Bytes(8).Select(Proto.Parse))
+        var model = Proto.ParseView(File.ReadAllBytes(path)); var graph = Proto.ParseView(model.Buffer(7) ?? throw new InvalidDataException("ONNX graph missing."));
+        var opsets = model.Buffers(8).Select(Proto.ParseView).ToArray();
+        foreach (var op in opsets)
             if (op.Text(1) is not ("" or "ai.onnx")) throw new NotSupportedException($"ONNX domain {op.Text(1)} unsupported.");
-        int opset = (int)model.Bytes(8).Select(Proto.Parse).Where(p => p.Text(1) is "" or "ai.onnx").Select(p => p.Int(2)).Single();
+        int opset = (int)opsets.Where(p => p.Text(1) is "" or "ai.onnx").Select(p => p.Int(2)).Single();
         if (opset is < 11 or > 21) throw new NotSupportedException($"ONNX opset {opset} unsupported. Use opset 11-21; opset 17 is reference-tested.");
-        var weights = graph.Bytes(5).Select(Proto.Parse).ToDictionary(t => t.Text(8), t => ReadTensor(t, Path.GetDirectoryName(Path.GetFullPath(path))!));
-        var inputs = graph.Bytes(11).Select(Proto.Parse).Where(p => !weights.ContainsKey(p.Text(1))).ToArray();
+        string directory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+        var weights = graph.Buffers(5).Select(Proto.ParseView).ToDictionary(t => t.Text(8), t => ReadTensor(t, directory));
+        var inputs = graph.Buffers(11).Select(Proto.ParseView).Where(p => !weights.ContainsKey(p.Text(1))).ToArray();
         if (inputs.Length != 1) throw new NotSupportedException("YOLO requires one image input.");
+        // 节点及其属性保留独立小缓冲区，防止常驻图通过字节视图长期引用包含所有权重的模型文件数组。
         var nodes = graph.Bytes(1).Select(Proto.Parse).Select(p =>
         {
             if (p.Text(7) is not ("" or "ai.onnx")) throw new NotSupportedException($"Node domain {p.Text(7)} unsupported.");
             return new OnnxNode(p.Text(3), p.Text(4), p.Bytes(1).Select(Encoding.UTF8.GetString).ToArray(), p.Bytes(2).Select(Encoding.UTF8.GetString).ToArray(), p.Bytes(5).Select(Proto.Parse).ToDictionary(a => a.Text(1)));
         }).ToList();
-        var type = Proto.Parse(inputs[0].Byte(2) ?? []); var tensorType = Proto.Parse(type.Byte(1) ?? []);
+        var type = Proto.ParseView(inputs[0].Buffer(2) ?? ReadOnlyMemory<byte>.Empty); var tensorType = Proto.ParseView(type.Buffer(1) ?? ReadOnlyMemory<byte>.Empty);
         if (tensorType.Int(1) != 1) throw new NotSupportedException("Image input must be FP32.");
-        var shape = Proto.Parse(tensorType.Byte(2) ?? []).Bytes(1).Select(Proto.Parse).Select(d => (int)d.Int(1, -1)).ToArray();
-        return new(nodes, weights, inputs.Select(p => p.Text(1)).ToArray(), graph.Bytes(12).Select(Proto.Parse).Select(p => p.Text(1)).ToArray(), shape, model.Bytes(14).Select(Proto.Parse).ToDictionary(p => p.Text(1), p => p.Text(2)), opset)
-        { OutputShapes = graph.Bytes(12).Select(Proto.Parse).Select(OnnxMetadataReader.Shape).ToArray() };
+        var shape = Proto.ParseView(tensorType.Buffer(2) ?? ReadOnlyMemory<byte>.Empty).Buffers(1).Select(Proto.ParseView).Select(d => (int)d.Int(1, -1)).ToArray();
+        var outputs = graph.Buffers(12).Select(Proto.ParseView).ToArray();
+        return new(nodes, weights, inputs.Select(p => p.Text(1)).ToArray(), outputs.Select(p => p.Text(1)).ToArray(), shape, model.Buffers(14).Select(Proto.ParseView).ToDictionary(p => p.Text(1), p => p.Text(2)), opset)
+        { OutputShapes = outputs.Select(OnnxMetadataReader.Shape).ToArray() };
     }
     /// <summary>把 ONNX TensorProto 的内嵌或受限外部存储转换为连续 FP32 常量。</summary>
     /// <param name="p">包含 ONNX TensorProto 字段的 protobuf 消息。</param>
@@ -185,7 +228,7 @@ internal sealed record OnnxGraph(List<OnnxNode> Nodes, Dictionary<string, Tensor
     internal static Tensor ReadTensor(Proto p, string? directory = null)
     {
         int[] shape = p.Ints(1).Select(x => checked((int)x)).ToArray(); int count = Tensor.Count(shape), type = (int)p.Int(2);
-        byte[]? raw = p.Byte(9);
+        ReadOnlyMemory<byte>? raw = p.Buffer(9);
         if (p.Int(14) == 1)
         {
             if (directory is null) throw new NotSupportedException("External tensor unavailable.");
@@ -196,28 +239,20 @@ internal sealed record OnnxGraph(List<OnnxNode> Nodes, Dictionary<string, Tensor
             if (Path.IsPathRooted(location) || relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar)) throw new InvalidDataException("External tensor must stay beside model.");
             using var f = File.OpenRead(target); long offset = long.Parse(external.GetValueOrDefault("offset", "0")); long length = long.Parse(external.GetValueOrDefault("length", (f.Length - offset).ToString()));
             if (offset < 0 || length < 0 || offset > f.Length - length) throw new InvalidDataException("External tensor range invalid.");
-            f.Position = offset; raw = new byte[checked((int)length)]; f.ReadExactly(raw);
+            f.Position = offset; byte[] externalBytes = GC.AllocateUninitializedArray<byte>(checked((int)length)); f.ReadExactly(externalBytes); raw = externalBytes;
         }
-        float[] data = new float[count];
-        if (raw is not null)
+        float[] data;
+        if (raw is { } buffer)
         {
-            int size = type switch { 1 or 6 => 4, 7 or 11 => 8, 10 or 16 => 2, 2 or 3 or 9 => 1, _ => throw new NotSupportedException($"ONNX tensor type {type} unsupported.") };
-            if (raw.Length != checked(count * size)) throw new InvalidDataException("Tensor bytes do not match shape.");
-            for (int i = 0; i < count; i++)
+            TensorStorageKind kind = type switch
             {
-                var b = raw.AsSpan(i * size, size);
-                data[i] = type switch
-                {
-                    1 => BinaryPrimitives.ReadSingleLittleEndian(b),
-                    6 => BinaryPrimitives.ReadInt32LittleEndian(b),
-                    7 => BinaryPrimitives.ReadInt64LittleEndian(b),
-                    11 => (float)BinaryPrimitives.ReadDoubleLittleEndian(b),
-                    10 => (float)BitConverter.UInt16BitsToHalf(BinaryPrimitives.ReadUInt16LittleEndian(b)),
-                    16 => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadUInt16LittleEndian(b) << 16),
-                    3 => (sbyte)b[0],
-                    _ => b[0]
-                };
-            }
+                1 => TensorStorageKind.Float32, 6 => TensorStorageKind.Int32, 7 => TensorStorageKind.Int64,
+                11 => TensorStorageKind.Float64, 10 => TensorStorageKind.Float16, 16 => TensorStorageKind.BFloat16,
+                3 => TensorStorageKind.Int8, 2 or 9 => TensorStorageKind.UInt8,
+                _ => throw new NotSupportedException($"ONNX tensor type {type} unsupported.")
+            };
+            data = GC.AllocateUninitializedArray<float>(count);
+            TensorStorageReader.Read(buffer.Span, data, kind);
         }
         else
         {

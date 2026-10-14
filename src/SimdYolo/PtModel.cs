@@ -12,10 +12,18 @@ internal sealed class PtModel : IModel
     private readonly TensorOps ops;
     /// <summary>可选模块耗时回调。</summary>
     private readonly Action<LayerTiming>? trace;
-    /// <summary>每层读取的路由编号；负编号相对于当前层计算。</summary>
+    /// <summary>加载时规范化为绝对层号的路由；-1 表示图像输入。</summary>
     private readonly int[][] from;
     /// <summary>每个中间层输出的后续使用次数，用于及时回收临时张量。</summary>
     private readonly int[] uses;
+    /// <summary>同一会话串行推理时复用的路由结果槽；每帧结束清除张量引用。</summary>
+    private readonly object?[] routedValues;
+    /// <summary>逐帧恢复的引用计数工作区。</summary>
+    private readonly int[] remainingUses;
+    /// <summary>多输入层的复用参数数组，避免每帧创建路由数组和 LINQ 闭包。</summary>
+    private readonly object[][] routedArguments;
+    /// <summary>CPU 张量池扫描的复用根集合，末尾存放当前层结果。</summary>
+    private readonly object?[] retainedValues;
     /// <summary>加载时折叠 BN 或融合 Rep 分支后的常量卷积权重与偏置。</summary>
     private readonly Dictionary<PyObject, (Tensor Weight, Tensor Bias)> fused = [];
     /// <summary>PT 模型接受的 NCHW RGB 输入模板，空间尺寸由运行时决定。</summary>
@@ -67,7 +75,14 @@ internal sealed class PtModel : IModel
         foreach (var layer in layers) Validate(layer);
         from = layers.Select(l => l.Get("f") switch { List<object?> list => list.Select(Convert.ToInt32).ToArray(), object?[] tuple => tuple.Select(Convert.ToInt32).ToArray(), null => new[] { -1 }, var f => new[] { Convert.ToInt32(f) } }).ToArray();
         uses = new int[layers.Length];
-        for (int i = 0; i < layers.Length; i++) foreach (int f in from[i]) { int idx = f < 0 ? i + f : f; if (idx < -1 || idx >= i) throw new InvalidDataException("Invalid YOLO layer routing."); if (idx >= 0) uses[idx]++; }
+        for (int i = 0; i < layers.Length; i++) for (int j = 0; j < from[i].Length; j++)
+        {
+            int f = from[i][j], idx = f < 0 ? i + f : f;
+            if (idx < -1 || idx >= i) throw new InvalidDataException("Invalid YOLO layer routing.");
+            from[i][j] = idx; if (idx >= 0) uses[idx]++;
+        }
+        routedValues = new object?[layers.Length]; remainingUses = new int[layers.Length]; retainedValues = new object?[layers.Length + 1];
+        routedArguments = from.Select(route => route.Length > 1 ? new object[route.Length] : Array.Empty<object>()).ToArray();
         Names = ModelInfo.ReadNames(model.Get("names"));
         ClassCount = layers[^1].Int("nc", ModelInfo.LabelClassCount(Names));
         EndToEnd = ModelInfo.IsEndToEnd(layers[^1], model);
@@ -90,23 +105,28 @@ internal sealed class PtModel : IModel
     /// <param name="p">要枚举子模块的符号模块。</param>
     /// <returns>需要验证及预融合的子模块，不包含已知仅训练分支。</returns>
     private static IEnumerable<PyObject> InferenceChildren(PyObject p) => p.Map("_modules")
-        .Where(pair => !(p.Type.Name == "Pose26" && pair.Key is "flow_model" or "cv4_sigma" or "one2one_cv4_sigma") && !(p.Type.Name == "Proto26" && pair.Key is "semseg"))
+        .Where(pair => !IsTrainingOnly(p, pair.Key))
         .Select(pair => pair.Value).OfType<PyObject>();
     /// <summary>递归预处理模块，在加载阶段折叠 BatchNorm 并融合满足条件的 Rep 卷积分支。</summary>
     /// <param name="p">当前符号模块的参数与状态。</param>
     private void Prepare(PyObject p)
     {
-        foreach (var child in InferenceChildren(p)) Prepare(child);
+        foreach (var pair in p.Map("_modules"))
+            if (pair.Value is PyObject child && !IsTrainingOnly(p, pair.Key) && !IsInactiveHeadBranch(p, pair.Key)) Prepare(child);
         if (p.Type.Name is "Conv" or "DWConv" && p.Has("bn"))
         {
             var conv = p.Child("conv"); var bn = p.Child("bn"); var weights = conv.Weight("weight"); var w = new Tensor((float[])weights.Data.Clone(), weights.Shape); var bias = new Tensor(weights.Shape[0]);
             var gamma = bn.Weight("weight"); var beta = bn.Weight("bias"); var mean = bn.Weight("running_mean"); var variance = bn.Weight("running_var"); var oldBias = conv.Map("_parameters").GetValueOrDefault("bias") as Tensor;
-            int size = w.Length / w.Shape[0];
+            int size = w.Length / w.Shape[0]; float epsilon = bn.Float("eps", 1e-5f);
+            float[] data = w.Data, gammas = gamma.Data, betas = beta.Data, means = mean.Data, variances = variance.Data;
             for (int c = 0; c < w.Shape[0]; c++)
             {
-                float scale = gamma.Data[c] / MathF.Sqrt(variance.Data[c] + bn.Float("eps", 1e-5f));
-                for (int j = 0; j < size; j++) w.Data[c * size + j] *= scale;
-                bias.Data[c] = beta.Data[c] + ((oldBias?.Data[c] ?? 0) - mean.Data[c]) * scale;
+                float scale = gammas[c] / MathF.Sqrt(variances[c] + epsilon); int start = c * size, j = 0;
+                var factor = new System.Numerics.Vector<float>(scale);
+                for (; j <= size - System.Numerics.Vector<float>.Count; j += System.Numerics.Vector<float>.Count)
+                    (new System.Numerics.Vector<float>(data, start + j) * factor).CopyTo(data, start + j);
+                for (; j < size; j++) data[start + j] *= scale;
+                bias.Data[c] = betas[c] + ((oldBias?.Data[c] ?? 0) - means[c]) * scale;
             }
             w.IsConstant = bias.IsConstant = true; fused[p] = (w, bias);
         }
@@ -127,6 +147,22 @@ internal sealed class PtModel : IModel
         }
         if (p.Type.Name == "RepVGGDW" && p.Has("conv1") && fused.TryGetValue(p.Child("conv"), out large) && fused.TryGetValue(p.Child("conv1"), out small)) fused[p] = KernelFusion.Merge(large.Weight, large.Bias, small.Weight, small.Bias);
     }
+    /// <summary>判断已知仅训练分支，不改变推理模块的来源和类型验证。</summary>
+    /// <param name="module">父模块。</param>
+    /// <param name="key">子模块键。</param>
+    /// <returns>是否为姿态损失或语义辅助分支。</returns>
+    private static bool IsTrainingOnly(PyObject module, object key) =>
+        module.Type.Name == "Pose26" && key is "flow_model" or "cv4_sigma" or "one2one_cv4_sigma" || module.Type.Name == "Proto26" && key is "semseg";
+
+    /// <summary>判断当前端到端模式不使用的检测头分支，省去其 BN 克隆与预融合。</summary>
+    /// <param name="module">包含 one2one 分支的检测、分割或姿态头。</param>
+    /// <param name="key">子模块键。</param>
+    /// <returns>当前推理不会执行该分支时为 true。</returns>
+    private static bool IsInactiveHeadBranch(PyObject module, object key)
+    {
+        if (!module.Has("one2one_cv2") || key is not string name) return false;
+        return ModelInfo.IsEndToEnd(module) ? name is "cv2" or "cv3" or "cv4" or "cv4_kpts" : name.StartsWith("one2one_", StringComparison.Ordinal);
+    }
     /// <summary>按路由关系解释执行顶层模块，并在最后一次使用后释放中间结果。</summary>
     /// <param name="input">当前节点或模块的输入。</param>
     /// <returns>检测张量或分割检测张量与原型张量组成的模型输出数组。</returns>
@@ -135,20 +171,36 @@ internal sealed class PtModel : IModel
     public Tensor[] Run(Tensor input)
     {
         if (input.Rank != 4 || input.Shape[1] != 3 || input.Shape[2] % 32 != 0 || input.Shape[3] % 32 != 0) throw new ArgumentException("PT YOLO expects NCHW RGB, height/width multiples of 32.");
-        object?[] values = new object?[layers.Length]; int[] remaining = (int[])uses.Clone(); object result = input;
-        for (int i = 0; i < layers.Length; i++)
+        object?[] values = routedValues; int[] remaining = remainingUses; Array.Copy(uses, remaining, uses.Length); object result = input;
+        try
         {
-            object[] args = from[i].Select(f => { int idx = f < 0 ? i + f : f; return idx < 0 ? input : values[idx] ?? throw new InvalidDataException("Missing routed tensor."); }).ToArray();
-            long started = trace is not null ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
-            result = Forward(layers[i], args.Length == 1 ? args[0] : args); values[i] = result;
-            if (trace is not null && ops.Backend is IDeviceBackend device) device.Flush();
-            trace?.Invoke(new(i.ToString(), layers[i].Type.Name, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds));
-            // 引用计数到零后删除路由槽，再由池保留仍被后续层引用的底层数组。
-            foreach (int f in from[i]) { int idx = f < 0 ? i + f : f; if (idx >= 0 && --remaining[idx] == 0) values[idx] = null; }
-            if (CpuTensorPool.Current is { } pool)
-                pool.RetainOnly(values.Where((_, index) => remaining[index] > 0).Append(result));
+            for (int i = 0; i < layers.Length; i++)
+            {
+                // index 为加载时规范化的绝对路由；-1 读取本帧图像，缺失结果表示路由损坏。
+                object LayerInput(int index) => index < 0 ? input : values[index] ?? throw new InvalidDataException("Missing routed tensor.");
+                object argument;
+                if (from[i].Length == 1) argument = LayerInput(from[i][0]);
+                else
+                {
+                    object[] args = routedArguments[i]; for (int j = 0; j < args.Length; j++) args[j] = LayerInput(from[i][j]); argument = args;
+                }
+                long started = trace is not null ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                result = Forward(layers[i], argument); values[i] = result;
+                if (trace is not null && ops.Backend is IDeviceBackend device) device.Flush();
+                trace?.Invoke(new(i.ToString(), layers[i].Type.Name, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds));
+                foreach (int index in from[i]) if (index >= 0 && --remaining[index] == 0) values[index] = null;
+                if (CpuTensorPool.Current is { } pool)
+                {
+                    for (int j = 0; j < values.Length; j++) retainedValues[j] = remaining[j] > 0 ? values[j] : null;
+                    retainedValues[^1] = result; pool.RetainOnly(retainedValues);
+                }
+            }
+            return result is Tensor t ? [t] : (Tensor[])result;
         }
-        return result is Tensor t ? [t] : (Tensor[])result;
+        finally
+        {
+            Array.Clear(values); Array.Clear(retainedValues); foreach (object[] args in routedArguments) Array.Clear(args);
+        }
     }
     /// <summary>执行只返回单个张量的模块，并把解释器结果转换为张量。</summary>
     /// <param name="m">要执行的符号模块。</param>

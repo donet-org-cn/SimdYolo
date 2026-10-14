@@ -8,7 +8,9 @@ internal sealed partial class OnnxModel
     /// <param name="Source">原检测头输出张量名称。</param>
     /// <param name="Maximum">两阶段 TopK 保留数量。</param>
     /// <param name="Classes">检测类别数量。</param>
-    private sealed record EndToEndPattern(OnnxNode[] Nodes, string Source, int Maximum, int Classes);
+    /// <param name="Extra">随同一锚点收集的附加字段数量。</param>
+    /// <param name="BatchOffsets">原图是否使用正确的动态批次偏移。</param>
+    private sealed record EndToEndPattern(OnnxNode[] Nodes, string Source, int Maximum, int Classes, int Extra = 0, bool BatchOffsets = false);
     /// <summary>描述端到端图匹配模板中的算子、符号输入输出和属性条件。</summary>
     /// <param name="Op">ONNX 算子类型。</param>
     /// <param name="Inputs">按节点或图声明顺序排列的输入名称。</param>
@@ -132,9 +134,10 @@ internal sealed partial class OnnxModel
             matched.Remove(final); removed.UnionWith(matched);
         }
         graph.Nodes.RemoveAll(removed.Contains);
+        FuseYolo26EndToEndHead();
     }
 
-    /// <summary>对匹配的单图检测头选择 CPU 或 Vulkan 融合路径；布局和整数精度不符合时执行原图。</summary>
+    /// <summary>对匹配的检测头选择 CPU 或 Vulkan 融合路径，并收集实例字段；布局和整数精度不符合时执行原图。</summary>
     /// <param name="node">当前执行或匹配的 ONNX 节点。</param>
     /// <param name="args">原检测头张量与匹配模板使用的外部常量。</param>
     /// <returns>融合或原图计算所得的检测输出数组。</returns>
@@ -142,15 +145,17 @@ internal sealed partial class OnnxModel
     {
         EndToEndPattern pattern = endToEndPatterns[node.Name];
         Tensor input = args[0]!;
-        // 当前模板的 Gather 批偏移为零，融合路径仅适用于批量 1。
-        // 其他批量或布局执行原始节点，保留其形状与索引检查及错误语义。
-        if (input.Rank == 3 && input.Shape[0] == 1 && input.Shape[1] == pattern.Classes + 4 && input.Shape[2] >= pattern.Maximum &&
+        // 零偏移模板仅融合批量 1；使用 Range 的模板逐批收集独立锚点。
+        // 其他批量或布局执行原始节点，保留形状、索引检查及错误语义。
+        if (input.Rank == 3 && input.Shape[0] >= 1 && (pattern.BatchOffsets || input.Shape[0] == 1) &&
+            input.Shape[1] == pattern.Classes + 4 + pattern.Extra && input.Shape[2] >= pattern.Maximum &&
             DeviceScope.For(input) is VulkanBackend vulkan && vulkan.TryEndToEndTopKOnnx(input, pattern.Maximum, pattern.Classes) is { } output)
             return [output];
         // 普通解释器在 FP32 张量中保存整数索引。超过连续整数精确范围时，
         // 必须执行原节点转换，避免融合算法悄悄提高索引精度而改变结果。
-        if (ops.Backend is CpuBackend && input.Rank == 3 && input.Shape[0] == 1 && input.Shape[1] == pattern.Classes + 4 &&
-            input.Shape[2] >= pattern.Maximum && input.Shape[2] <= 16777216 && (long)pattern.Maximum * pattern.Classes <= 16777216)
+        if (ops.Backend is CpuBackend && input.Rank == 3 && input.Shape[0] >= 1 && (pattern.BatchOffsets || input.Shape[0] == 1) &&
+            input.Shape[1] == pattern.Classes + 4 + pattern.Extra && input.Shape[2] >= pattern.Maximum && input.Shape[2] <= 16777216 &&
+            (long)pattern.Maximum * pattern.Classes <= 16777216 && (long)input.Shape[0] * pattern.Maximum <= 16777216)
             return [CpuEndToEnd.SelectOnnx(input, pattern.Maximum, pattern.Classes)];
         var values = new Dictionary<string, Tensor>();
         for (int i = 0; i < node.Inputs.Length; i++) if (args[i] is { } value) values[node.Inputs[i]] = value;

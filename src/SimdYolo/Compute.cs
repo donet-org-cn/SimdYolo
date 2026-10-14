@@ -180,7 +180,9 @@ public sealed class TensorOps(IComputeBackend backend)
         {
             return Avx2.IsSupported && w.IsConstant && ((ic is >= 32 and <= 64 && oc is >= 32 and <= 128 && oh <= 160 && ow <= 160) || CpuWinograd4.AdditionalHotShape(ic, oc, oh, ow)) ? CpuWinograd4.Conv(cpuWinograd, x, w, bias, silu) : CpuWinograd.Conv(cpuWinograd, x, w, bias, silu);
         }
-        var y = Tensor.Temporary(batches, oc, oh, ow); int spatial = oh * ow, cig = ic / groups, cog = oc / groups, k = cig * kh * kw;
+        // 已验证的 CPU 卷积路径均完整写入输出；其他扩展后端保持原有清零约定。
+        var y = Backend is CpuBackend ? Tensor.TemporaryUninitialized(batches, oc, oh, ow) : Tensor.Temporary(batches, oc, oh, ow);
+        int spatial = oh * ow, cig = ic / groups, cog = oc / groups, k = cig * kh * kw;
         if (Backend is CpuBackend cpuPointwise && groups == 1 && batches == 1 && kh == 1 && kw == 1 && strides.SequenceEqual([1, 1]) && pads.All(p => p == 0))
         {
             if (CpuPointwise.FusionEnabled && CpuPointwise.Supported)
@@ -323,13 +325,30 @@ public sealed class TensorOps(IComputeBackend backend)
         if (a.Rank < 2 || b.Rank < 2) throw new NotSupportedException("MatMul requires rank >= 2.");
         int m = a.Shape[^2], k = a.Shape[^1], n = b.Shape[^1];
         if (b.Shape[^2] != k) throw new ArgumentException("MatMul dimensions mismatch.");
-        int[] batch = BroadcastShape(a.Shape[..^2], b.Shape[..^2]);
+        int[] aBatch = a.Shape[..^2], bBatch = b.Shape[..^2];
+        int[] batch = BroadcastShape(aBatch, bBatch);
         if (Backend is IDeviceBackend { FrameActive: true } device) return device.DeviceMatMul(a, b, [.. batch, m, n]);
+        if (Backend is CpuBackend cpu)
+        {
+            var output = Tensor.TemporaryUninitialized([.. batch, m, n]);
+            int batchCount = Tensor.Count(batch);
+            if (batchCount == 0 || m == 0 || n == 0) return output;
+            if (k == 0) { Array.Clear(output.Data); return output; }
+            int mk = checked(m * k), kn = checked(k * n);
+            var aOffsets = new int[batchCount]; var bOffsets = new int[batchCount];
+            for (int t = 0; t < batchCount; t++)
+            {
+                aOffsets[t] = checked(BroadcastIndex(t, batch, aBatch) * mk);
+                bOffsets[t] = checked(BroadcastIndex(t, batch, bBatch) * kn);
+            }
+            CpuGemm.MultiplyOffsetsBatch(a.Data, b.Data, output.Data, aOffsets, bOffsets, m, n, k, cpu.Parallel);
+            return output;
+        }
         var result = Tensor.Temporary([.. batch, m, n]); int count = Tensor.Count(batch);
         if (m == 0 || n == 0 || k == 0) { Array.Clear(result.Data); return result; }
         for (int t = 0; t < count; t++)
         {
-            int ai = BroadcastIndex(t, batch, a.Shape[..^2]) * m * k, bi = BroadcastIndex(t, batch, b.Shape[..^2]) * k * n;
+            int ai = BroadcastIndex(t, batch, aBatch) * m * k, bi = BroadcastIndex(t, batch, bBatch) * k * n;
             var aa = ai == 0 && a.Length == m * k ? a.Data : a.Data.AsSpan(ai, m * k).ToArray();
             var bb = bi == 0 && b.Length == k * n ? b.Data : b.Data.AsSpan(bi, k * n).ToArray();
             var cc = count == 1 ? result.Data : new float[m * n]; Backend.MatMul(aa, bb, cc, m, n, k);
@@ -406,7 +425,7 @@ public sealed class TensorOps(IComputeBackend backend)
         ValidateShape(a); ValidateShape(b);
         if (DeviceScope.For(a, b) is { } owner && Math.Max(a.Rank, b.Rank) <= 4) return DeviceOps.Binary(owner, a, b, operation);
         if (operation is < 10 or > 13) throw new ArgumentOutOfRangeException(nameof(operation));
-        int[] shape = BroadcastShape(a.Shape, b.Shape); var result = Tensor.Temporary(shape);
+        int[] shape = BroadcastShape(a.Shape, b.Shape); var result = Tensor.TemporaryUninitialized(shape);
         if (result.Length == 0) return result;
         float[] ad = a.Data, bd = b.Data, output = result.Data;
         int inner = shape.Length == 0 ? 1 : shape[^1], outer = result.Length / inner;
@@ -440,7 +459,7 @@ public sealed class TensorOps(IComputeBackend backend)
     {
         ValidateShape(x);
         if (DeviceScope.For(x) is { } owner) return DeviceOps.Unary(owner, x, 4, scale);
-        var result = Tensor.Temporary(x.Shape); float[] input = x.Data, output = result.Data; var factor = new Vector<float>(scale); int i = 0;
+        var result = Tensor.TemporaryUninitialized(x.Shape); float[] input = x.Data, output = result.Data; var factor = new Vector<float>(scale); int i = 0;
         for (; i <= x.Length - Vector<float>.Count; i += Vector<float>.Count) (new Vector<float>(input, i) * factor).CopyTo(output, i);
         for (; i < x.Length; i++) output[i] = input[i] * scale;
         return result;
@@ -454,7 +473,7 @@ public sealed class TensorOps(IComputeBackend backend)
     {
         ValidateShape(x);
         if (DeviceScope.For(x) is { } owner) return DeviceOps.Unary(owner, x, silu ? 1 : 2);
-        var y = Tensor.Temporary(x.Shape); int i = 0;
+        var y = Tensor.TemporaryUninitialized(x.Shape); int i = 0;
         for (; i <= x.Length - Vector<float>.Count; i += Vector<float>.Count)
         {
             var v = new Vector<float>(x.Data, i); var result = CpuActivation.Sigmoid(v);
@@ -484,7 +503,7 @@ public sealed class TensorOps(IComputeBackend backend)
             shape[axis] += x.Shape[axis];
         }
         if (DeviceScope.For(tensors.ToArray()) is { } owner) return owner.DeviceConcat(tensors, axis, shape);
-        var y = Tensor.Temporary(shape); int inner = Tensor.Count(shape[(axis + 1)..]), outer = Tensor.Count(shape[..axis]);
+        var y = Tensor.TemporaryUninitialized(shape); int inner = Tensor.Count(shape[(axis + 1)..]), outer = Tensor.Count(shape[..axis]);
         for (int o = 0; o < outer; o++)
         {
             int dst = o * shape[axis] * inner;

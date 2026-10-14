@@ -271,6 +271,21 @@ internal sealed class PickleReader(ZipArchive zip, string prefix, bool readTenso
         }
         int elementSize = s.Kind switch { "FloatStorage" or "IntStorage" => 4, "HalfStorage" or "BFloat16Storage" => 2, "DoubleStorage" or "LongStorage" => 8, "ByteStorage" or "CharStorage" or "BoolStorage" => 1, _ => throw new NotSupportedException($"Storage {s.Kind} unsupported.") };
         if (s.Count < 0 || s.Count != data.Length / elementSize || data.Length % elementSize != 0) throw new InvalidDataException("Storage size mismatch.");
+        // 官方卷积权重通常为连续存储；先校验一次布局和范围，避免对每个元素逐维取模、除法及类型分派。
+        if (count > 0 && IsContiguous(shape, strides))
+        {
+            if (offset > s.Count - count) throw new InvalidDataException("Tensor storage offset invalid.");
+            TensorStorageKind kind = s.Kind switch
+            {
+                "FloatStorage" => TensorStorageKind.Float32, "HalfStorage" => TensorStorageKind.Float16,
+                "BFloat16Storage" => TensorStorageKind.BFloat16, "DoubleStorage" => TensorStorageKind.Float64,
+                "LongStorage" => TensorStorageKind.Int64, "IntStorage" => TensorStorageKind.Int32,
+                "CharStorage" => TensorStorageKind.Int8, _ => TensorStorageKind.UInt8
+            };
+            float[] values = GC.AllocateUninitializedArray<float>(count);
+            TensorStorageReader.Read(data.AsSpan(checked((int)offset * elementSize), checked(count * elementSize)), values, kind);
+            return new Tensor(values, shape) { IsConstant = true };
+        }
         var result = new Tensor(shape);
         for (int i = 0; i < count; i++)
         {
@@ -290,6 +305,20 @@ internal sealed class PickleReader(ZipArchive zip, string prefix, bool readTenso
             };
         }
         result.IsConstant = true; return result;
+    }
+    /// <summary>检查非空张量的行优先布局；长度为 1 的维度不限制步长，因为其索引始终为零。</summary>
+    /// <param name="shape">已校验非负且元素数量未溢出的维度数组。</param>
+    /// <param name="strides">已校验与维度数量一致且非负的存储步长。</param>
+    /// <returns>逻辑元素可从偏移开始连续读取时返回 true。</returns>
+    private static bool IsContiguous(int[] shape, long[] strides)
+    {
+        long expected = 1;
+        for (int d = shape.Length - 1; d >= 0; d--)
+        {
+            if (shape[d] != 1 && strides[d] != expected) return false;
+            expected *= shape[d];
+        }
+        return true;
     }
     /// <summary>元数据模式中替代实际张量的形状描述，不读取 ZIP 权重条目。</summary>
     /// <param name="Shape">检查点记录的张量维度。</param>

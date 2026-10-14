@@ -1,0 +1,67 @@
+[
+  {
+    "model": "yolo26n.pt",
+    "backend": "vulkan",
+    "instances": 5,
+    "max_box_error": 0.00025083007813009317,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.pt",
+    "backend": "vulkan",
+    "instances": 4,
+    "max_box_error": 0.0005413763427739582,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [
+      0.9990836908472601,
+      0.9994223177894027,
+      0.9996987104808581,
+      0.9992793312193716
+    ],
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose.pt",
+    "backend": "vulkan",
+    "instances": 4,
+    "max_box_error": 6.545898435206254e-05,
+    "max_keypoint_error": 0.0007278320312025244,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolov8n.pt",
+    "backend": "vulkan",
+    "instances": 5,
+    "max_box_error": 0.00012520507812041615,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolo11n-seg.pt",
+    "backend": "vulkan",
+    "instances": 5,
+    "max_box_error": 0.00010273437510477379,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [
+      0.9987413220052314,
+      0.9998282473387672,
+      0.9994482504942755,
+      0.998980351089922,
+      0.9992888256733932
+    ],
+    "passed": true
+  },
+  {
+    "model": "yolo11n-pose.pt",
+    "backend": "vulkan",
+    "instances": 4,
+    "max_box_error": 7.086035157044535e-05,
+    "max_keypoint_error": 0.00041545410155663376,
+    "mask_iou": [],
+    "passed": true
+  }
+]

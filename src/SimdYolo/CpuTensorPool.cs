@@ -25,9 +25,14 @@ internal sealed class CpuTensorPool
     public float[] Rent(int count, bool clear = true)
     {
         float[] buffer;
-        if (available.TryGetValue(count, out var stack) && stack.Count > 0) { buffer = stack.Pop(); retainedBytes -= (long)count * sizeof(float); }
+        if (available.TryGetValue(count, out var stack) && stack.Count > 0)
+        {
+            buffer = stack.Pop(); retainedBytes -= (long)count * sizeof(float);
+            if (clear) Array.Clear(buffer);
+        }
         else buffer = clear ? new float[count] : GC.AllocateUninitializedArray<float>(count);
-        if (clear) Array.Clear(buffer); leased.Add(buffer); return buffer;
+        // 新建 float[] 已由 CLR 清零；仅复用旧数组时才需要显式清零。
+        leased.Add(buffer); return buffer;
     }
     /// <summary>将公开输出永久移出租用集合，重复输出别名复制为独立数组，保护跨帧输出。</summary>
     /// <param name="tensors">需要返回或拼接的张量序列。</param>

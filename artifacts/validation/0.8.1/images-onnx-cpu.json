@@ -1,0 +1,67 @@
+[
+  {
+    "model": "yolo26n.onnx",
+    "backend": "cpu",
+    "instances": 5,
+    "max_box_error": 0.00012869743652377252,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.onnx",
+    "backend": "cpu",
+    "instances": 4,
+    "max_box_error": 0.00038637634277449706,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [
+      0.9990836908472601,
+      0.9994223177894027,
+      0.9996987104808581,
+      0.9992793312193716
+    ],
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose.onnx",
+    "backend": "cpu",
+    "instances": 4,
+    "max_box_error": 0.00013037109374636202,
+    "max_keypoint_error": 0.0003621679687739743,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolov8n.onnx",
+    "backend": "cpu",
+    "instances": 5,
+    "max_box_error": 0.00019570312497307896,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolo11n-seg.onnx",
+    "backend": "cpu",
+    "instances": 5,
+    "max_box_error": 0.00012979150389469396,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [
+      0.9987413220052314,
+      0.9998282473387672,
+      0.9994482504942755,
+      0.998980351089922,
+      0.9992888256733932
+    ],
+    "passed": true
+  },
+  {
+    "model": "yolo11n-pose.onnx",
+    "backend": "cpu",
+    "instances": 4,
+    "max_box_error": 0.00011435546878146852,
+    "max_keypoint_error": 0.00021015624997744453,
+    "mask_iou": [],
+    "passed": true
+  }
+]

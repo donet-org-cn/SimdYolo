@@ -122,48 +122,52 @@ internal static class CpuEndToEnd
     /// <param name="input">输入张量或连续输入缓冲区。</param>
     /// <param name="maximum">最多保留的检测数量。</param>
     /// <param name="classes">类别总数。</param>
-    /// <returns>形状为 [批次,检测数量,6] 的张量，每项依次为四个边框值、得分和类别编号。</returns>
+    /// <returns>形状为 [批次,检测数量,6+附加字段] 的张量，附加字段与入选框使用相同锚点。</returns>
     internal static Tensor SelectOnnx(Tensor input, int maximum, int classes)
     {
-        int anchors = input.Shape[2];
+        int anchors = input.Shape[2], channels = input.Shape[1], extra = channels - classes - 4, fields = 6 + extra;
         float[] source = input.Data;
         float[] maxima = ArrayPool<float>.Shared.Rent(anchors);
         try
         {
-            maxima.AsSpan(0, anchors).Fill(float.NegativeInfinity);
-            for (int c = 0; c < classes; c++)
-            {
-                int src = (c + 4) * anchors, a = 0;
-                for (; a <= anchors - Vector<float>.Count; a += Vector<float>.Count)
-                {
-                    var previous = new Vector<float>(maxima, a);
-                    var next = new Vector<float>(source, src + a);
-                    var finite = Vector.BitwiseAnd(Vector.Equals(previous, previous), Vector.Equals(next, next));
-                    Vector.ConditionalSelect(finite, Vector.Max(previous, next), new Vector<float>(float.NaN)).CopyTo(maxima, a);
-                }
-                for (; a < anchors; a++) maxima[a] = MathF.Max(maxima[a], source[src + a]);
-            }
             var anchorHeap = new Entry[maximum];
-            int count = 0;
-            for (int a = 0; a < anchors; a++) Add(anchorHeap, ref count, new(maxima[a], a));
-            Array.Sort(anchorHeap, Compare);
             var selected = new Entry[maximum];
-            count = 0;
-            // 按类别依次遍历连续的输入平面。
-            // 堆中缓存得分，比较时无需重复索引除法或稀疏读取。
-            // 并列项仍使用导出图中的扁平排序位置。
-            for (int c = 0; c < classes; c++)
-                for (int rank = 0; rank < maximum; rank++)
-                    Add(selected, ref count, new(source[(c + 4) * anchors + anchorHeap[rank].Index], rank * classes + c));
-            Array.Sort(selected, Compare);
-            var result = Tensor.TemporaryUninitialized(1, maximum, 6);
+            var result = Tensor.TemporaryUninitialized(input.Shape[0], maximum, fields);
             float[] target = result.Data;
-            for (int i = 0; i < maximum; i++)
+            for (int batch = 0; batch < input.Shape[0]; batch++)
             {
-                int index = selected[i].Index, anchor = anchorHeap[index / classes].Index, c = index % classes, dst = i * 6;
-                for (int coordinate = 0; coordinate < 4; coordinate++) target[dst + coordinate] = source[coordinate * anchors + anchor];
-                target[dst + 4] = selected[i].Score;
-                target[dst + 5] = c;
+                int offset = batch * channels * anchors;
+                maxima.AsSpan(0, anchors).Fill(float.NegativeInfinity);
+                for (int c = 0; c < classes; c++)
+                {
+                    int src = offset + (c + 4) * anchors, a = 0;
+                    for (; a <= anchors - Vector<float>.Count; a += Vector<float>.Count)
+                    {
+                        var previous = new Vector<float>(maxima, a);
+                        var next = new Vector<float>(source, src + a);
+                        var finite = Vector.BitwiseAnd(Vector.Equals(previous, previous), Vector.Equals(next, next));
+                        Vector.ConditionalSelect(finite, Vector.Max(previous, next), new Vector<float>(float.NaN)).CopyTo(maxima, a);
+                    }
+                    for (; a < anchors; a++) maxima[a] = MathF.Max(maxima[a], source[src + a]);
+                }
+                int count = 0;
+                for (int a = 0; a < anchors; a++) Add(anchorHeap, ref count, new(maxima[a], a));
+                Array.Sort(anchorHeap, Compare);
+                count = 0;
+                // 按类别依次遍历连续的输入平面，堆中缓存得分。
+                // 并列项使用导出图中的第一阶段排序位置。
+                for (int c = 0; c < classes; c++)
+                    for (int rank = 0; rank < maximum; rank++)
+                        Add(selected, ref count, new(source[offset + (c + 4) * anchors + anchorHeap[rank].Index], rank * classes + c));
+                Array.Sort(selected, Compare);
+                for (int i = 0; i < maximum; i++)
+                {
+                    int index = selected[i].Index, anchor = anchorHeap[index / classes].Index, c = index % classes, dst = (batch * maximum + i) * fields;
+                    for (int coordinate = 0; coordinate < 4; coordinate++) target[dst + coordinate] = source[offset + coordinate * anchors + anchor];
+                    target[dst + 4] = selected[i].Score;
+                    target[dst + 5] = c;
+                    for (int field = 0; field < extra; field++) target[dst + 6 + field] = source[offset + (classes + 4 + field) * anchors + anchor];
+                }
             }
             return result;
         }

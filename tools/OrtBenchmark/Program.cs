@@ -45,6 +45,7 @@ try
         options.AppendExecutionProvider_CUDA(cudaOptions);
     }
     using var session = new InferenceSession(modelPath, options);
+    double modelLoadMs = startup.Elapsed.TotalMilliseconds;
     // 各实现共用同一 FP32 输入文件，工具本身不执行图像预处理；长度必须准确匹配三个通道。
     byte[] bytes = File.ReadAllBytes(inputPath);
     if (bytes.Length != 3 * size * size * sizeof(float)) throw new ArgumentException("Input byte count mismatch.");
@@ -69,16 +70,17 @@ try
         return (data, shapes);
     }
     // 正式窗口之前预热 warmup 次，首次预热另记 firstMs；startupMs 截止于最后一次预热结束。
-    double firstMs = 0;
+    double firstMs = 0, readyToFirstOutputMs = 0; var warmupWatch = Stopwatch.StartNew();
     for (int i = 0; i < warmup; i++)
     {
-        var watch = Stopwatch.StartNew(); Infer(); if (i == 0) firstMs = watch.Elapsed.TotalMilliseconds;
+        var watch = Stopwatch.StartNew(); Infer(); if (i == 0) { firstMs = watch.Elapsed.TotalMilliseconds; readyToFirstOutputMs = startup.Elapsed.TotalMilliseconds; }
     }
+    double warmupMs = warmupWatch.Elapsed.TotalMilliseconds;
     double startupMs = startup.Elapsed.TotalMilliseconds;
     // ready.json 告知外部资源采样器初始化完成；等待 go 的时间及文件写入不进入正式计时。
     Directory.CreateDirectory(signalDirectory);
     string provider = backend == "cuda" ? "CUDAExecutionProvider" : "CPUExecutionProvider";
-    File.WriteAllText(Path.Combine(signalDirectory, "ready.json"), JsonSerializer.Serialize(new { Backend = provider, StartupMs = startupMs, FirstInferenceMs = firstMs, BaselineWorkingSetMiB = baselineRss / 1048576.0 }));
+    File.WriteAllText(Path.Combine(signalDirectory, "ready.json"), JsonSerializer.Serialize(new { Backend = provider, StartupMs = startupMs, ModelLoadMs = modelLoadMs, FirstInferenceMs = firstMs, ReadyToFirstOutputMs = readyToFirstOutputMs, WarmupMs = warmupMs, BaselineWorkingSetMiB = baselineRss / 1048576.0 }));
     // 同步等待超过两分钟抛出 TimeoutException；该等待不修改推理性能样本。
     var signalTimeout = Stopwatch.StartNew();
     while (!File.Exists(Path.Combine(signalDirectory, "go")))
@@ -112,6 +114,6 @@ try
     double Percentile(double p) { double index = p * (sorted.Length - 1); int lo = (int)index, hi = (int)Math.Ceiling(index); return sorted[lo] + (sorted[hi] - sorted[lo]) * (index - lo); }
     // CpuPercent 按逻辑处理器总容量归一化；CpuMsPerFrame 使用全部线程累计 CPU 时间除以帧数。
     // ThroughputFps 按完整窗口计算，FramesPerSecond 使用 1000/中位延迟，均保留原始 SamplesMs 供复核。
-    Console.WriteLine(JsonSerializer.Serialize(new { Model = Path.GetFileName(modelPath), Backend = provider, Version = OrtEnv.Instance().GetVersionString(), Host = ".NET", Outputs = result.Shapes, Shape = new[] { 1, 3, size, size }, Iterations = samples.Count, Warmup = warmup, CpuThreads = threads, StartupMs = startupMs, FirstInferenceMs = firstMs, WindowSeconds = seconds, CpuSeconds = cpuSeconds, CpuPercent = cpuSeconds / seconds / Environment.ProcessorCount * 100, CpuMsPerFrame = cpuSeconds * 1000 / samples.Count, ThroughputFps = samples.Count / seconds, MedianMs = Percentile(.5), P95Ms = Percentile(.95), MeanMs = samples.Average(), MinMs = sorted[0], FramesPerSecond = 1000 / Percentile(.5), SamplesMs = samples }, new JsonSerializerOptions { WriteIndented = true }));
+    Console.WriteLine(JsonSerializer.Serialize(new { Model = Path.GetFileName(modelPath), Backend = provider, Version = OrtEnv.Instance().GetVersionString(), Host = ".NET", Outputs = result.Shapes, Shape = new[] { 1, 3, size, size }, Iterations = samples.Count, Warmup = warmup, CpuThreads = threads, StartupMs = startupMs, ModelLoadMs = modelLoadMs, FirstInferenceMs = firstMs, ReadyToFirstOutputMs = readyToFirstOutputMs, WarmupMs = warmupMs, WindowSeconds = seconds, CpuSeconds = cpuSeconds, CpuPercent = cpuSeconds / seconds / Environment.ProcessorCount * 100, CpuMsPerFrame = cpuSeconds * 1000 / samples.Count, ThroughputFps = samples.Count / seconds, MedianMs = Percentile(.5), P95Ms = Percentile(.95), MeanMs = samples.Average(), MinMs = sorted[0], FramesPerSecond = 1000 / Percentile(.5), SamplesMs = samples }, new JsonSerializerOptions { WriteIndented = true }));
 }
 catch (Exception error) { Console.Error.WriteLine(error); Environment.ExitCode = 1; }
