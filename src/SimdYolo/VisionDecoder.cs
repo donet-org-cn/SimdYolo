@@ -28,7 +28,7 @@ public static class VisionDecoder
     /// <param name="decodeMasks">是否计算分割概率掩码；false 时分割结果仍保留检测框。</param>
     /// <returns>按检测结果排列的实例列表；无检测时为空列表。</returns>
     /// <exception cref="ArgumentException">模型输出缺失、布局有歧义、类别或关键点维度不匹配，或分割原型不满足单图要求。</exception>
-    /// <exception cref="NotSupportedException">检测头不是三维张量，或分割、姿态输出采用不支持的端到端布局。</exception>
+    /// <exception cref="NotSupportedException">检测头不是三维张量。</exception>
     /// <exception cref="OverflowException">关键点字段数或裁剪掩码面积超出 Int32 范围。</exception>
     public static IReadOnlyList<YoloInstance> Decode(Tensor[] outputs, Letterbox transform, DetectorOptions options, bool decodeMasks = true)
     {
@@ -48,11 +48,18 @@ public static class VisionDecoder
         }
         bool first = layout == OutputLayout.ChannelsFirst;
         int fields = first ? head.Shape[1] : head.Shape[2], count = first ? head.Shape[2] : head.Shape[1];
-        if (task != YoloTask.Detection && layout == OutputLayout.EndToEnd) throw new NotSupportedException("End-to-end segment/pose exports unsupported.");
+        bool endToEnd = layout == OutputLayout.EndToEnd;
         int extra = task == YoloTask.Segmentation ? outputs.Length == 2 && outputs[1].Rank == 4 ? outputs[1].Shape[1] : throw new ArgumentException("Segmentation requires [head, prototypes].") : task == YoloTask.Pose ? checked(options.KeypointCount * options.KeypointDimensions) : 0;
         int classes = options.ClassCount > 0 ? options.ClassCount : fields - 4 - extra;
-        if (task != YoloTask.Detection && (classes <= 0 || 4 + classes + extra != fields)) throw new ArgumentException("Class/keypoint/mask dimensions mismatch.");
-        var detections = DetectionDecoder.DecodeIndexed(head, transform, options with { OutputLayout = layout, ClassCount = task == YoloTask.Detection ? options.ClassCount : classes });
+        if (task != YoloTask.Detection && (endToEnd ? fields != 6 + extra : classes <= 0 || 4 + classes + extra != fields)) throw new ArgumentException("Class/keypoint/mask dimensions mismatch.");
+        Tensor detectionHead = head;
+        if (endToEnd && extra > 0)
+        {
+            detectionHead = new Tensor(head.Shape[0], count, 6);
+            for (int b = 0; b < head.Shape[0]; b++) for (int a = 0; a < count; a++) Array.Copy(head.Data, (b * count + a) * fields, detectionHead.Data, (b * count + a) * 6, 6);
+        }
+        var detections = DetectionDecoder.DecodeIndexed(detectionHead, transform, options with { OutputLayout = layout, ClassCount = endToEnd || task == YoloTask.Detection ? options.ClassCount : classes });
+        int extraOffset = endToEnd ? 6 : 4 + classes;
         // 统一通道优先与通道最后布局的字段读取，后续掩码/关键点计算复用同一锚点索引。
         float At(int a, int c) => head.Data[first ? c * count + a : a * fields + c];
         var result = new List<YoloInstance>();
@@ -65,7 +72,7 @@ public static class VisionDecoder
                 points = new Keypoint[options.KeypointCount];
                 for (int k = 0; k < points.Length; k++)
                 {
-                    int offset = 4 + classes + k * options.KeypointDimensions;
+                    int offset = extraOffset + k * options.KeypointDimensions;
                     points[k] = new((At(anchor, offset) - transform.PadX) / transform.ScaleX, (At(anchor, offset + 1) - transform.PadY) / transform.ScaleY, options.KeypointDimensions == 3 ? At(anchor, offset + 2) : 1);
                 }
             }
@@ -77,7 +84,7 @@ public static class VisionDecoder
                 var low = new float[plane];
                 for (int c = 0; c < extra; c++)
                 {
-                    float weight = At(anchor, 4 + classes + c); int i = 0; var vw = new System.Numerics.Vector<float>(weight);
+                    float weight = At(anchor, extraOffset + c); int i = 0; var vw = new System.Numerics.Vector<float>(weight);
                     for (; i <= plane - System.Numerics.Vector<float>.Count; i += System.Numerics.Vector<float>.Count)
                         (new System.Numerics.Vector<float>(low, i) + vw * new System.Numerics.Vector<float>(prototype.Data, c * plane + i)).CopyTo(low, i);
                     for (; i < plane; i++) low[i] += weight * prototype.Data[c * plane + i];

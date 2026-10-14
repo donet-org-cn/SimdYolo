@@ -19,9 +19,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("image")
 parser.add_argument("models", nargs="+")
 parser.add_argument("--backend", default="vulkan")
+parser.add_argument("--report", type=Path)
+parser.add_argument("--work-directory", type=Path)
+parser.add_argument("--onnx-directory", type=Path, help="Run C# with matching ONNX exports, still using PT as the oracle")
 args = parser.parse_args()
 torch.set_num_threads(4)
-work = root / ".cache/image-validation"
+work = args.work_directory or root / ".cache/image-validation"
 work.mkdir(parents=True, exist_ok=True)
 image = Image.open(args.image).convert("RGB")
 w, h = image.size
@@ -42,16 +45,18 @@ for path in args.models:
         out = model(x)
     prototype = out[1] if isinstance(out, tuple) else None
     out = out[0] if isinstance(out, tuple) else out
-    data = out[0].T.numpy()
+    end_to_end = bool(getattr(head, "end2end", False))
+    data = out[0].numpy() if end_to_end else out[0].T.numpy()
     nc = head.nc
-    scores = data[:, 4:4 + nc].max(axis=1)
-    classes = data[:, 4:4 + nc].argmax(axis=1)
-    boxes = np.concatenate((data[:, :2] - data[:, 2:4] / 2, data[:, :2] + data[:, 2:4] / 2), axis=1)
+    scores = data[:, 4] if end_to_end else data[:, 4:4 + nc].max(axis=1)
+    classes = data[:, 5].astype(int) if end_to_end else data[:, 4:4 + nc].argmax(axis=1)
+    boxes = data[:, :4] if end_to_end else np.concatenate((data[:, :2] - data[:, 2:4] / 2, data[:, :2] + data[:, 2:4] / 2), axis=1)
+    extra_offset = 6 if end_to_end else 4 + nc
     candidates = np.flatnonzero(scores >= .25)
     candidates = candidates[np.argsort(-scores[candidates], kind="stable")]
     kept = []
     for a in candidates:
-        if kept:
+        if kept and not end_to_end:
             other = np.array(kept)
             wh = np.maximum(0, np.minimum(boxes[a, 2:], boxes[other, 2:]) - np.maximum(boxes[a, :2], boxes[other, :2]))
             intersection = wh.prod(axis=1)
@@ -65,8 +70,9 @@ for path in args.models:
     original = boxes[kept].copy()
     original[:, [0, 2]] = ((original[:, [0, 2]] - tx["PadX"]) / tx["ScaleX"]).clip(0, w)
     original[:, [1, 3]] = ((original[:, [1, 3]] - tx["PadY"]) / tx["ScaleY"]).clip(0, h)
+    runtime_path = args.onnx_directory / (path.stem + ".onnx") if args.onnx_directory else path
     destination = work / path.stem
-    subprocess.run(["dotnet", str(cli), "predict", str(path), str(work / "image.ppm"), args.backend, str(destination)], check=True)
+    subprocess.run(["dotnet", str(cli), "predict", str(runtime_path), str(work / "image.ppm"), args.backend, str(destination)], check=True)
     actual = json.loads((destination / "predictions.json").read_text())["Instances"]
     if len(actual) != len(kept):
         raise AssertionError(f"Detection count mismatch: {len(actual)} != {len(kept)}")
@@ -74,7 +80,7 @@ for path in args.models:
     max_keypoint_error = 0.
     max_box_error = 0.
     reference_masks = None
-    if task == "Segment":
+    if task in ("Segment", "Segment26"):
         # Use the actual integer letterbox padding. Older scale_masks implementations
         # truncate recomputed floating padding (19.99999 -> 19), shifting masks a pixel.
         mh, mw = prototype.shape[2:]
@@ -82,7 +88,7 @@ for path in args.models:
         top = round(tx["PadY"] * mh / tx["TargetHeight"])
         right = round((tx["PadX"] + w * tx["ScaleX"]) * mw / tx["TargetWidth"])
         bottom = round((tx["PadY"] + h * tx["ScaleY"]) * mh / tx["TargetHeight"])
-        logits = torch.from_numpy(data[kept, 4 + nc:]) @ prototype[0].reshape(head.nm, -1)
+        logits = torch.from_numpy(data[kept, extra_offset:]) @ prototype[0].reshape(head.nm, -1)
         cropped = logits.reshape(len(kept), mh, mw)[:, top:bottom, left:right]
         resized = torch.nn.functional.interpolate(cropped[None], (h, w), mode="bilinear", align_corners=False)[0]
         reference_masks = (ops.crop_mask(resized, torch.from_numpy(original)) > 0).numpy()
@@ -95,14 +101,14 @@ for path in args.models:
         error = float(np.abs(received - expected_box).max())
         max_box_error = max(error, max_box_error)
         np.testing.assert_allclose(received, expected_box, atol=.01, rtol=1e-4)
-        if task == "Pose":
-            points = data[anchor, 4 + nc:].reshape(head.kpt_shape).copy()
+        if task in ("Pose", "Pose26"):
+            points = data[anchor, extra_offset:].reshape(head.kpt_shape).copy()
             points[:, 0] = (points[:, 0] - tx["PadX"]) / tx["ScaleX"]
             points[:, 1] = (points[:, 1] - tx["PadY"]) / tx["ScaleY"]
             received = np.array([[p["X"], p["Y"], p["Confidence"]] for p in item["Keypoints"]])
             max_keypoint_error = max(max_keypoint_error, float(np.abs(points - received).max()))
             np.testing.assert_allclose(received, points, atol=.01, rtol=1e-4)
-        if task == "Segment":
+        if task in ("Segment", "Segment26"):
             mask = item["Mask"]
             crop = np.asarray(Image.open(destination / mask["File"])) > 127
             canvas = np.zeros((h, w), dtype=bool)
@@ -114,7 +120,9 @@ for path in args.models:
             mask_iou.append(similarity)
             if similarity < .99:
                 raise AssertionError(f"Mask IoU too low: {similarity}")
-    report = {"model": path.name, "backend": args.backend, "instances": len(actual), "max_box_error": max_box_error, "max_keypoint_error": max_keypoint_error, "mask_iou": mask_iou, "passed": True}
+    report = {"model": runtime_path.name, "backend": args.backend, "instances": len(actual), "max_box_error": max_box_error, "max_keypoint_error": max_keypoint_error, "mask_iou": mask_iou, "passed": True}
     print(json.dumps(report), flush=True)
     reports.append(report)
-(work / "results.json").write_text(json.dumps(reports, indent=2))
+report_path = args.report or work / "results.json"
+report_path.parent.mkdir(parents=True, exist_ok=True)
+report_path.write_text(json.dumps(reports, indent=2))

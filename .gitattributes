@@ -5,5 +5,6 @@ models/onnx/*.onnx filter=lfs diff=lfs merge=lfs -text
 *.nupkg binary
 # 保留实测证据与清单的原始字节，避免检出时换行转换改变 SHA-256。
 artifacts/** -text
+docs/articles/** -text
 models/manifest.json -text
 models/LICENSE-AGPL-3.0.txt -text

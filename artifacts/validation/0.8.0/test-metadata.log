@@ -1,0 +1,7 @@
+PASS Metadata labels: Python/JSON dicts and lists preserve Unicode and escapes
+PASS Metadata labels: sparse IDs retain class channels, absent names stay empty
+PASS Metadata labels: invalid labels and expressions are rejected
+PASS Metadata reader skips unsupported weight data and never creates an execution backend
+PASS PT metadata reads dictionary/list labels without a model architecture
+PASS Official YOLO26 PT metadata reads labels after all tensor storage entries are removed
+6 tests passed.

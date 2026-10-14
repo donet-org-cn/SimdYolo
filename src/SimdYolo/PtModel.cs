@@ -24,8 +24,11 @@ internal sealed class PtModel : IModel
     /// <summary>检查点保存的类别编号与名称。</summary>
     /// <value>检查点保存的类别编号与名称。</value>
     public IReadOnlyDictionary<int, string> Names { get; }
-    /// <summary>最终模块是否为 v10Detect 或声明 end2end 的检测头。</summary>
-    /// <value>最终模块是否为 v10Detect 或声明 end2end 的检测头。</value>
+    /// <summary>最终检测头声明的类别通道数量。</summary>
+    /// <value>检测头 nc，缺失时使用标签最大编号加一。</value>
+    public int ClassCount { get; }
+    /// <summary>由 v10Detect、头状态、融合分支或 YAML 识别的端到端模式。</summary>
+    /// <value>最终检测、分割或姿态头是否使用 one2one 分支。</value>
     public bool EndToEnd { get; }
     /// <summary>根据最后一层识别出的检测、分割或姿态任务。</summary>
     /// <value>根据最后一层识别出的检测、分割或姿态任务。</value>
@@ -33,11 +36,11 @@ internal sealed class PtModel : IModel
     /// <summary>检查点的姿态关键点形状；未声明时使用 [17, 3]。</summary>
     /// <value>检查点的姿态关键点形状；未声明时使用 [17, 3]。</value>
     public int[] KeypointShape { get; }
-    /// <summary>端到端模型采用六字段结果，其他模型采用通道优先布局。</summary>
-    /// <value>端到端模型采用六字段结果，其他模型采用通道优先布局。</value>
+    /// <summary>端到端模型采用六字段及可选实例数据，其他模型采用通道优先布局。</summary>
+    /// <value>模型的实例行布局或通道优先布局。</value>
     public OutputLayout PreferredLayout => EndToEnd ? OutputLayout.EndToEnd : OutputLayout.ChannelsFirst;
     /// <summary>允许解释执行的 Torch 和 YOLO 模块名称白名单。</summary>
-    private static readonly HashSet<string> Supported = new("Sequential ModuleList Conv2d ConvTranspose2d BatchNorm2d SiLU ReLU LeakyReLU Identity Upsample MaxPool2d Conv DWConv Bottleneck RepBottleneck RepNBottleneck CIB C2f C2fCIB C2fPSA C3k2 C3 C3k RepCSP RepNCSP SPPF SPP SPPELAN Concat RepNCSPELAN4 ELAN1 ADown AConv SCDown RepConv RepConvN RepVGGDW PSA C2PSA PSABlock Attention Detect Segment Pose Proto DDetect DualDDetect TripleDDetect v10Detect DFL CBLinear CBFuse Silence".Split(' '));
+    private static readonly HashSet<string> Supported = new("Sequential ModuleList Conv2d ConvTranspose2d BatchNorm2d SiLU ReLU LeakyReLU Identity Upsample MaxPool2d Conv DWConv Bottleneck RepBottleneck RepNBottleneck CIB C2f C2fCIB C2fPSA C3k2 C3 C3k RepCSP RepNCSP SPPF SPP SPPELAN Concat RepNCSPELAN4 ELAN1 ADown AConv SCDown RepConv RepConvN RepVGGDW PSA C2PSA PSABlock Attention Detect Segment Segment26 Pose Pose26 Proto Proto26 DDetect DualDDetect TripleDDetect v10Detect DFL CBLinear CBFuse Silence".Split(' '));
     /// <summary>读取 Torch ZIP 检查点的符号对象和权重，校验层路由，并在加载阶段完成卷积参数预融合。</summary>
     /// <param name="path">包含完整 YOLO 模块架构与权重的 Torch ZIP 检查点路径。</param>
     /// <param name="ops">使用当前计算后端的张量算子入口。</param>
@@ -65,9 +68,11 @@ internal sealed class PtModel : IModel
         from = layers.Select(l => l.Get("f") switch { List<object?> list => list.Select(Convert.ToInt32).ToArray(), object?[] tuple => tuple.Select(Convert.ToInt32).ToArray(), null => new[] { -1 }, var f => new[] { Convert.ToInt32(f) } }).ToArray();
         uses = new int[layers.Length];
         for (int i = 0; i < layers.Length; i++) foreach (int f in from[i]) { int idx = f < 0 ? i + f : f; if (idx < -1 || idx >= i) throw new InvalidDataException("Invalid YOLO layer routing."); if (idx >= 0) uses[idx]++; }
-        Names = model.Get("names") is Dictionary<object, object?> names ? names.ToDictionary(p => Convert.ToInt32(p.Key), p => p.Value?.ToString() ?? "") : new Dictionary<int, string>();
-        EndToEnd = layers[^1].Type.Name == "v10Detect" || layers[^1].Bool("end2end");
-        Task = layers[^1].Type.Name switch { "Segment" => YoloTask.Segmentation, "Pose" => YoloTask.Pose, _ => YoloTask.Detection };
+        Names = ModelInfo.ReadNames(model.Get("names"));
+        ClassCount = layers[^1].Int("nc", ModelInfo.LabelClassCount(Names));
+        EndToEnd = ModelInfo.IsEndToEnd(layers[^1], model);
+        layers[^1].State["_end2end"] = EndToEnd;
+        Task = layers[^1].Type.Name switch { "Segment" or "Segment26" => YoloTask.Segmentation, "Pose" or "Pose26" => YoloTask.Pose, _ => YoloTask.Detection };
         KeypointShape = layers[^1].Get("kpt_shape") is IEnumerable<object?> kpts ? kpts.Select(Convert.ToInt32).ToArray() : [17, 3];
         // 在加载阶段一次性折叠 BN 和重参数化分支，推理过程中只读取融合权重。
         foreach (var layer in layers) Prepare(layer);
@@ -79,13 +84,19 @@ internal sealed class PtModel : IModel
     {
         bool trustedType = p.Type.Module.StartsWith("torch.nn.modules.", StringComparison.Ordinal) || p.Type.Module.StartsWith("ultralytics.nn.modules", StringComparison.Ordinal) || p.Type.Module is "models.common" or "models.yolo";
         if (!trustedType || !Supported.Contains(p.Type.Name)) throw new NotSupportedException($"PT module {p.Type.Module}.{p.Type.Name} unsupported.");
-        foreach (var child in p.Children) Validate(child);
+        foreach (var child in InferenceChildren(p)) Validate(child);
     }
+    /// <summary>枚举推理会使用的子模块，忽略 YOLO26 姿态损失和分割语义辅助分支。</summary>
+    /// <param name="p">要枚举子模块的符号模块。</param>
+    /// <returns>需要验证及预融合的子模块，不包含已知仅训练分支。</returns>
+    private static IEnumerable<PyObject> InferenceChildren(PyObject p) => p.Map("_modules")
+        .Where(pair => !(p.Type.Name == "Pose26" && pair.Key is "flow_model" or "cv4_sigma" or "one2one_cv4_sigma") && !(p.Type.Name == "Proto26" && pair.Key is "semseg"))
+        .Select(pair => pair.Value).OfType<PyObject>();
     /// <summary>递归预处理模块，在加载阶段折叠 BatchNorm 并融合满足条件的 Rep 卷积分支。</summary>
     /// <param name="p">当前符号模块的参数与状态。</param>
     private void Prepare(PyObject p)
     {
-        foreach (var child in p.Children) Prepare(child);
+        foreach (var child in InferenceChildren(p)) Prepare(child);
         if (p.Type.Name is "Conv" or "DWConv" && p.Has("bn"))
         {
             var conv = p.Child("conv"); var bn = p.Child("bn"); var weights = conv.Weight("weight"); var w = new Tensor((float[])weights.Data.Clone(), weights.Shape); var bias = new Tensor(weights.Shape[0]);
@@ -229,7 +240,8 @@ internal sealed class PtModel : IModel
                 var ys = Chunk(C(p, "cv1", X())).ToList(); foreach (var m in p.Child("m").Children) ys.Add(F(m, ys[^1])); return CConcat(p, "cv2", ys);
             case "C3": case "C3k": case "RepCSP": case "RepNCSP": return CConcat(p, "cv3", [C(p, "m", C(p, "cv1", X())), C(p, "cv2", X())]);
             case "SPPF":
-                var sp = new List<Tensor> { C(p, "cv1", X()) }; for (int i = 0; i < 3; i++) sp.Add(C(p, "m", sp[^1])); return CConcat(p, "cv2", sp);
+                var sp = new List<Tensor> { C(p, "cv1", X()) }; for (int i = 0; i < p.Int("n", 3); i++) sp.Add(C(p, "m", sp[^1]));
+                var pooled = CConcat(p, "cv2", sp); return p.Bool("add") ? Add(pooled, X()) : pooled;
             case "SPP": var first = C(p, "cv1", X()); return CConcat(p, "cv2", new[] { first }.Concat(p.Child("m").Children.Select(m => F(m, first))).ToArray());
             case "SPPELAN": var elan = new List<Tensor> { C(p, "cv1", X()) }; foreach (string key in new[] { "cv2", "cv3", "cv4" }) elan.Add(C(p, key, elan[^1])); return CConcat(p, "cv5", elan);
             case "Concat": return TensorOps.Concat(((object[])input).Cast<Tensor>().ToArray(), p.Int("d", 1));
@@ -260,34 +272,51 @@ internal sealed class PtModel : IModel
             case "Attention": return Attention(p, X());
             case "Detect": case "DDetect": case "DualDDetect": case "TripleDDetect": case "v10Detect": return Detect(p, ((object[])input).Cast<Tensor>().ToArray());
             case "Proto": return C(p, "cv3", C(p, "cv2", C(p, "upsample", C(p, "cv1", X()))));
+            case "Proto26":
+                var protoFeatures = ((object[])input).Cast<Tensor>().ToArray(); var refined = protoFeatures[0]; var refineBranches = p.Child("feat_refine").Children;
+                for (int i = 0; i < refineBranches.Length; i++)
+                {
+                    var higher = F(refineBranches[i], protoFeatures[i + 1]);
+                    refined = Add(refined, TensorOps.ResizeNearest(higher, higher.Shape[2] * (1 << (i + 1)), higher.Shape[3] * (1 << (i + 1))));
+                }
+                return C(p, "cv3", C(p, "cv2", C(p, "upsample", C(p, "cv1", C(p, "feat_fuse", refined)))));
             case "Segment":
-                var features = ((object[])input).Cast<Tensor>().ToArray(); var proto = C(p, "proto", features[0]); var maskBranches = p.Child("cv4").Children;
+            case "Segment26":
+                var features = ((object[])input).Cast<Tensor>().ToArray();
+                var proto = p.Child("proto").Type.Name == "Proto26" ? (Tensor)Forward(p.Child("proto"), features.Cast<object>().ToArray()) : C(p, "proto", features[0]);
+                bool segmentEndToEnd = ModelInfo.IsEndToEnd(p); var maskBranches = p.Child(segmentEndToEnd ? "one2one_cv4" : "cv4").Children;
                 var coefficients = features.Select((t, i) => F(maskBranches[i], t).Reshape(t.Shape[0], p.Int("nm"), t.Shape[2] * t.Shape[3])).ToArray();
-                return new[] { TensorOps.Concat([Detect(p, features), TensorOps.Concat(coefficients, 2)], 1), proto };
+                var maskHead = TensorOps.Concat([Detect(p, features, false), TensorOps.Concat(coefficients, 2)], 1);
+                return new[] { segmentEndToEnd ? EndToEndTopK(maskHead, p.Int("max_det", 300), p.Int("nc")) : maskHead, proto };
             case "Pose":
-                features = ((object[])input).Cast<Tensor>().ToArray(); var keypointBranches = p.Child("cv4").Children;
+            case "Pose26":
+                features = ((object[])input).Cast<Tensor>().ToArray(); bool poseEndToEnd = ModelInfo.IsEndToEnd(p), pose26 = p.Type.Name == "Pose26";
+                string posePrefix = poseEndToEnd ? "one2one_" : ""; var keypointBranches = p.Child(posePrefix + "cv4").Children;
+                var projections = pose26 ? p.Child(posePrefix + "cv4_kpts").Children : [];
                 int[] kpShape = ((IEnumerable<object?>)p.Get("kpt_shape")!).Select(Convert.ToInt32).ToArray(); int nk = kpShape[0] * kpShape[1];
                 var pointLevels = new List<Tensor>(); var stride = (Tensor)p.Get("stride")!;
                 for (int level = 0; level < features.Length; level++)
                 {
                     var t = features[level]; int kpSpatial = t.Shape[2] * t.Shape[3]; var rawPoints = F(keypointBranches[level], t);
-                    if (DeviceScope.For(rawPoints) is not null) { pointLevels.Add(DeviceOps.DecodePose(rawPoints, kpShape[0], kpShape[1], stride.Data[level])); continue; }
+                    if (pose26) rawPoints = F(projections[level], rawPoints);
+                    if (DeviceScope.For(rawPoints) is not null) { pointLevels.Add(DeviceOps.DecodePose(rawPoints, kpShape[0], kpShape[1], stride.Data[level], pose26)); continue; }
                     if (CpuPose.Enabled && kpShape[1] is 2 or 3)
                     {
-                        pointLevels.Add(CpuPose.Decode(rawPoints, kpShape[0], kpShape[1], stride.Data[level], ops.Backend is CpuBackend poseCpu ? poseCpu.Parallel : CpuScheduling.Options));
+                        pointLevels.Add(CpuPose.Decode(rawPoints, kpShape[0], kpShape[1], stride.Data[level], ops.Backend is CpuBackend poseCpu ? poseCpu.Parallel : CpuScheduling.Options, pose26));
                         continue;
                     }
                     var logits = rawPoints.Reshape(t.Shape[0], nk, kpSpatial);
                     for (int b = 0; b < t.Shape[0]; b++) for (int k = 0; k < kpShape[0]; k++) for (int a = 0; a < kpSpatial; a++)
                     {
                         int off = (b * nk + k * kpShape[1]) * kpSpatial + a;
-                        logits.Data[off] = (logits.Data[off] * 2 + a % t.Shape[3]) * stride.Data[level];
-                        logits.Data[off + kpSpatial] = (logits.Data[off + kpSpatial] * 2 + a / t.Shape[3]) * stride.Data[level];
+                        logits.Data[off] = (pose26 ? logits.Data[off] + (a % t.Shape[3] + .5f) : logits.Data[off] * 2 + a % t.Shape[3]) * stride.Data[level];
+                        logits.Data[off + kpSpatial] = (pose26 ? logits.Data[off + kpSpatial] + (a / t.Shape[3] + .5f) : logits.Data[off + kpSpatial] * 2 + a / t.Shape[3]) * stride.Data[level];
                         if (kpShape[1] == 3) logits.Data[off + 2 * kpSpatial] = TensorOps.Sigmoid(logits.Data[off + 2 * kpSpatial]);
                     }
                     pointLevels.Add(logits);
                 }
-                return TensorOps.Concat([Detect(p, features), TensorOps.Concat(pointLevels, 2)], 1);
+                var poseHead = TensorOps.Concat([Detect(p, features, false), TensorOps.Concat(pointLevels, 2)], 1);
+                return poseEndToEnd ? EndToEndTopK(poseHead, p.Int("max_det", 300), p.Int("nc")) : poseHead;
             case "DFL":
                 int bins = p.Int("c1", 16); int batch = X().Shape[0], anchors = X().Shape[2]; var dfl = TensorOps.Softmax(X().Reshape(batch, 4, bins, anchors), 2); var distance = new Tensor(batch, 4, anchors);
                 for (int b = 0; b < batch; b++) for (int c = 0; c < 4; c++) for (int a = 0; a < anchors; a++) for (int r = 0; r < bins; r++) distance.Data[(b * 4 + c) * anchors + a] += dfl.Data[((b * 4 + c) * bins + r) * anchors + a] * r;
@@ -334,14 +363,15 @@ internal sealed class PtModel : IModel
     /// <summary>计算各特征层的边框分布与分类分支，并按步长解码和拼接检测结果。</summary>
     /// <param name="p">当前符号模块的参数与状态。</param>
     /// <param name="inputs">按路由或节点声明顺序排列的输入张量。</param>
+    /// <param name="selectEndToEnd">是否立即执行 TopK；拼接实例附加字段前设为 false。</param>
     /// <returns>通道优先检测结果，或端到端两阶段筛选后的六字段结果。</returns>
     /// <exception cref="InvalidDataException">检测分支数量不匹配，或缺少特征层步长。</exception>
-    private Tensor Detect(PyObject p, Tensor[] inputs)
+    private Tensor Detect(PyObject p, Tensor[] inputs, bool selectEndToEnd = true)
     {
         string boxKey = "cv2", classKey = "cv3"; int nl = p.Int("nl", inputs.Length);
         if (p.Type.Name == "DualDDetect") { inputs = inputs[^nl..]; boxKey = "cv4"; classKey = "cv5"; }
         if (p.Type.Name == "TripleDDetect") { inputs = inputs[^nl..]; boxKey = "cv6"; classKey = "cv7"; }
-        bool end2end = p.Type.Name == "v10Detect" || p.Bool("end2end");
+        bool end2end = ModelInfo.IsEndToEnd(p);
         if (end2end) { boxKey = "one2one_cv2"; classKey = "one2one_cv3"; }
         var boxes = p.Child(boxKey).Children; var classes = p.Child(classKey).Children; int nc = p.Int("nc"), bins = p.Int("reg_max", 16), batch = inputs[0].Shape[0];
         if (inputs.Length != boxes.Length || classes.Length != boxes.Length) throw new InvalidDataException("Detection branches mismatch.");
@@ -349,26 +379,26 @@ internal sealed class PtModel : IModel
         if (ops.Backend is IDeviceBackend { FrameActive: true })
         {
             var levels = inputs.Select((feature, i) => DeviceOps.DecodeHead(F(boxes[i], feature), F(classes[i], feature), bins, stride.Data[i], end2end)).ToArray();
-            var decoded = TensorOps.Concat(levels, 2); return end2end ? EndToEndTopK(decoded, p.Int("max_det", 300), nc) : decoded;
+            var decoded = TensorOps.Concat(levels, 2); return end2end && selectEndToEnd ? EndToEndTopK(decoded, p.Int("max_det", 300), nc) : decoded;
         }
         var decodedLevels = inputs.Select((feature, i) => CpuHead.Decode(F(boxes[i], feature), F(classes[i], feature), bins, stride.Data[i], end2end, ops.Backend is CpuBackend cpuHead ? cpuHead.Parallel : null)).ToArray();
         var output = TensorOps.Concat(decodedLevels, 2);
-        return end2end ? EndToEndTopK(output, p.Int("max_det", 300), nc) : output;
+        return end2end && selectEndToEnd ? EndToEndTopK(output, p.Int("max_det", 300), nc) : output;
     }
     /// <summary>先筛选最大类别分数最高的锚点，再筛选锚点与类别组合，保持确定的相同分数顺序。</summary>
     /// <param name="x">参与计算的输入张量。</param>
     /// <param name="maximum">端到端检测头允许保留的最大结果数量。</param>
     /// <param name="nc">类别数量。</param>
-    /// <returns>形状为 [批量,保留数,6] 的坐标、分数和类别结果。</returns>
+    /// <returns>形状为 [批量,保留数,6+附加字段] 的结果，附加字段与边框使用同一锚点。</returns>
     private static Tensor EndToEndTopK(Tensor x, int maximum, int nc)
     {
         if (DeviceScope.For(x) is VulkanBackend vulkan && vulkan.TryEndToEndTopK(x, maximum, nc) is { } deviceResult) return deviceResult;
-        if (CpuEndToEnd.PtEnabled && DeviceScope.For(x) is null && x.Rank == 3 && x.Shape[1] == nc + 4 && nc > 0 && maximum > 0 && x.Shape[2] > 0)
+        if (CpuEndToEnd.PtEnabled && DeviceScope.For(x) is null && x.Rank == 3 && x.Shape[1] >= nc + 4 && nc > 0 && maximum > 0 && x.Shape[2] > 0)
             return CpuEndToEnd.SelectPt(x, maximum, nc);
-        int anchors = x.Shape[2], k = Math.Min(maximum, anchors); var result = new Tensor(x.Shape[0], k, 6);
+        int anchors = x.Shape[2], k = Math.Min(maximum, anchors), extra = x.Shape[1] - nc - 4, fields = 6 + extra; var result = new Tensor(x.Shape[0], k, fields);
         for (int b = 0; b < x.Shape[0]; b++)
         {
-            int off = b * (nc + 4) * anchors;
+            int off = b * x.Shape[1] * anchors;
             float[] data = x.Data; var maxima = new float[anchors]; Array.Fill(maxima, float.NegativeInfinity);
             for (int c = 0; c < nc; c++)
             {
@@ -391,7 +421,12 @@ internal sealed class PtModel : IModel
                 }
             }
             var best = classQueue.UnorderedItems.Select(v => v.Element).OrderByDescending(v => v.Score).ThenBy(v => v.Anchor).ThenBy(v => v.Class).ToArray();
-            for (int i = 0; i < best.Length; i++) { int dst = (b * k + i) * 6; for (int j = 0; j < 4; j++) result.Data[dst + j] = x.Data[off + j * anchors + best[i].Anchor]; result.Data[dst + 4] = best[i].Score; result.Data[dst + 5] = best[i].Class; }
+            for (int i = 0; i < best.Length; i++)
+            {
+                int dst = (b * k + i) * fields; for (int j = 0; j < 4; j++) result.Data[dst + j] = x.Data[off + j * anchors + best[i].Anchor];
+                result.Data[dst + 4] = best[i].Score; result.Data[dst + 5] = best[i].Class;
+                for (int j = 0; j < extra; j++) result.Data[dst + 6 + j] = x.Data[off + (4 + nc + j) * anchors + best[i].Anchor];
+            }
         }
         return result;
     }

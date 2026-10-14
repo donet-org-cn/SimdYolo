@@ -19,18 +19,21 @@ internal sealed partial class OnnxModel : IModel
     /// <summary>模型元数据中声明的类别名称映射。</summary>
     /// <value>模型元数据中声明的类别名称映射。</value>
     public IReadOnlyDictionary<int, string> Names { get; }
+    /// <summary>模型提供或由原始检测头维度推导的类别通道数量。</summary>
+    /// <value>实际类别通道数量；无法确定时为 0。</value>
+    public int ClassCount { get; }
     /// <summary>模型元数据声明的检测、分割或姿态任务。</summary>
     /// <value>模型元数据声明的检测、分割或姿态任务。</value>
     public YoloTask Task { get; }
     /// <summary>模型声明的姿态关键点数量与维度；未声明时采用 [17, 3]。</summary>
     /// <value>模型声明的姿态关键点数量与维度；未声明时采用 [17, 3]。</value>
     public int[] KeypointShape { get; }
-    /// <summary>由检测解码器自动识别 ONNX 输出布局。</summary>
-    /// <value>由检测解码器自动识别 ONNX 输出布局。</value>
-    public OutputLayout PreferredLayout => OutputLayout.Auto;
-    /// <summary>此属性保持 false；ONNX 端到端布局由显式选项或输出形状决定。</summary>
-    /// <value>此属性保持 false；ONNX 端到端布局由显式选项或输出形状决定。</value>
-    public bool EndToEnd => false; // ONNX 端到端布局由请求的输出布局显式决定。
+    /// <summary>端到端模型使用实例行布局，普通输出继续由解码器识别通道轴。</summary>
+    /// <value>端到端布局或 Auto。</value>
+    public OutputLayout PreferredLayout => EndToEnd ? OutputLayout.EndToEnd : OutputLayout.Auto;
+    /// <summary>根据 end2end/args 元数据或无歧义输出形状识别端到端模式。</summary>
+    /// <value>模型是否输出六字段及可选实例附加字段。</value>
+    public bool EndToEnd { get; }
     /// <summary>普通 ONNX 解释器支持的算子名称集合。</summary>
     private static readonly HashSet<string> Supported = new("Constant Identity Conv ConvTranspose BatchNormalization Sigmoid Relu LeakyRelu Tanh Softmax Add Sub Mul Div Mod Pow Sqrt Exp Neg Abs Max Min MatMul Gemm MaxPool AveragePool GlobalAveragePool Concat Split Reshape Transpose Flatten Resize Shape Gather GatherElements Slice Unsqueeze Squeeze Cast ConstantOfShape Expand Tile ReduceMean ReduceSum ReduceMax Range TopK Equal Greater Less Where".Split(' '));
     /// <summary>读取并优化 ONNX 图，解析任务元数据，建立使用次数与融合模式表。</summary>
@@ -43,13 +46,9 @@ internal sealed partial class OnnxModel : IModel
     {
         graph = OnnxGraph.Load(path); this.ops = ops;
         this.trace = trace;
-        Task = graph.Metadata.GetValueOrDefault("task") switch { "segment" => YoloTask.Segmentation, "pose" => YoloTask.Pose, _ => YoloTask.Detection };
-        KeypointShape = graph.Metadata.TryGetValue("kpt_shape", out var kpt) ? System.Text.RegularExpressions.Regex.Matches(kpt, @"\d+").Select(m => int.Parse(m.Value)).ToArray() : [17, 3];
-        var names = new Dictionary<int, string>();
-        if (graph.Metadata.TryGetValue("names", out var namesText))
-            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(namesText, "(?<key>[0-9]+)\\s*:\\s*(?:'(?<value>(?:\\\\.|[^'])*)'|\"(?<value>(?:\\\\.|[^\"])*)\")"))
-                names[int.Parse(m.Groups["key"].Value)] = m.Groups["value"].Value;
-        Names = names;
+        var info = ModelInfo.FromOnnx(graph.Metadata, graph.InputShape, graph.OutputShapes);
+        Task = info.Task; KeypointShape = info.Task == YoloTask.Pose ? info.KeypointShape : [17, 3];
+        Names = info.ClassNames; ClassCount = info.ClassCount; EndToEnd = info.EndToEnd;
         EliminateDeadNodes(graph);
         FoldConstants();
         FuseBatchNormalization(graph);

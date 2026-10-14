@@ -73,6 +73,8 @@ void main() {
         float distances[4];
         for(uint side=0;side<4;side++) {
             uint base=(batch*4+side)*bins*spatial+anchor;
+            // YOLO26 直接回归边距；单桶不是 DFL softmax。
+            if(bins==1) { distances[side]=A(base); continue; }
             float maximum=uintBitsToFloat(0xff800000),sum=0,numerator=0;
             for(uint j=0;j<bins;j++) maximum=max(maximum,A(base+j*spatial));
             for(uint j=0;j<bins;j++) { float e=exp(A(base+j*spatial)-maximum); sum+=e; numerator+=e*float(j); }
@@ -87,7 +89,8 @@ void main() {
     } else if(operation==31) {
         uint spatial=P(1),width=P(2),dim=P(3),axis=i/spatial%dim,anchor=i%spatial;
         float value=A(i),stride=uintBitsToFloat(P(4));
-        C(i)=axis==0 ? (value*2+float(anchor%width))*stride : axis==1 ? (value*2+float(anchor/width))*stride : sigmoid(value);
+        float factor=P(5)==1 ? 1.0 : 2.0,offset=P(5)==1 ? .5 : 0.0;
+        C(i)=axis==0 ? (value*factor+(float(anchor%width)+offset))*stride : axis==1 ? (value*factor+(float(anchor/width)+offset))*stride : sigmoid(value);
     } else if(operation==32) {
         uint ic=P(1),ih=P(2),iw=P(3),oh=P(5),ow=P(6),kh=P(7),kw=P(8),spatial=oh*ow,bc=i/spatial,channel=bc%ic;
         int oy=int(i%spatial/ow),ox=int(i%ow);

@@ -1,5 +1,9 @@
 # 验证记录
 
+## 0.8.0 YOLO26 与标签元数据
+
+新增 YOLO26 检测、分割、姿态 `.pt`/ONNX 推理及独立标签读取接口。CPU/Vulkan、静态与动态、批量和真实图片的具体结果见 [YOLO26 验证](artifacts/validation/0.8.0/yolo26.md)。历史性能报告继续绑定 0.7.0 冻结程序集，本次兼容性验证没有生成或替换速度排名。
+
 ## 0.7.1 中文代码文档
 
 0.7.1 补齐中文 XML 文档和关键算法说明，启用 `GenerateDocumentationFile`，将 `SimdYolo.xml` 随 NuGet 包分发。代码 token 对照、文档覆盖、编译与 CPU/Vulkan 回归结果见 [中文注释验证](artifacts/validation/0.7.1/chinese-documentation.md)。性能报告继续保留 0.7.0 冻结 DLL 的原始测量与哈希；版本号和中文注释使新程序集的文件哈希发生变化。

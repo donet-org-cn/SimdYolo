@@ -102,4 +102,14 @@ internal static class OnnxFixtures
         string directory = Path.GetFullPath(Path.Combine(".cache", "tests")); Directory.CreateDirectory(directory);
         string path = Path.Combine(directory, name + ".onnx"); File.WriteAllBytes(path, model); return path;
     }
+    /// <summary>为独立测试图附加模型元数据。</summary>
+    /// <param name="path">已写入的 ONNX 测试文件。</param>
+    /// <param name="values">需要写入的键值对。</param>
+    /// <returns>相同的测试文件路径。</returns>
+    internal static string Metadata(string path, params (string Key, string Value)[] values)
+    {
+        using var stream = new FileStream(path, FileMode.Append);
+        foreach (var pair in values) stream.Write(Bytes(14, Message(Text(1, pair.Key), Text(2, pair.Value))));
+        return path;
+    }
 }

@@ -9,13 +9,15 @@ layout(constant_id=1) const uint anchors=1;
 layout(constant_id=2) const uint classes=1;
 layout(constant_id=3) const uint k=1;
 layout(constant_id=4) const uint inputOffset=0;
+layout(constant_id=5) const uint extra=0;
 void main() {
     uint i=gl_GlobalInvocationID.x;
     if(i>=count) return;
-    uint column=i%6,position=i/6%k,batch=i/(k*6),key=uint(b[batch*k+position]);
+    uint fields=6+extra,column=i%fields,position=i/fields%k,batch=i/(k*fields),key=uint(b[batch*k+position]);
     uint selected=key/classes,category=key%classes,anchor=uint(d[batch*k+selected]);
     // Selection-order keys match the ONNX flattened score tensor's tie order.
     // Read the original confidence so NaN payloads and signed zero survive.
-    c[i]=column<4 ? a[inputOffset+(batch*(classes+4)+column)*anchors+anchor]
-        : column==4 ? a[inputOffset+(batch*(classes+4)+category+4)*anchors+anchor] : float(category);
+    c[i]=column<4 ? a[inputOffset+(batch*(classes+4+extra)+column)*anchors+anchor]
+        : column==4 ? a[inputOffset+(batch*(classes+4+extra)+category+4)*anchors+anchor] : column==5 ? float(category)
+        : a[inputOffset+(batch*(classes+4+extra)+classes+4+column-6)*anchors+anchor];
 }

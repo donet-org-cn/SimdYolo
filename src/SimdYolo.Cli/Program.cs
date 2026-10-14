@@ -3,14 +3,20 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using SimdYolo;
 
-// 命令行入口接收 inspect、bench、profile、raw、detect、predict 和 preprocess 命令。
+// 命令行入口接收 inspect、labels、bench、profile、raw、detect、predict 和 preprocess 命令。
 // 模型和输入由文件提供，结果写入标准输出及指定文件；所有实际异常统一打印到标准错误并返回退出码 1。
 // 参数不足、数值格式错误、无效配置、输入数据损坏、模型或后端不支持以及文件读写错误都由下方 catch 报告。
 try
 {
-    if (args.Length == 0) { Console.WriteLine("SimdYolo: inspect MODEL | bench MODEL [cpu|vulkan|metal|auto] [size=640] [iterations=5] [threads=0] [warmup=1] [input.f32] [durationSeconds=0] [signalDirectory] [outputPrefix] | profile MODEL [backend] [size] | raw MODEL INPUT.f32 OUTPUT_PREFIX [backend] [size] | detect MODEL IMAGE.ppm [backend] | predict MODEL IMAGE.ppm [backend] [outputDir] [size]"); return; }
+    if (args.Length == 0) { Console.WriteLine("SimdYolo: inspect MODEL | labels MODEL | bench MODEL [cpu|vulkan|metal|auto] [size=640] [iterations=5] [threads=0] [warmup=1] [input.f32] [durationSeconds=0] [signalDirectory] [outputPrefix] | profile MODEL [backend] [size] | raw MODEL INPUT.f32 OUTPUT_PREFIX [backend] [size] [batch=1] | detect MODEL IMAGE.ppm [backend] | predict MODEL IMAGE.ppm [backend] [outputDir] [size]"); return; }
     if (args.Length < 2) throw new ArgumentException("Model path required.");
     string command = args[0], path = args[1];
+    // inspect 和 labels 只读取元数据，不加载权重存储，也不创建 CPU/GPU 后端。
+    if (command is "inspect" or "labels")
+    {
+        var info = ModelInfo.Read(path);
+        Console.WriteLine(JsonSerializer.Serialize(command == "labels" ? (object)info.ClassNames : info, new JsonSerializerOptions { WriteIndented = true, Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() } })); return;
+    }
     // preprocess 的 path 是 P6 图像；args[2] 是原始 FP32 输出路径，args[3] 可指定正方形目标尺寸。
     // 输出按 NCHW 保存，同时写入缩放和填边 JSON，便于各实现复用完全相同的预处理输入。
     if (command == "preprocess")
@@ -31,7 +37,6 @@ try
     // using 保证命令结束时释放后端和 CPU 工作线程。profile 回调会同步 GPU，属于诊断模式。
     using var detector = new YoloDetector(path, new() { Device = device, Width = size, Height = size, CpuThreads = threads, LayerCompleted = command == "profile" ? t => Console.WriteLine($"{t.Name} {t.Operation} {t.Milliseconds:F3} ms") : null });
     Console.WriteLine(detector.BackendName); if (detector.FallbackReason is { } reason) Console.WriteLine("Fallback: " + reason);
-    if (command == "inspect") { Console.WriteLine("Input: [" + string.Join(',', detector.InputShape) + "]"); Console.WriteLine("Classes: " + detector.ClassNames.Count); return; }
     // detect：PPM 解码位于计时外；耗时包含填边、推理和检测后处理，输出为原图坐标 JSON。
     if (command == "detect")
     {
@@ -52,13 +57,15 @@ try
                 maskPath = $"mask-{i}.pgm"; using var f = File.Create(Path.Combine(directory, maskPath));
                 f.Write(System.Text.Encoding.ASCII.GetBytes($"P5\n{mask.Width} {mask.Height}\n255\n")); f.Write(mask.Probabilities.Select(p => (byte)Math.Clamp((int)MathF.Round(p * 255), 0, 255)).ToArray());
             }
-            return new { instance.Box, instance.Keypoints, Mask = instance.Mask is { } m ? new { m.X, m.Y, m.Width, m.Height, File = maskPath } : null };
+            return new { instance.Box, ClassName = detector.ClassNames.GetValueOrDefault(instance.Box.ClassId), instance.Keypoints, Mask = instance.Mask is { } m ? new { m.X, m.Y, m.Width, m.Height, File = maskPath } : null };
         }).ToArray();
         string json = JsonSerializer.Serialize(new { Task = detector.Task.ToString(), ElapsedMs = elapsed, Instances = results }, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(Path.Combine(directory, "predictions.json"), json); Console.WriteLine($"{instances.Count} instances; {elapsed:F2} ms; {Path.GetFullPath(Path.Combine(directory, "predictions.json"))}"); return;
     }
     int[] shape = detector.InputShape; int height = shape[2] > 0 ? shape[2] : size, width = shape[3] > 0 ? shape[3] : size;
-    var input = new Tensor(1, 3, height, width);
+    int batch = command == "raw" && args.Length > 6 ? int.Parse(args[6]) : 1;
+    if (batch <= 0) throw new ArgumentException("Batch must be positive.");
+    var input = new Tensor(batch, 3, height, width);
     // raw：读取已预处理的连续 FP32 文件，其字节数必须与 [1,3,H,W] 完全一致。
     // 每个原始输出分别保存 .f32 数据与 .json 形状；字节数错误抛出 ArgumentException。
     if (command == "raw")

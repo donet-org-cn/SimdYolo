@@ -9,6 +9,9 @@ internal interface IModel
     /// <summary>模型提供的类别编号与名称映射。</summary>
     /// <value>模型提供的类别编号与名称映射。</value>
     IReadOnlyDictionary<int, string> Names { get; }
+    /// <summary>检测头的类别通道数量，未知时为 0。</summary>
+    /// <value>由模型结构或元数据推导的类别数量。</value>
+    int ClassCount { get; }
     /// <summary>模型是否直接返回经过两阶段筛选的端到端检测结果。</summary>
     /// <value>模型是否直接返回经过两阶段筛选的端到端检测结果。</value>
     bool EndToEnd { get; }
@@ -48,7 +51,7 @@ public enum OutputLayout
     ChannelsFirst,
     /// <summary>使用 [批量,锚点,字段] 通道末尾布局。</summary>
     ChannelsLast,
-    /// <summary>使用 [批量,保留数,6]，六字段依次为 xyxy 坐标、分数和类别。</summary>
+    /// <summary>使用 [批量,保留数,6+附加字段]，前六字段依次为 xyxy、分数、类别，后接掩码系数或关键点。</summary>
     EndToEnd
 }
 /// <summary>指定目标检测、实例分割或姿态估计任务。</summary>
@@ -171,6 +174,9 @@ public sealed class YoloDetector : IDisposable
     /// <summary>模型保存的类别编号与名称映射。</summary>
     /// <value>模型保存的类别编号与名称映射。</value>
     public IReadOnlyDictionary<int, string> ClassNames => model.Names;
+    /// <summary>已加载模型的不可变元数据快照；仅读取文件可调用 ModelInfo.Read。</summary>
+    /// <value>包含类别名称、通道数量、任务及端到端标记的元数据。</value>
+    public ModelInfo Info { get; }
     /// <summary>返回模型输入形状的副本，避免调用方修改模型内部维度。</summary>
     /// <value>返回模型输入形状的副本，避免调用方修改模型内部维度。</value>
     public int[] InputShape => (int[])model.InputShape.Clone();
@@ -200,6 +206,7 @@ public sealed class YoloDetector : IDisposable
         {
             var ops = new TensorOps(backend);
             model = Path.GetExtension(path).ToLowerInvariant() switch { ".onnx" => new OnnxModel(path, ops, this.options.LayerCompleted), ".pt" or ".pth" => new PtModel(path, ops, this.options.LayerCompleted), _ => throw new NotSupportedException("Use .pt/.pth YOLO checkpoint or .onnx.") };
+            Info = new(Path.GetExtension(path).Equals(".onnx", StringComparison.OrdinalIgnoreCase) ? "ONNX" : "PT", model.Names, model.ClassCount, model.Task, model.EndToEnd, model.InputShape, model.KeypointShape);
         }
         catch { backend.Dispose(); throw; }
     }
@@ -299,7 +306,7 @@ public sealed class YoloDetector : IDisposable
         return options with
         {
             Task = Task,
-            ClassCount = options.ClassCount > 0 ? options.ClassCount : model.Names.Count,
+            ClassCount = options.ClassCount > 0 ? options.ClassCount : model.ClassCount,
             KeypointCount = options.Task == YoloTask.Auto ? kp[0] : options.KeypointCount,
             KeypointDimensions = options.Task == YoloTask.Auto ? kp[1] : options.KeypointDimensions,
             OutputLayout = options.OutputLayout == OutputLayout.Auto ? model.EndToEnd ? OutputLayout.EndToEnd : model.PreferredLayout : options.OutputLayout

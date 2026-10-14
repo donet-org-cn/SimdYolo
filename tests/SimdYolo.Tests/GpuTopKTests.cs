@@ -133,7 +133,7 @@ internal static class GpuTopKTests
     }
     /// <summary>创建 Vulkan 后端执行验证，并在结束时释放后端资源。</summary>
     /// <param name="action">在临时测试设置或设备帧作用域内执行的操作。</param>
-    private static void WithGpu(Action<VulkanBackend> action)
+    internal static void WithGpu(Action<VulkanBackend> action)
     {
         string? previous = Environment.GetEnvironmentVariable("SIMDYOLO_GPU_TOPK");
         Environment.SetEnvironmentVariable("SIMDYOLO_GPU_TOPK", "1");
@@ -143,7 +143,7 @@ internal static class GpuTopKTests
     /// <summary>在完整 GPU 帧作用域内执行验证，并保证帧资源结束处理。</summary>
     /// <param name="backend">本次验证使用的计算后端。</param>
     /// <param name="action">在临时测试设置或设备帧作用域内执行的操作。</param>
-    private static void WithFrame(VulkanBackend backend, Action action)
+    internal static void WithFrame(VulkanBackend backend, Action action)
     {
         Type device = typeof(Tensor).Assembly.GetType("SimdYolo.IDeviceBackend")!;
         device.GetMethod("BeginFrame")!.Invoke(backend, null);
@@ -156,7 +156,7 @@ internal static class GpuTopKTests
     /// <param name="shape">测试张量的逻辑维度。</param>
     /// <param name="prefix">设备视图之前保留的哨兵区元素数量。</param>
     /// <returns>带 prefix 浮点元素偏移的借用设备视图，仅在当前 GPU 帧内有效。</returns>
-    private static Tensor DeviceTensor(VulkanBackend backend, float[] values, int[] shape, int prefix)
+    internal static Tensor DeviceTensor(VulkanBackend backend, float[] values, int[] shape, int prefix)
     {
         // 用未对齐的逻辑视图验证描述符地址对齐后的元素偏移补偿。
         var uploaded = new Tensor(Enumerable.Repeat(99f, prefix).Concat(values).ToArray(), values.Length + prefix);

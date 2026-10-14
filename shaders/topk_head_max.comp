@@ -6,12 +6,13 @@ layout(constant_id=0) const uint count=1;
 layout(constant_id=1) const uint anchors=1;
 layout(constant_id=2) const uint classes=1;
 layout(constant_id=3) const uint inputOffset=0;
+layout(constant_id=4) const uint extra=0;
 void main() {
     uint i=gl_GlobalInvocationID.x;
     if(i>=count) return;
     uint batch=i/anchors,anchor=i%anchors;float best=uintBitsToFloat(0xff800000u);
     for(uint category=0;category<classes;category++) {
-        float value=a[inputOffset+(batch*(classes+4)+category+4)*anchors+anchor];
+        float value=a[inputOffset+(batch*(classes+4+extra)+category+4)*anchors+anchor];
         // Match .NET IEEE max, retaining subnormals and the first NaN payload.
         uint xb=floatBitsToUint(best),yb=floatBitsToUint(value),xm=xb&0x7fffffffu,ym=yb&0x7fffffffu;
         if(xm>0x7f800000u) continue;

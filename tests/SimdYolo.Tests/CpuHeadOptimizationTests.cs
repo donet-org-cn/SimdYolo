@@ -101,7 +101,7 @@ internal static class CpuHeadOptimizationTests
     private static void Pose()
     {
         Type type = typeof(Tensor).Assembly.GetType("SimdYolo.CpuPose")!;
-        var decode = type.GetMethod("Decode", BindingFlags.NonPublic | BindingFlags.Static)!.CreateDelegate<Func<Tensor, int, int, float, ParallelOptions, Tensor>>();
+        var decode = type.GetMethod("Decode", BindingFlags.NonPublic | BindingFlags.Static)!.CreateDelegate<Func<Tensor, int, int, float, ParallelOptions, bool, Tensor>>();
         var parallel = new ParallelOptions { MaxDegreeOfParallelism = 4 };
         foreach (var (batch, points, dimensions, height, width, stride) in new[]
         {
@@ -119,7 +119,7 @@ internal static class CpuHeadOptimizationTests
                     Array.Copy(special, 0, raw.Data, spatial * 2, special.Length);
                 }
                 float[] source = (float[])raw.Data.Clone(), originalStorage = raw.Data;
-                Tensor result = decode(raw, points, dimensions, stride, parallel);
+                Tensor result = decode(raw, points, dimensions, stride, parallel, false);
                 if (!ReferenceEquals(originalStorage, result.Data) || !result.Shape.SequenceEqual([batch, channels, spatial])) throw new Exception("Pose changed its in-place storage contract.");
                 for (int index = 0; index < batch * points; index++) for (int anchor = 0; anchor < spatial; anchor++)
                 {

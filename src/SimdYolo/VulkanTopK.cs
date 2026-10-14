@@ -32,24 +32,24 @@ public sealed unsafe partial class VulkanBackend
     /// <returns>当前帧的设备结果；条件不适用时为 null，由调用方选择回退路径。</returns>
     private Tensor? TryEndToEndTopKCore(Tensor input, int maximum, int classes, bool nanFirst, bool tieBySelection)
     {
-        if (!gpuTopK || !frameActive || input.Rank != 3 || input.Shape[1] != classes + 4 || classes <= 0 || maximum <= 0 || Tensor.Count(input.Shape) != input.Length
+        if (!gpuTopK || !frameActive || input.Rank != 3 || input.Shape[1] < classes + 4 || classes <= 0 || maximum <= 0 || Tensor.Count(input.Shape) != input.Length
             || input.Storage is not { } source || !ReferenceEquals(source.Owner, this) || source.FrameId != frameId) return null;
-        int batch = input.Shape[0], anchors = input.Shape[2], k = Math.Min(maximum, anchors);
+        int batch = input.Shape[0], anchors = input.Shape[2], k = Math.Min(maximum, anchors), extra = input.Shape[1] - classes - 4, fields = 6 + extra;
         if ((long)input.Length * sizeof(float) + (long)(source.Offset % 256) > 128L * 1024 * 1024) return null;
         if (anchors is < 1 or > 65536 || (long)k * classes > 65536 || (long)anchors * classes > 16_777_216 || batch is < 1 or > 65535
-            || (long)batch * anchors > 65535L * 128 || (long)batch * k * classes > 65535L * 128 || (long)batch * k * 6 > 65535L * 128
+            || (long)batch * anchors > 65535L * 128 || (long)batch * k * classes > 65535L * 128 || (long)batch * k * fields > 65535L * 128
             || (long)batch * ((anchors + 255) / 256) * 512 > int.MaxValue
             || (long)batch * ((k * classes + 255) / 256) * 512 > int.MaxValue) return null;
         var zero = Upload(scalarZero); var maxima = AllocateTensor([batch, anchors]);
-        uint[] reduce = [(uint)(batch * anchors), (uint)anchors, (uint)classes, (uint)(source.Offset % 256 / 4)];
+        uint[] reduce = [(uint)(batch * anchors), (uint)anchors, (uint)classes, (uint)(source.Offset % 256 / 4), (uint)extra];
         Dispatch(TopKPipeline("topk_head_max.spv", reduce), source, zero, maxima.Storage!, zero, reduce, (uint)(maxima.Length + 127) / 128);
         var selected = TopKLastAxis(maxima, k, true, nanFirst, null);
         var candidates = AllocateTensor([batch, k * classes]); var keys = AllocateTensor([batch, k * classes]);
-        uint[] prepare = [(uint)candidates.Length, (uint)anchors, (uint)classes, (uint)k, (uint)(source.Offset % 256 / 4), 0, tieBySelection ? 1u : 0u];
+        uint[] prepare = [(uint)candidates.Length, (uint)anchors, (uint)classes, (uint)k, (uint)(source.Offset % 256 / 4), 0, tieBySelection ? 1u : 0u, (uint)extra];
         Dispatch(TopKPipeline("topk_head_prepare.spv", prepare), source, selected[1].Storage!, candidates.Storage!, keys.Storage!, prepare, (uint)(candidates.Length + 127) / 128);
         var best = TopKLastAxis(candidates, k, true, nanFirst, keys);
-        var output = AllocateTensor([batch, k, 6]);
-        uint[] gather = [(uint)output.Length, (uint)anchors, (uint)classes, (uint)k, (uint)(source.Offset % 256 / 4)];
+        var output = AllocateTensor([batch, k, fields]);
+        uint[] gather = [(uint)output.Length, (uint)anchors, (uint)classes, (uint)k, (uint)(source.Offset % 256 / 4), (uint)extra];
         Dispatch(TopKPipeline(tieBySelection ? "topk_head_gather_selection.spv" : "topk_head_gather.spv", gather), source, best[1].Storage!, output.Storage!,
             tieBySelection ? selected[1].Storage! : best[0].Storage!, gather, (uint)(output.Length + 127) / 128);
         return output;

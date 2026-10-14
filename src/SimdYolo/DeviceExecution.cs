@@ -179,11 +179,12 @@ internal static class DeviceOps
     /// <param name="count">每个检测的关键点数量。</param>
     /// <param name="dimensions">每个关键点字段数，通常为 2 个坐标或 3 个含置信度字段。</param>
     /// <param name="stride">特征图相对于网络输入图像的采样步长。</param>
+    /// <param name="yolo26">是否使用 YOLO26 的单倍偏移和半像素锚点。</param>
     /// <returns>属于当前后端活动帧的设备结果张量；需要在帧结束前物化主机数据。</returns>
     /// <remarks>调用前必须存在活动设备作用域；此内部入口不负责建立或验证作用域。</remarks>
-    public static Tensor DecodePose(Tensor x, int count, int dimensions, float stride)
+    public static Tensor DecodePose(Tensor x, int count, int dimensions, float stride, bool yolo26 = false)
     {
         int spatial = x.Shape[2] * x.Shape[3];
-        return DeviceScope.For(x)!.Compute(31, [x], [x.Shape[0], count * dimensions, spatial], Parameters((uint)x.Length, (uint)spatial, (uint)x.Shape[3], (uint)dimensions, Bits(stride)), x.Length);
+        return DeviceScope.For(x)!.Compute(31, [x], [x.Shape[0], count * dimensions, spatial], Parameters((uint)x.Length, (uint)spatial, (uint)x.Shape[3], (uint)dimensions, Bits(stride), yolo26 ? 1u : 0u), x.Length);
     }
 }

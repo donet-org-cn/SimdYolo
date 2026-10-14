@@ -11,10 +11,11 @@ layout(constant_id=3) const uint k=1;
 layout(constant_id=4) const uint inputOffset=0;
 layout(constant_id=5) const uint anchorOffset=0;
 layout(constant_id=6) const uint tieBySelection=0;
+layout(constant_id=7) const uint extra=0;
 void main() {
     uint i=gl_GlobalInvocationID.x;
     if(i>=count) return;
     uint category=i%classes,position=i/classes%k,batch=i/(classes*k),anchor=uint(b[anchorOffset+batch*k+position]);
-    c[i]=a[inputOffset+(batch*(classes+4)+category+4)*anchors+anchor];
+    c[i]=a[inputOffset+(batch*(classes+4+extra)+category+4)*anchors+anchor];
     d[i]=float((tieBySelection==1 ? position : anchor)*classes+category);
 }

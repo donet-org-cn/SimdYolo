@@ -40,6 +40,8 @@ CpuPointwise24Tests.Run(Test);
 CpuActivationTests.Run(Test);
 CpuExecutorTests.Run(Test);
 CpuHeadOptimizationTests.Run(Test);
+ModelInfoTests.Run(Test);
+Yolo26Tests.Run(Test, args.Contains("--vulkan"));
 CpuGemm24Tests.Run(Test);
 CpuWinograd424Tests.Run(Test);
 CpuOnnxEndToEndTests.Run(Test);

@@ -4,6 +4,8 @@
 
 C# / .NET 10 的 YOLO 推理库，包含目标检测、实例分割和姿态估计。主库为纯托管 C# 程序集：模型解析、计算图、CPU 算子、图像预处理和结果解码均由 C# 实现，CPU 使用 .NET SIMD / intrinsics。没有外部 NuGet 运行依赖，不调用 Python、PyTorch、LibTorch、TorchSharp、ONNX Runtime、BLAS/MKL/OpenBLAS 或其他原生数学运行库，也不在运行时把 `.pt` 转成 ONNX。GPU 通过 P/Invoke 调用系统 Vulkan / Metal API，执行包内嵌入的 SPIR-V / MSL 着色器。
 
+0.8.0 开发版新增 **YOLO26 检测、实例分割和姿态推理**，直接加载官方 `.pt` 或 ONNX，支持无 DFL 回归、SPPF 残差、Proto26 多尺度融合、Pose26 坐标公式和端到端实例附加字段。新增 `ModelInfo.Read`，不初始化 GPU、不加载权重存储即可读取类别标签。官方 nano 模型已在 CPU/Vulkan、静态/动态输入及 batch=2 上验证，记录见 [YOLO26 验证](artifacts/validation/0.8.0/yolo26.md)。上面的 0.7.1 Release 是旧版本，不包含本次新功能；现有性能排名保留原始 0.7.0 测量。
+
 0.7.1 补齐中文代码文档：类、接口、构造、方法、参数、返回值、属性和实际异常，以及 CPU SIMD、模型解析和 GPU 资源生命周期说明。NuGet 包包含 `SimdYolo.xml`，安装后 IDE 可直接显示中文提示。计算代码保持 0.7.0 的实现；下方速度表及原始报告来自 0.7.0 冻结程序集，0.7.1 的文档覆盖、代码一致性与回归结果单独记录在 [中文注释验证](artifacts/validation/0.7.1/chinese-documentation.md)。
 
 0.7.0 继续使用纯 C#、FP32 CPU 计算，新增实际地址对应的缓存行对齐、16/48 列点卷积调度、F4 卷积边界 SIMD、窄平面 depthwise padding SIMD、卷积尾部四/八元素 SIMD 激活、8×8 SIMD 转置、严格匹配的 ONNX 检测头融合及 2×2 平均池化专用循环。保持既有专属 CPU 执行器和 SIMD 指数路径。32 列内核、F6 和分块大小调参没有稳定收益，未设为发布路径。GPU 实现和着色器保持不变，本次重新测量 Vulkan、原版 PyTorch CUDA 和 ORT CUDA；Metal 尚无 macOS 硬件验证。
@@ -133,6 +135,32 @@ foreach (var instance in instances)
 
 换成 `yolo11n-pose.pt` 可返回关键点；换成检测权重可返回检测框。`.onnx` 同样直接传文件路径。
 
+YOLO26 使用相同 API，路径可换成 `models/pt/yolo26n.pt`、`yolo26n-seg.pt`、`yolo26n-pose.pt` 或对应的 `models/onnx/*.onnx`。框、掩码、关键点随端到端 TopK 一起收集，端到端结果跳过 NMS。
+
+### 读取模型标签
+
+```csharp
+using SimdYolo;
+
+// .pt / .pth / .onnx 通用：只读取元数据，不创建推理后端。
+ModelInfo info = ModelInfo.Read("models/pt/yolo26n.pt");
+foreach (var label in info.ClassNames.OrderBy(pair => pair.Key))
+    Console.WriteLine($"{label.Key}: {label.Value}");
+
+using var detector = new YoloDetector("models/onnx/yolo26n.onnx");
+// 已加载会话直接使用 ClassNames 或 Info，无需再次读取文件。
+string? className = detector.ClassNames.GetValueOrDefault(0); // person
+```
+
+标签支持 PT 字典/列表，以及 ONNX `names` 中的 JSON、Python 字典/列表/元组，保留 Unicode、引号、反斜线及原始编号。`ClassCount` 是类别通道数，稀疏标签不能用 `ClassNames.Count` 替代。缺少名称时 `HasClassNames=false`，返回空映射；编号重复、负数或格式损坏会抛出 `InvalidDataException`。普通 `state_dict` 没有架构，依然不能直接推理，但检查点若另存 `names`，可以读取它。
+
+```powershell
+dotnet run --project src/SimdYolo.Cli -c Release -- inspect models/pt/yolo26n-pose.pt
+dotnet run --project src/SimdYolo.Cli -c Release -- labels models/onnx/yolo26n.onnx
+```
+
+`inspect` 输出任务、输入维度、类别数、名称与端到端标记；`labels` 只输出编号到名称的 JSON。`predict` 导出的 JSON 也包含 `ClassName`。
+
 `Detect(...)` 只返回框，跳过 mask 解码。`PredictRaw(new Tensor(data, batch, 3, height, width))` 返回原始张量，适合自行处理输出。图像 API 的 batch 为 1；原始推理允许模型支持的 batch。输入按 NCHW、RGB、0–1 排列。`.pt` 输入宽高必须是 32 的倍数。
 
 `InstanceMask` 是原图坐标中的裁剪掩码：`X/Y` 表示裁剪起点，`Width/Height` 表示尺寸，`Probabilities` 按行保存概率；可用 `> 0.5f` 得到二值掩码。关键点使用原图坐标。预处理使用居中 letterbox、114 填充和浮点双线性插值；与先量化为 uint8 的 OpenCV resize 不要求逐位相同。
@@ -161,6 +189,7 @@ new DetectorOptions
 | YOLOv9t（Ultralytics） | 已验证 | 未验证 | 未验证 | `.pt`、opset 17 `.onnx` |
 | YOLOv10n | 已验证 | 未验证 | 未验证 | `.pt`、opset 17 `.onnx` |
 | YOLO11n | 已验证 | 已验证 | 已验证 | `.pt`、opset 17 `.onnx` |
+| YOLO26n | 已验证 | 已验证 | 已验证 | 官方 `.pt`、静态/动态 opset 17 `.onnx`，CPU/Vulkan |
 
 其他大小和自训练模型在使用已支持模块/算子时可以加载，但没有全部逐一验证。WongKinYiu 原仓库 YOLOv9 的 RepConvN、RepNCSP、CBLinear、CBFuse 和多分支 DDetect 已实现，原仓库检查点仍需单独验证。不会因为文件名包含 v8/v9/v10/v11 就假定模型兼容。
 

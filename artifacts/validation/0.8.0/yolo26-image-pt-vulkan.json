@@ -1,0 +1,34 @@
+[
+  {
+    "model": "yolo26n.pt",
+    "backend": "vulkan",
+    "instances": 5,
+    "max_box_error": 0.00025083007813009317,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [],
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.pt",
+    "backend": "vulkan",
+    "instances": 4,
+    "max_box_error": 0.0005413763427739582,
+    "max_keypoint_error": 0.0,
+    "mask_iou": [
+      0.9990836908472601,
+      0.9994223177894027,
+      0.9996987104808581,
+      0.9992793312193716
+    ],
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose.pt",
+    "backend": "vulkan",
+    "instances": 4,
+    "max_box_error": 6.545898435206254e-05,
+    "max_keypoint_error": 0.0007278320312025244,
+    "mask_iou": [],
+    "passed": true
+  }
+]

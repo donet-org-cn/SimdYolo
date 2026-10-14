@@ -140,6 +140,9 @@ internal sealed record OnnxNode(string Name, string Op, string[] Inputs, string[
 /// <param name="Opset">标准 ONNX 域的算子集版本。</param>
 internal sealed record OnnxGraph(List<OnnxNode> Nodes, Dictionary<string, Tensor> Weights, string[] Inputs, string[] Outputs, int[] InputShape, Dictionary<string, string> Metadata, int Opset)
 {
+    /// <summary>按图输出顺序记录静态或符号维度，用于识别端到端任务布局。</summary>
+    /// <value>各输出的维度数组；符号维度为 -1。</value>
+    internal int[][] OutputShapes { get; init; } = [];
     /// <summary>读取 ONNX 文件，校验标准域、opset、单个 FP32 图像输入，并加载权重。</summary>
     /// <param name="path">ONNX 模型文件路径；相对模型目录解析外部权重，拒绝绝对路径和 .. 越界。</param>
     /// <returns>可供托管解释器执行的 ONNX 图。</returns>
@@ -166,7 +169,8 @@ internal sealed record OnnxGraph(List<OnnxNode> Nodes, Dictionary<string, Tensor
         var type = Proto.Parse(inputs[0].Byte(2) ?? []); var tensorType = Proto.Parse(type.Byte(1) ?? []);
         if (tensorType.Int(1) != 1) throw new NotSupportedException("Image input must be FP32.");
         var shape = Proto.Parse(tensorType.Byte(2) ?? []).Bytes(1).Select(Proto.Parse).Select(d => (int)d.Int(1, -1)).ToArray();
-        return new(nodes, weights, inputs.Select(p => p.Text(1)).ToArray(), graph.Bytes(12).Select(Proto.Parse).Select(p => p.Text(1)).ToArray(), shape, model.Bytes(14).Select(Proto.Parse).ToDictionary(p => p.Text(1), p => p.Text(2)), opset);
+        return new(nodes, weights, inputs.Select(p => p.Text(1)).ToArray(), graph.Bytes(12).Select(Proto.Parse).Select(p => p.Text(1)).ToArray(), shape, model.Bytes(14).Select(Proto.Parse).ToDictionary(p => p.Text(1), p => p.Text(2)), opset)
+        { OutputShapes = graph.Bytes(12).Select(Proto.Parse).Select(OnnxMetadataReader.Shape).ToArray() };
     }
     /// <summary>把 ONNX TensorProto 的内嵌或受限外部存储转换为连续 FP32 常量。</summary>
     /// <param name="p">包含 ONNX TensorProto 字段的 protobuf 消息。</param>

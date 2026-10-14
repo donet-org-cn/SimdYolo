@@ -1,0 +1,267 @@
+[
+  {
+    "model": "yolo26n-dynamic.onnx",
+    "backend": "ort-cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      6
+    ],
+    "max_abs_error": 0.000152587890625,
+    "mean_abs_error": 1.0121793820871972e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n.pt",
+    "backend": "cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      6
+    ],
+    "max_abs_error": 0.000152587890625,
+    "mean_abs_error": 1.1844836080854293e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n.pt",
+    "backend": "vulkan",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      6
+    ],
+    "max_abs_error": 0.00014495849609375,
+    "mean_abs_error": 1.0926767572527751e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-dynamic.onnx",
+    "backend": "cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      6
+    ],
+    "max_abs_error": 0.000152587890625,
+    "mean_abs_error": 1.1844836080854293e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-dynamic.onnx",
+    "backend": "vulkan",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      6
+    ],
+    "max_abs_error": 0.00014495849609375,
+    "mean_abs_error": 1.0926767572527751e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg-dynamic.onnx",
+    "backend": "ort-cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      38
+    ],
+    "max_abs_error": 0.000213623046875,
+    "mean_abs_error": 2.3370882900053402e-06,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg-dynamic.onnx",
+    "backend": "ort-cpu",
+    "output": 1,
+    "shape": [
+      2,
+      32,
+      40,
+      40
+    ],
+    "max_abs_error": 6.67572021484375e-06,
+    "mean_abs_error": 5.373773888095457e-07,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.pt",
+    "backend": "cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      38
+    ],
+    "max_abs_error": 0.000278472900390625,
+    "mean_abs_error": 2.50025232162443e-06,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.pt",
+    "backend": "cpu",
+    "output": 1,
+    "shape": [
+      2,
+      32,
+      40,
+      40
+    ],
+    "max_abs_error": 6.67572021484375e-06,
+    "mean_abs_error": 6.159012855277979e-07,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.pt",
+    "backend": "vulkan",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      38
+    ],
+    "max_abs_error": 0.000278472900390625,
+    "mean_abs_error": 2.597590309960651e-06,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg.pt",
+    "backend": "vulkan",
+    "output": 1,
+    "shape": [
+      2,
+      32,
+      40,
+      40
+    ],
+    "max_abs_error": 6.794929504394531e-06,
+    "mean_abs_error": 5.937855007687176e-07,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg-dynamic.onnx",
+    "backend": "cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      38
+    ],
+    "max_abs_error": 0.000278472900390625,
+    "mean_abs_error": 2.50025232162443e-06,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg-dynamic.onnx",
+    "backend": "cpu",
+    "output": 1,
+    "shape": [
+      2,
+      32,
+      40,
+      40
+    ],
+    "max_abs_error": 6.67572021484375e-06,
+    "mean_abs_error": 6.159012855277979e-07,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg-dynamic.onnx",
+    "backend": "vulkan",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      38
+    ],
+    "max_abs_error": 0.000278472900390625,
+    "mean_abs_error": 2.597590309960651e-06,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-seg-dynamic.onnx",
+    "backend": "vulkan",
+    "output": 1,
+    "shape": [
+      2,
+      32,
+      40,
+      40
+    ],
+    "max_abs_error": 6.794929504394531e-06,
+    "mean_abs_error": 5.937855007687176e-07,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose-dynamic.onnx",
+    "backend": "ort-cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      57
+    ],
+    "max_abs_error": 0.000335693359375,
+    "mean_abs_error": 1.4069528333493508e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose.pt",
+    "backend": "cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      57
+    ],
+    "max_abs_error": 0.0005340576171875,
+    "mean_abs_error": 1.5449813872692175e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose.pt",
+    "backend": "vulkan",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      57
+    ],
+    "max_abs_error": 0.000431060791015625,
+    "mean_abs_error": 1.3759521607425995e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose-dynamic.onnx",
+    "backend": "cpu",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      57
+    ],
+    "max_abs_error": 0.0005340576171875,
+    "mean_abs_error": 1.5449813872692175e-05,
+    "passed": true
+  },
+  {
+    "model": "yolo26n-pose-dynamic.onnx",
+    "backend": "vulkan",
+    "output": 0,
+    "shape": [
+      2,
+      300,
+      57
+    ],
+    "max_abs_error": 0.000431060791015625,
+    "mean_abs_error": 1.3759521607425995e-05,
+    "passed": true
+  }
+]

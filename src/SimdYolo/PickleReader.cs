@@ -72,7 +72,8 @@ internal sealed class PyObject(PyGlobal type, object?[]? args = null)
 /// <summary>只解释数据的 Pickle 虚拟机；GLOBAL 和 REDUCE 保留为符号对象，不导入或执行 Python。</summary>
 /// <param name="zip">包含 data.pkl 与张量数据的 Torch ZIP 归档。</param>
 /// <param name="prefix">归档内 data.pkl 所属目录前缀。</param>
-internal sealed class PickleReader(ZipArchive zip, string prefix)
+/// <param name="readTensorData">是否读取权重存储；false 仅保留形状描述，供独立元数据读取使用。</param>
+internal sealed class PickleReader(ZipArchive zip, string prefix, bool readTensorData = true)
 {
     /// <summary>Pickle 操作数栈。</summary>
     private readonly List<object?> stack = [];
@@ -251,16 +252,17 @@ internal sealed class PickleReader(ZipArchive zip, string prefix)
     }
     /// <summary>从缓存的 ZIP 存储按偏移和步长读取元素，并转为连续 FP32 张量。</summary>
     /// <param name="args">Torch 张量重建参数：存储、偏移、形状与步长。</param>
-    /// <returns>拥有独立连续 FP32 数据且标记为常量的张量。</returns>
+    /// <returns>权重模式返回连续 FP32 常量张量；元数据模式返回不读取存储的形状描述。</returns>
     /// <exception cref="InvalidDataException">存储布局、数量、大小、偏移不合法，或 ZIP 中缺少数据条目。</exception>
     /// <exception cref="NotSupportedException">Torch 存储元素类型不受支持。</exception>
     /// <exception cref="OverflowException">形状、地址或存储索引计算超出受支持整数范围。</exception>
     /// <exception cref="ArgumentException">还原张量的形状包含负维度。</exception>
-    private Tensor TensorFromStorage(object?[] args)
+    private object TensorFromStorage(object?[] args)
     {
         var s = (Storage)args[0]!; long offset = Convert.ToInt64(args[1]); int[] shape = ((object?[])args[2]!).Select(Convert.ToInt32).ToArray(); long[] strides = ((object?[])args[3]!).Select(Convert.ToInt64).ToArray();
         if (shape.Length != strides.Length || strides.Any(v => v < 0) || offset < 0) throw new InvalidDataException("Invalid tensor storage layout.");
         int count = Tensor.Count(shape); if (count > 268435456) throw new InvalidDataException("Tensor too large.");
+        if (!readTensorData) return new TensorDescription(shape);
         if (!storage.TryGetValue(s.Key, out byte[]? data))
         {
             var entry = zip.GetEntry(prefix + "data/" + s.Key) ?? throw new InvalidDataException($"Storage {s.Key} missing.");
@@ -289,4 +291,7 @@ internal sealed class PickleReader(ZipArchive zip, string prefix)
         }
         result.IsConstant = true; return result;
     }
+    /// <summary>元数据模式中替代实际张量的形状描述，不读取 ZIP 权重条目。</summary>
+    /// <param name="Shape">检查点记录的张量维度。</param>
+    private sealed record TensorDescription(int[] Shape);
 }

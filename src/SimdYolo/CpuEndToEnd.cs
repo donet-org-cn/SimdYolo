@@ -22,12 +22,12 @@ internal static class CpuEndToEnd
     /// <param name="input">输入张量或连续输入缓冲区。</param>
     /// <param name="maximum">最多保留的检测数量。</param>
     /// <param name="classes">类别总数。</param>
-    /// <returns>形状为 [批次,检测数量,6] 的张量，每项依次为四个边框值、得分和类别编号。</returns>
+    /// <returns>形状为 [批次,检测数量,6+附加字段] 的张量，先保存边框、得分和类别，再收集同一锚点的实例字段。</returns>
     internal static Tensor SelectPt(Tensor input, int maximum, int classes)
     {
-        int anchors = input.Shape[2], count = Math.Min(maximum, anchors);
+        int anchors = input.Shape[2], count = Math.Min(maximum, anchors), extra = input.Shape[1] - classes - 4, fields = 6 + extra;
         float[] source = input.Data;
-        var result = Tensor.TemporaryUninitialized(input.Shape[0], count, 6);
+        var result = Tensor.TemporaryUninitialized(input.Shape[0], count, fields);
         if (count == 0 || input.Shape[0] == 0) return result;
         float[] target = result.Data;
         var anchorHeap = new Entry[count];
@@ -37,7 +37,7 @@ internal static class CpuEndToEnd
         {
             for (int b = 0; b < input.Shape[0]; b++)
             {
-                int offset = b * (classes + 4) * anchors;
+                int offset = b * input.Shape[1] * anchors;
                 maxima.AsSpan(0, anchors).Fill(float.NegativeInfinity);
                 for (int c = 0; c < classes; c++)
                 {
@@ -60,10 +60,11 @@ internal static class CpuEndToEnd
                 Array.Sort(selected, ComparePt);
                 for (int i = 0; i < count; i++)
                 {
-                    int index = selected[i].Index, anchor = index / classes, dst = (b * count + i) * 6;
+                    int index = selected[i].Index, anchor = index / classes, dst = (b * count + i) * fields;
                     for (int coordinate = 0; coordinate < 4; coordinate++) target[dst + coordinate] = source[offset + coordinate * anchors + anchor];
                     target[dst + 4] = selected[i].Score;
                     target[dst + 5] = index % classes;
+                    for (int field = 0; field < extra; field++) target[dst + 6 + field] = source[offset + (classes + 4 + field) * anchors + anchor];
                 }
             }
             return result;
