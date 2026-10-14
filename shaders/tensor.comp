@@ -1,0 +1,148 @@
+#version 450
+layout(local_size_x=256) in;
+layout(set=0,binding=0,std430) readonly buffer A { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer B { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer C { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer D { float d[]; };
+layout(push_constant) uniform Params { uint v[32]; } p;
+layout(constant_id=0) const uint operation=1;
+#define P(i) p.v[i]
+#define A(i) a[(i)+P(28)]
+#define B(i) b[(i)+P(29)]
+#define C(i) c[(i)+P(30)]
+#define D(i) d[(i)+P(31)]
+float sigmoid(float x) { return 1.0/(1.0+exp(-x)); }
+void main() {
+    uint i=gl_GlobalInvocationID.x;
+    if(i>=P(0)) return;
+    if(operation<10) {
+        float x=A(i), y=x;
+        if(operation==1) y=x*sigmoid(x);
+        if(operation==2) y=sigmoid(x);
+        if(operation==3) y=max(x,0);
+        if(operation==4) y=x*uintBitsToFloat(P(1));
+        if(operation==5) y=exp(x);
+        if(operation==6) y=sqrt(x);
+        if(operation==7) y=-x;
+        if(operation==8) y=abs(x);
+        if(operation==9) y=x>=0 ? x : x*uintBitsToFloat(P(1));
+        C(i)=y;
+    } else if(operation<20) {
+        uint t=i, ai=0, bi=0;
+        for(int j=3;j>=0;j--) { uint coord=t%P(1+j); t/=P(1+j); ai+=coord*P(5+j); bi+=coord*P(9+j); }
+        float x=A(ai), y=B(bi), result=0;
+        if(operation==10) result=x+y;
+        if(operation==11) result=x-y;
+        if(operation==12) result=x*y;
+        if(operation==13) result=x/y;
+        if(operation==14) result=pow(x,y);
+        if(operation==15) result=max(x,y);
+        if(operation==16) result=min(x,y);
+        C(i)=result;
+    } else if(operation==20) {
+        uint plane=P(3)*P(4), channel=i/plane, oy=i%plane/P(4), ox=i%P(4);
+        C(i)=A((channel*P(1)+oy*P(1)/P(3))*P(2)+ox*P(2)/P(4));
+    } else if(operation==21 || operation==22) {
+        uint h=P(1),w=P(2),oh=P(3),ow=P(4),kh=P(5),kw=P(6),plane=oh*ow,channel=i/plane;
+        int oy=int(i%plane/ow),ox=int(i%ow),sy=oy*int(P(7))-int(P(9)),sx=ox*int(P(8))-int(P(10));
+        float value=operation==21 ? uintBitsToFloat(0xff800000) : 0;
+        uint count=0;
+        for(uint ky=0;ky<kh;ky++) for(uint kx=0;kx<kw;kx++) {
+            int y=sy+int(ky),x=sx+int(kx);
+            if(y>=0 && x>=0 && y<int(h) && x<int(w)) { float v=A((channel*h+uint(y))*w+uint(x)); value=operation==21 ? max(value,v) : value+v; count++; }
+        }
+        C(i)=operation==21 ? value : value/float(P(11)==1 ? kh*kw : count);
+    } else if(operation==23) {
+        uint t=i,src=0;
+        for(int j=3;j>=0;j--) { src+=t%P(1+j)*P(5+j); t/=P(1+j); }
+        C(i)=A(src);
+    } else if(operation==24) {
+        uint inner=P(3),outer=i/(P(2)*inner),remainder=i%(P(2)*inner);
+        C(i)=A(outer*P(1)*inner+P(4)*inner+remainder);
+    } else if(operation==25) {
+        uint size=P(1),inner=P(2),offset=i/inner*size*inner+i%inner;
+        float maximum=uintBitsToFloat(0xff800000),sum=0;
+        for(uint j=0;j<size;j++) maximum=max(maximum,A(offset+j*inner));
+        for(uint j=0;j<size;j++) sum+=exp(A(offset+j*inner)-maximum);
+        for(uint j=0;j<size;j++) C(offset+j*inner)=exp(A(offset+j*inner)-maximum)/sum;
+    } else if(operation==26) {
+        uint size=P(1)*P(3),outer=i/size;
+        C(outer*P(2)*P(3)+P(4)*P(3)+i%size)=A(i);
+    } else if(operation==30) {
+        uint spatial=P(1),width=P(2),bins=P(3),nc=P(4),batch=i/spatial,anchor=i%spatial;
+        float distances[4];
+        for(uint side=0;side<4;side++) {
+            uint base=(batch*4+side)*bins*spatial+anchor;
+            float maximum=uintBitsToFloat(0xff800000),sum=0,numerator=0;
+            for(uint j=0;j<bins;j++) maximum=max(maximum,A(base+j*spatial));
+            for(uint j=0;j<bins;j++) { float e=exp(A(base+j*spatial)-maximum); sum+=e; numerator+=e*float(j); }
+            distances[side]=numerator/sum;
+        }
+        float stride=uintBitsToFloat(P(5)),cx=float(anchor%width)+.5,cy=float(anchor/width)+.5;
+        float x1=(cx-distances[0])*stride,y1=(cy-distances[1])*stride,x2=(cx+distances[2])*stride,y2=(cy+distances[3])*stride;
+        uint dst=batch*(nc+4)*spatial+anchor;
+        C(dst)=P(6)==1 ? x1 : (x1+x2)*.5; C(dst+spatial)=P(6)==1 ? y1 : (y1+y2)*.5;
+        C(dst+2*spatial)=P(6)==1 ? x2 : x2-x1; C(dst+3*spatial)=P(6)==1 ? y2 : y2-y1;
+        for(uint j=0;j<nc;j++) C(dst+(4+j)*spatial)=sigmoid(B((batch*nc+j)*spatial+anchor));
+    } else if(operation==31) {
+        uint spatial=P(1),width=P(2),dim=P(3),axis=i/spatial%dim,anchor=i%spatial;
+        float value=A(i),stride=uintBitsToFloat(P(4));
+        C(i)=axis==0 ? (value*2+float(anchor%width))*stride : axis==1 ? (value*2+float(anchor/width))*stride : sigmoid(value);
+    } else if(operation==32) {
+        uint ic=P(1),ih=P(2),iw=P(3),oh=P(5),ow=P(6),kh=P(7),kw=P(8),spatial=oh*ow,bc=i/spatial,channel=bc%ic;
+        int oy=int(i%spatial/ow),ox=int(i%ow);
+        float value=P(27)==1 ? D(channel) : 0;
+        for(uint ky=0;ky<kh;ky++) for(uint kx=0;kx<kw;kx++) {
+            int y=oy*int(P(9))-int(P(11))+int(ky*P(13)),x=ox*int(P(10))-int(P(12))+int(kx*P(14));
+            if(y>=0 && x>=0 && y<int(ih) && x<int(iw)) value+=A((bc*ih+uint(y))*iw+uint(x))*B((channel*kh+ky)*kw+kx);
+        }
+        C(i)=P(16)==1 ? value*sigmoid(value) : value;
+    } else if(operation==35) {
+        uint h=P(1),w=P(2),channels=P(3),plane=h*w,co=i/plane%channels,batch=i/(plane*channels),y=i%plane/w,x=i%w;
+        C(i)=A(((batch*channels*4+co*4+y%2*2+x%2)*(h/2)+y/2)*(w/2)+x/2);
+    } else if(operation==34) {
+        uint spatial=P(1),bins=P(2),base=i/spatial*bins*spatial+i%spatial;
+        float maximum=uintBitsToFloat(0xff800000),sum=0,numerator=0;
+        for(uint j=0;j<bins;j++) maximum=max(maximum,A(base+j*spatial));
+        for(uint j=0;j<bins;j++) { float e=exp(A(base+j*spatial)-maximum); sum+=e; numerator+=e*float(j); }
+        C(i)=numerator/sum;
+    } else if(operation==36) {
+        uint size=P(1),base=i*size;
+        float maximum=uintBitsToFloat(0xff800000);
+        for(uint j=0;j<size;j++) {
+            float value=A(base+j);
+            // GLSL max is allowed to discard NaNs or choose the wrong signed
+            // zero. Match the managed MathF.Max reduction explicitly.
+            if(isnan(value)) { maximum=value; break; }
+            if(value>maximum || (value==0.0 && maximum==0.0 && floatBitsToUint(value)==0u)) maximum=value;
+        }
+        C(i)=maximum;
+    } else if(operation==37) {
+        uint t=i,src=0;
+        for(int dimension=3;dimension>=0;dimension--) {
+            uint coordinate=t%P(1+dimension); t/=P(1+dimension);
+            if(uint(dimension)==P(9)) {
+                int index=int(B(i)); if(index<0) index+=int(P(10));
+                coordinate=uint(index);
+            }
+            src+=coordinate*P(5+dimension);
+        }
+        C(i)=A(src);
+    } else if(operation==33) {
+        uint ic=P(1),ih=P(2),iw=P(3),oc=P(4),oh=P(5),ow=P(6),kh=P(7),kw=P(8),groups=P(15);
+        uint spatial=oh*ow,co=i/spatial%oc,batch=i/(spatial*oc),cog=oc/groups,cig=ic/groups,group=co/cog,oy=i%spatial/ow,ox=i%ow;
+        float value=P(27)==1 ? D(co) : 0;
+        if(kh==2 && kw==2 && P(9)==2 && P(10)==2 && P(11)==0 && P(12)==0 && P(13)==1 && P(14)==1) {
+            uint ky=oy%2,kx=ox%2,y=oy/2,x=ox/2;
+            for(uint ci=group*cig;ci<(group+1)*cig;ci++) value+=A(((batch*ic+ci)*ih+y)*iw+x)*B(((ci*cog+co%cog)*2+ky)*2+kx);
+        } else {
+            for(uint ky=0;ky<kh;ky++) for(uint kx=0;kx<kw;kx++) {
+                int yn=int(oy+P(11))-int(ky*P(13)),xn=int(ox+P(12))-int(kx*P(14));
+                if(yn<0 || xn<0 || yn%int(P(9))!=0 || xn%int(P(10))!=0) continue;
+                uint y=uint(yn)/P(9),x=uint(xn)/P(10); if(y>=ih || x>=iw) continue;
+                for(uint ci=group*cig;ci<(group+1)*cig;ci++) value+=A(((batch*ic+ci)*ih+y)*iw+x)*B(((ci*cog+co%cog)*kh+ky)*kw+kx);
+            }
+        }
+        C(i)=value;
+    }
+}

@@ -1,0 +1,48 @@
+#version 450
+layout(local_size_x=128) in;
+layout(set=0,binding=0,std430) readonly buffer Input { vec4 a[]; };
+layout(set=0,binding=1,std430) readonly buffer Weights { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { vec4 c[]; };
+layout(set=0,binding=3,std430) readonly buffer Bias { float d[]; };
+layout(constant_id=0) const uint count=1;
+layout(constant_id=1) const uint channels=1;
+layout(constant_id=2) const uint ih=1;
+layout(constant_id=3) const uint iw=1;
+layout(constant_id=4) const uint oh=1;
+layout(constant_id=5) const uint ow=1;
+layout(constant_id=6) const uint stride=1;
+layout(constant_id=7) const uint activation=0;
+layout(constant_id=8) const uint inputOffset=0;
+layout(constant_id=9) const uint weightOffset=0;
+layout(constant_id=10) const uint biasOffset=0;
+
+void row(uint bc,int y,uint x,out vec4 left,out vec4 middle,out vec4 right) {
+    left=vec4(0);middle=vec4(0);right=vec4(0);
+    if(y<0 || y>=int(ih)) return;
+    uint base=inputOffset+(bc*ih+uint(y))*(iw/4)+x/4;
+    vec4 center=a[base]; float previous=x>0 ? a[base-1].w : 0;
+    if(stride==1) {
+        float following=x+4<iw ? a[base+1].x : 0;
+        left=vec4(previous,center.xyz);middle=center;right=vec4(center.yzw,following);
+    } else {
+        vec4 next=a[base+1];
+        left=vec4(previous,center.y,center.w,next.y);
+        middle=vec4(center.x,center.z,next.x,next.z);
+        right=vec4(center.y,center.w,next.y,next.w);
+    }
+}
+void main() {
+    uint i=gl_GlobalInvocationID.x;
+    if(i>=count) return;
+    uint rowVectors=ow/4,plane=oh*rowVectors,bc=i/plane,channel=bc%channels;
+    uint y=i%plane/rowVectors,x=(i%rowVectors)*4*stride,weights=weightOffset+channel*9;
+    int iy=int(y*stride)-1;
+    vec4 left,middle,right,value=vec4(d[biasOffset+channel]);
+    row(bc,iy,x,left,middle,right);
+    value=fma(left,vec4(b[weights+0]),value);value=fma(middle,vec4(b[weights+1]),value);value=fma(right,vec4(b[weights+2]),value);
+    row(bc,iy+1,x,left,middle,right);
+    value=fma(left,vec4(b[weights+3]),value);value=fma(middle,vec4(b[weights+4]),value);value=fma(right,vec4(b[weights+5]),value);
+    row(bc,iy+2,x,left,middle,right);
+    value=fma(left,vec4(b[weights+6]),value);value=fma(middle,vec4(b[weights+7]),value);value=fma(right,vec4(b[weights+8]),value);
+    c[i]=activation==1 ? value/(1+exp(-value)) : value;
+}

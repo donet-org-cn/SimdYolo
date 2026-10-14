@@ -1,0 +1,34 @@
+#version 450
+layout(local_size_x=128) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Unused { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Unused2 { float d[]; };
+layout(constant_id=0) const uint spec0=1;
+layout(constant_id=1) const uint spec1=1;
+layout(constant_id=2) const uint spec2=1;
+layout(constant_id=3) const uint spec3=1;
+layout(constant_id=4) const uint spec4=1;
+layout(constant_id=5) const uint spec5=1;
+layout(constant_id=6) const uint spec6=1;
+layout(push_constant) uniform Params { uint v[32]; } p;
+float load(uint batch,uint channel,int y,int x) {
+    return y>=0 && y<int(spec2) && x>=0 && x<int(spec3) ? a[((batch*spec1+channel)*spec2+uint(y))*spec3+uint(x)] : 0;
+}
+vec4 horizontal(vec4 v) { return vec4(v.x-v.z,v.y+v.z,v.z-v.y,v.y-v.w); }
+void main() {
+    uint i=gl_GlobalInvocationID.x;
+    if(i>=spec0) return;
+    uint tiles=spec4*spec5,tile=i%tiles,channel=i/tiles%spec1,batch=i/(tiles*spec1);
+    int y=int(tile/spec4*2)-1,x=int(tile%spec4*2)-1;
+    vec4 d0=vec4(load(batch,channel,y,x),load(batch,channel,y,x+1),load(batch,channel,y,x+2),load(batch,channel,y,x+3));
+    vec4 d1=vec4(load(batch,channel,y+1,x),load(batch,channel,y+1,x+1),load(batch,channel,y+1,x+2),load(batch,channel,y+1,x+3));
+    vec4 d2=vec4(load(batch,channel,y+2,x),load(batch,channel,y+2,x+1),load(batch,channel,y+2,x+2),load(batch,channel,y+2,x+3));
+    vec4 d3=vec4(load(batch,channel,y+3,x),load(batch,channel,y+3,x+1),load(batch,channel,y+3,x+2),load(batch,channel,y+3,x+3));
+    vec4 t0=horizontal(d0-d2),t1=horizontal(d1+d2),t2=horizontal(d2-d1),t3=horizontal(d1-d3);
+    uint stride=spec1*tiles,base=batch*16*stride+channel*tiles+tile;
+    c[base]=t0.x;c[base+stride]=t0.y;c[base+stride*2]=t0.z;c[base+stride*3]=t0.w;
+    c[base+stride*4]=t1.x;c[base+stride*5]=t1.y;c[base+stride*6]=t1.z;c[base+stride*7]=t1.w;
+    c[base+stride*8]=t2.x;c[base+stride*9]=t2.y;c[base+stride*10]=t2.z;c[base+stride*11]=t2.w;
+    c[base+stride*12]=t3.x;c[base+stride*13]=t3.y;c[base+stride*14]=t3.z;c[base+stride*15]=t3.w;
+}

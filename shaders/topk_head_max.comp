@@ -1,0 +1,24 @@
+#version 450
+layout(local_size_x=128) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float a[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(constant_id=0) const uint count=1;
+layout(constant_id=1) const uint anchors=1;
+layout(constant_id=2) const uint classes=1;
+layout(constant_id=3) const uint inputOffset=0;
+void main() {
+    uint i=gl_GlobalInvocationID.x;
+    if(i>=count) return;
+    uint batch=i/anchors,anchor=i%anchors;float best=uintBitsToFloat(0xff800000u);
+    for(uint category=0;category<classes;category++) {
+        float value=a[inputOffset+(batch*(classes+4)+category+4)*anchors+anchor];
+        // Match .NET IEEE max, retaining subnormals and the first NaN payload.
+        uint xb=floatBitsToUint(best),yb=floatBitsToUint(value),xm=xb&0x7fffffffu,ym=yb&0x7fffffffu;
+        if(xm>0x7f800000u) continue;
+        if(ym>0x7f800000u) { best=value; continue; }
+        uint xo=(xb&0x80000000u)!=0 ? ~xb : xb^0x80000000u,yo=(yb&0x80000000u)!=0 ? ~yb : yb^0x80000000u;
+        if(xm==0 && ym==0) { if((yb&0x80000000u)==0) best=value; }
+        else if(yo>=xo) best=value;
+    }
+    c[i]=best;
+}

@@ -1,0 +1,22 @@
+#version 450
+layout(local_size_x=16, local_size_y=16) in;
+layout(set=0,binding=0,std430) readonly buffer A { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer B { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer C { float c[]; };
+layout(push_constant) uniform Params { uint m; uint n; uint k; uint aOffset; uint bOffset; uint cOffset; uint aBatches; uint bBatches; } p;
+shared float tileA[16][16];
+shared float tileB[16][16];
+void main() {
+    uint row=gl_GlobalInvocationID.y, col=gl_GlobalInvocationID.x;
+    uint lx=gl_LocalInvocationID.x, ly=gl_LocalInvocationID.y;
+    uint batch=gl_GlobalInvocationID.z,ab=p.aOffset+(batch%p.aBatches)*p.m*p.k,bb=p.bOffset+(batch%p.bBatches)*p.k*p.n,cb=p.cOffset+batch*p.m*p.n;
+    float sum=0.0;
+    for(uint base=0; base<p.k; base+=16) {
+        tileA[ly][lx]=(row<p.m && base+lx<p.k) ? a[ab+row*p.k+base+lx] : 0.0;
+        tileB[ly][lx]=(col<p.n && base+ly<p.k) ? b[bb+(base+ly)*p.n+col] : 0.0;
+        barrier();
+        for(uint j=0;j<16;j++) sum+=tileA[ly][j]*tileB[j][lx];
+        barrier();
+    }
+    if(row<p.m && col<p.n) c[cb+row*p.n+col]=sum;
+}

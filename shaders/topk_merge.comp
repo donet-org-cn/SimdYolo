@@ -1,0 +1,54 @@
+#version 450
+layout(local_size_x=128) in;
+struct Item { float score; uint key; };
+layout(set=0,binding=0,std430) readonly buffer Input { Item a[]; };
+layout(set=0,binding=2,std430) writeonly buffer Values { float c[]; };
+layout(set=0,binding=3,std430) writeonly buffer Indices { float d[]; };
+layout(constant_id=0) const uint rows=1;
+layout(constant_id=1) const uint size=1;
+layout(constant_id=2) const uint k=1;
+layout(constant_id=3) const uint largest=1;
+layout(constant_id=4) const uint nanFirst=1;
+shared float scores[256];
+shared uint indices[256],positions[256],segments[256];
+bool better(uint x,uint y) {
+    uint xi=indices[x],yi=indices[y];
+    if(xi==0xffffffffu) return false;
+    if(yi==0xffffffffu) return true;
+    uint xb=floatBitsToUint(scores[x]),yb=floatBitsToUint(scores[y]),xm=xb&0x7fffffffu,ym=yb&0x7fffffffu;
+    bool xn=xm>0x7f800000u,yn=ym>0x7f800000u;
+    if(xn!=yn) return nanFirst==1 ? xn : !xn;
+    uint xo=(xb&0x80000000u)!=0 ? ~xb : xb^0x80000000u,yo=(yb&0x80000000u)!=0 ? ~yb : yb^0x80000000u;
+    if(!xn && !(xm==0 && ym==0) && xo!=yo) return largest==1 ? xo>yo : xo<yo;
+    return xi<yi;
+}
+void down(uint root,uint count) {
+    while(true) {
+        uint child=root*2+1;
+        if(child>=count) break;
+        if(child+1<count && better(child+1,child)) child++;
+        if(!better(child,root)) break;
+        // Keep each head directly in its heap slot. Comparing head values
+        // needs one shared-memory lookup rather than heap -> segment -> value.
+        float score=scores[root];uint key=indices[root],position=positions[root],segment=segments[root];
+        scores[root]=scores[child];indices[root]=indices[child];positions[root]=positions[child];segments[root]=segments[child];
+        scores[child]=score;indices[child]=key;positions[child]=position;segments[child]=segment;root=child;
+    }
+}
+void main() {
+    uint tid=gl_LocalInvocationID.x,row=gl_WorkGroupID.x,blocks=(size+255)/256,base=row*blocks*256;
+    for(uint segment=tid;segment<blocks;segment+=128) {
+        Item item=a[base+segment*256];scores[segment]=item.score;indices[segment]=item.key;positions[segment]=0;segments[segment]=segment;
+    }
+    barrier();
+    if(tid!=0) return;
+    for(int root=int(blocks/2)-1;root>=0;root--) down(uint(root),blocks);
+    for(uint i=0;i<k;i++) {
+        uint segment=segments[0];c[row*k+i]=scores[0];d[row*k+i]=float(indices[0]);
+        positions[0]++;
+        if(positions[0]<min(256,size-segment*256)) {
+            Item item=a[base+segment*256+positions[0]];scores[0]=item.score;indices[0]=item.key;
+        } else { scores[0]=0;indices[0]=0xffffffffu; }
+        down(0,blocks);
+    }
+}

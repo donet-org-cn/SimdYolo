@@ -1,0 +1,2513 @@
+{
+  "Cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+  "Platform": "Windows-11-10.0.26300-SP0",
+  "Torch": "2.11.0+cpu",
+  "Ultralytics": "8.3.0",
+  "Python": "3.13.9",
+  "DotnetSdk": "10.0.401",
+  "CudaAvailable": true,
+  "CudaBuild": "12.6",
+  "CudaSkipReason": null,
+  "Size": 640,
+  "Batch": 1,
+  "Precision": "FP32",
+  "Threads": 12,
+  "Warmup": 5,
+  "Iterations": 20,
+  "InputSha256": "762a2fbc2f18af7ebd1eb2c27f39cb0c5c31fa1b763d4f1791a66013a147d1ff",
+  "ModelSha256": {
+    "yolov8n.pt": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+    "yolov9t.pt": "410e3caca789aa8fec19971c05577616cbb963a416bcd0228171b2dff7f718f7",
+    "yolov10n.pt": "11287ed0735678e7ba1ac2a9b3098c049155b3fde123992e724c1264bcc16b6f",
+    "yolo11n.pt": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+    "yolov8n-seg.pt": "a7cd8f929e1903d78a12a48efecab430209f18dc46cb96c3599a5980c63c423c",
+    "yolov8n-pose.pt": "c6fa93dd1ee4a2c18c900a45c1d864a1c6f7aba75d84f91648a30b7fb641d212",
+    "yolo11n-seg.pt": "55ed65c56c91713d23e8402371c6c49a6fd84f257f7dce452e8d70e41dcbe152",
+    "yolo11n-pose.pt": "869e83fcdffdc7371fa4e34cd8e51c838cc729571d1635e5141e3075e9319dc0"
+  },
+  "Records": [
+    {
+      "Model": "yolov8n.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 530.6609,
+      "P95Ms": 578.458845,
+      "MinMs": 499.0626,
+      "MeanMs": 536.333175,
+      "FramesPerSecond": 1.8844425884778775,
+      "SamplesMs": [
+        534.1612,
+        509.1957,
+        527.8025,
+        628.0991,
+        552.2217,
+        575.8462,
+        529.6833,
+        568.5172,
+        530.8471,
+        534.8192,
+        499.0626,
+        531.5008,
+        560.0803,
+        524.4239,
+        519.9067,
+        543.3899,
+        530.4747,
+        515.2727,
+        510.9473,
+        500.4114
+      ],
+      "WorkingSetMB": 291.9453125,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov8n.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 308.44095,
+      "P95Ms": 326.913705,
+      "MinMs": 276.7051,
+      "MeanMs": 303.60965,
+      "FramesPerSecond": 3.242111658649735,
+      "SamplesMs": [
+        289.0779,
+        319.3008,
+        297.0934,
+        283.0211,
+        301.7828,
+        278.9913,
+        276.7051,
+        288.029,
+        277.9421,
+        285.7514,
+        315.1212,
+        334.9584,
+        310.013,
+        312.775,
+        321.6457,
+        318.2563,
+        306.8689,
+        314.1473,
+        326.4903,
+        314.222
+      ],
+      "WorkingSetMB": 261.8203125,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov8n.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 53.48525,
+      "P95Ms": 58.82516000000001,
+      "MinMs": 50.9012,
+      "MeanMs": 54.805215000000004,
+      "FramesPerSecond": 18.69674349470181,
+      "SamplesMs": [
+        73.4886,
+        54.2666,
+        52.9057,
+        52.999,
+        57.7588,
+        51.7819,
+        58.0534,
+        55.9685,
+        51.6901,
+        54.1284,
+        53.0729,
+        52.4324,
+        53.6179,
+        50.9012,
+        52.4692,
+        53.3526,
+        53.8762,
+        54.9909,
+        52.9305,
+        55.4195
+      ]
+    },
+    {
+      "Model": "yolov8n.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 48.57955,
+      "P95Ms": 53.03467,
+      "MinMs": 45.5279,
+      "MeanMs": 48.84283,
+      "FramesPerSecond": 20.584793395574888,
+      "SamplesMs": [
+        46.138,
+        45.5279,
+        46.8865,
+        46.2468,
+        47.3951,
+        45.7274,
+        49.5948,
+        50.1509,
+        50.0473,
+        48.6239,
+        50.086,
+        54.1342,
+        47.7091,
+        47.7404,
+        49.4771,
+        51.6719,
+        52.9768,
+        47.9656,
+        50.2217,
+        48.5352
+      ]
+    },
+    {
+      "Model": "yolov9t.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 752.5714,
+      "P95Ms": 777.97202,
+      "MinMs": 722.7714,
+      "MeanMs": 752.7813699999999,
+      "FramesPerSecond": 1.3287775751244333,
+      "SamplesMs": [
+        771.3782,
+        781.1226,
+        777.1046,
+        753.7785,
+        745.3064,
+        773.5648,
+        757.3713,
+        743.1361,
+        735.6064,
+        777.8062,
+        767.9214,
+        757.6545,
+        751.3643,
+        762.9131,
+        742.8625,
+        737.6942,
+        722.7714,
+        732.0882,
+        739.5279,
+        724.6548
+      ],
+      "WorkingSetMB": 210.55859375,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov9t.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 392.04185,
+      "P95Ms": 447.98081,
+      "MinMs": 371.7286,
+      "MeanMs": 400.1140899999999,
+      "FramesPerSecond": 2.55074808977664,
+      "SamplesMs": [
+        441.7651,
+        446.5167,
+        475.7989,
+        386.8315,
+        386.7059,
+        392.6339,
+        392.3779,
+        391.7058,
+        394.5682,
+        387.1056,
+        395.5144,
+        382.6198,
+        399.6179,
+        379.7252,
+        387.2899,
+        371.7286,
+        390.3515,
+        412.8606,
+        386.5273,
+        400.0371
+      ],
+      "WorkingSetMB": 222.03125,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov9t.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 109.30365,
+      "P95Ms": 151.27559499999998,
+      "MinMs": 101.3448,
+      "MeanMs": 116.40043,
+      "FramesPerSecond": 9.148825313701783,
+      "SamplesMs": [
+        106.402,
+        119.039,
+        114.6896,
+        123.026,
+        109.2694,
+        106.7981,
+        114.549,
+        147.5961,
+        158.9762,
+        106.8251,
+        109.3379,
+        109.2567,
+        112.9167,
+        105.8022,
+        107.2807,
+        101.3448,
+        106.1397,
+        110.445,
+        107.4441,
+        150.8703
+      ]
+    },
+    {
+      "Model": "yolov9t.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 80.15525,
+      "P95Ms": 95.29988999999999,
+      "MinMs": 78.0071,
+      "MeanMs": 83.020265,
+      "FramesPerSecond": 12.47578917163879,
+      "SamplesMs": [
+        100.0174,
+        85.4257,
+        84.3145,
+        80.5453,
+        80.7791,
+        78.9984,
+        79.7652,
+        90.3536,
+        78.8875,
+        79.1789,
+        79.4583,
+        78.0071,
+        81.2364,
+        95.0516,
+        79.1105,
+        78.1937,
+        80.5804,
+        78.7145,
+        78.9827,
+        92.8045
+      ]
+    },
+    {
+      "Model": "yolov10n.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          300,
+          6
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 464.48015,
+      "P95Ms": 503.18075500000003,
+      "MinMs": 454.867,
+      "MeanMs": 471.836535,
+      "FramesPerSecond": 2.152944533797623,
+      "SamplesMs": [
+        474.3679,
+        500.4344,
+        469.6931,
+        479.9897,
+        555.3615,
+        482.4801,
+        465.2783,
+        463.682,
+        459.5158,
+        457.14,
+        467.8313,
+        463.4325,
+        454.867,
+        478.7872,
+        454.9526,
+        456.4248,
+        472.1803,
+        460.1348,
+        459.1576,
+        461.0198
+      ],
+      "WorkingSetMB": 348.3515625,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov10n.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          300,
+          6
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 359.02715,
+      "P95Ms": 457.971585,
+      "MinMs": 340.1254,
+      "MeanMs": 374.45423000000005,
+      "FramesPerSecond": 2.7853046768190093,
+      "SamplesMs": [
+        350.6876,
+        349.2769,
+        358.4083,
+        340.1881,
+        340.1254,
+        356.675,
+        348.5835,
+        374.9171,
+        378.2506,
+        380.8457,
+        380.7411,
+        384.2882,
+        385.1524,
+        377.593,
+        455.0755,
+        512.9972,
+        354.8524,
+        359.646,
+        354.3861,
+        346.3945
+      ],
+      "WorkingSetMB": 271.73828125,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov10n.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          300,
+          6
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 80.22435,
+      "P95Ms": 113.68300500000002,
+      "MinMs": 73.0287,
+      "MeanMs": 86.98239,
+      "FramesPerSecond": 12.465043344071969,
+      "SamplesMs": [
+        91.6998,
+        92.3064,
+        82.7455,
+        83.1718,
+        80.2348,
+        150.0434,
+        111.7693,
+        101.021,
+        73.0287,
+        77.4477,
+        83.4466,
+        93.4248,
+        79.9866,
+        75.932,
+        80.1362,
+        74.7692,
+        75.0111,
+        77.5019,
+        80.2139,
+        75.7571
+      ]
+    },
+    {
+      "Model": "yolov10n.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          300,
+          6
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 64.56354999999999,
+      "P95Ms": 89.15389,
+      "MinMs": 61.7204,
+      "MeanMs": 69.60793,
+      "FramesPerSecond": 15.488615480406516,
+      "SamplesMs": [
+        77.2186,
+        65.6168,
+        63.2673,
+        64.2126,
+        63.1007,
+        65.6311,
+        64.3988,
+        64.8838,
+        63.3489,
+        64.2216,
+        76.9278,
+        64.3179,
+        63.9153,
+        63.2827,
+        64.7283,
+        61.7204,
+        76.2229,
+        89.125,
+        86.3153,
+        89.7028
+      ]
+    },
+    {
+      "Model": "yolo11n.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 426.97945,
+      "P95Ms": 455.81193,
+      "MinMs": 404.2526,
+      "MeanMs": 431.37037,
+      "FramesPerSecond": 2.3420330884776774,
+      "SamplesMs": [
+        422.5005,
+        424.0361,
+        426.8544,
+        445.7396,
+        440.8192,
+        431.2967,
+        423.7773,
+        453.4692,
+        445.0339,
+        421.6355,
+        427.1045,
+        455.2024,
+        431.2941,
+        413.6995,
+        467.393,
+        447.9111,
+        420.1993,
+        414.4209,
+        404.2526,
+        410.7676
+      ],
+      "WorkingSetMB": 233.28125,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolo11n.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 315.3328,
+      "P95Ms": 331.731535,
+      "MinMs": 306.4352,
+      "MeanMs": 317.16767999999996,
+      "FramesPerSecond": 3.1712527209348345,
+      "SamplesMs": [
+        330.753,
+        315.3339,
+        314.6772,
+        321.2748,
+        321.3748,
+        312.5285,
+        307.1375,
+        350.3237,
+        320.2319,
+        310.9844,
+        322.3121,
+        322.5665,
+        316.8769,
+        315.3317,
+        308.2048,
+        319.133,
+        307.3537,
+        307.8115,
+        312.7085,
+        306.4352
+      ],
+      "WorkingSetMB": 190.484375,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolo11n.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 64.56885,
+      "P95Ms": 71.309065,
+      "MinMs": 58.1698,
+      "MeanMs": 65.246595,
+      "FramesPerSecond": 15.487344129560926,
+      "SamplesMs": [
+        59.9345,
+        58.1698,
+        61.4331,
+        64.0269,
+        68.4525,
+        71.2782,
+        68.9155,
+        64.5022,
+        68.5793,
+        63.1299,
+        66.7297,
+        69.1945,
+        63.0843,
+        65.4047,
+        63.0687,
+        59.7312,
+        64.6355,
+        62.2939,
+        70.472,
+        71.8955
+      ]
+    },
+    {
+      "Model": "yolo11n.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 77.014,
+      "P95Ms": 106.06110000000001,
+      "MinMs": 51.9429,
+      "MeanMs": 75.66464,
+      "FramesPerSecond": 12.98465214116914,
+      "SamplesMs": [
+        54.4243,
+        57.9058,
+        60.7866,
+        53.269,
+        54.0088,
+        53.0658,
+        51.9429,
+        55.4885,
+        51.9951,
+        78.939,
+        111.0182,
+        100.6047,
+        87.0855,
+        85.7483,
+        75.089,
+        94.2489,
+        105.8002,
+        100.6236,
+        90.6083,
+        90.6403
+      ]
+    },
+    {
+      "Model": "yolov8n-seg.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 866.91335,
+      "P95Ms": 915.6469000000001,
+      "MinMs": 821.7003,
+      "MeanMs": 872.4106399999998,
+      "FramesPerSecond": 1.1535178227443377,
+      "SamplesMs": [
+        861.6952,
+        862.0325,
+        821.7003,
+        891.1452,
+        872.7274,
+        863.0037,
+        866.0595,
+        849.9974,
+        961.6687,
+        886.2171,
+        857.2102,
+        851.8322,
+        834.8972,
+        851.1074,
+        871.7044,
+        867.7672,
+        882.2496,
+        913.2247,
+        883.8473,
+        898.1256
+      ],
+      "WorkingSetMB": 386.37890625,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov8n-seg.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 459.3472,
+      "P95Ms": 479.17822,
+      "MinMs": 444.6283,
+      "MeanMs": 462.8851600000001,
+      "FramesPerSecond": 2.177002493974057,
+      "SamplesMs": [
+        475.1859,
+        471.0983,
+        470.9605,
+        478.3679,
+        466.791,
+        459.7023,
+        455.7014,
+        458.0447,
+        457.9933,
+        461.5185,
+        488.5665,
+        478.6841,
+        452.9911,
+        464.1218,
+        455.686,
+        453.0772,
+        444.6283,
+        457.3049,
+        458.9921,
+        448.2874
+      ],
+      "WorkingSetMB": 231.46875,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov8n-seg.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 66.0715,
+      "P95Ms": 70.75760000000001,
+      "MinMs": 63.0836,
+      "MeanMs": 66.356465,
+      "FramesPerSecond": 15.135118772844569,
+      "SamplesMs": [
+        72.7469,
+        67.35,
+        66.4909,
+        66.7814,
+        65.6381,
+        66.088,
+        66.2497,
+        65.2555,
+        66.055,
+        66.0252,
+        65.593,
+        66.1221,
+        65.1313,
+        63.9979,
+        66.2572,
+        65.9872,
+        66.3772,
+        65.2462,
+        70.6529,
+        63.0836
+      ]
+    },
+    {
+      "Model": "yolov8n-seg.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 58.96885,
+      "P95Ms": 73.39908,
+      "MinMs": 57.1362,
+      "MeanMs": 60.88452,
+      "FramesPerSecond": 16.958105847409268,
+      "SamplesMs": [
+        58.5049,
+        57.8586,
+        57.3012,
+        61.9369,
+        60.7857,
+        61.0097,
+        58.1982,
+        59.0126,
+        57.7237,
+        57.1362,
+        57.9086,
+        73.3762,
+        58.9251,
+        59.0692,
+        58.9029,
+        57.6224,
+        62.5371,
+        73.8338,
+        59.9704,
+        66.077
+      ]
+    },
+    {
+      "Model": "yolov8n-pose.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 557.7914000000001,
+      "P95Ms": 581.5408,
+      "MinMs": 535.6859,
+      "MeanMs": 559.157925,
+      "FramesPerSecond": 1.7927849013089838,
+      "SamplesMs": [
+        549.7616,
+        562.8313,
+        552.4755,
+        581.4495,
+        559.01,
+        573.9651,
+        576.7751,
+        562.138,
+        559.7184,
+        583.2755,
+        562.0004,
+        556.5728,
+        535.6859,
+        544.4388,
+        547.4443,
+        573.6912,
+        555.0248,
+        551.5751,
+        542.3659,
+        552.9593
+      ],
+      "WorkingSetMB": 180.22265625,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov8n-pose.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 268.3963,
+      "P95Ms": 281.77428,
+      "MinMs": 260.5102,
+      "MeanMs": 270.52184,
+      "FramesPerSecond": 3.725833776397067,
+      "SamplesMs": [
+        274.3287,
+        280.8341,
+        272.3295,
+        276.2226,
+        264.5756,
+        274.0234,
+        275.0952,
+        261.9824,
+        265.5097,
+        270.3565,
+        269.4789,
+        262.7955,
+        265.1016,
+        271.1573,
+        266.2984,
+        267.3137,
+        266.9676,
+        260.5102,
+        265.9182,
+        299.6377
+      ],
+      "WorkingSetMB": 220.03125,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolov8n-pose.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 53.178399999999996,
+      "P95Ms": 58.504810000000006,
+      "MinMs": 52.0893,
+      "MeanMs": 54.21765,
+      "FramesPerSecond": 18.804627442721106,
+      "SamplesMs": [
+        52.2458,
+        52.457,
+        53.2831,
+        52.1706,
+        55.3622,
+        52.8158,
+        66.7909,
+        52.9804,
+        58.0687,
+        52.7828,
+        53.9582,
+        53.1798,
+        52.5224,
+        52.0893,
+        52.2498,
+        54.7538,
+        54.1161,
+        53.177,
+        54.843,
+        54.5063
+      ]
+    },
+    {
+      "Model": "yolov8n-pose.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 51.7325,
+      "P95Ms": 54.58195500000001,
+      "MinMs": 49.2157,
+      "MeanMs": 52.13109,
+      "FramesPerSecond": 19.33020828299425,
+      "SamplesMs": [
+        50.4231,
+        54.0989,
+        63.76,
+        52.9108,
+        50.3161,
+        53.2606,
+        51.4853,
+        50.9531,
+        52.1643,
+        51.2936,
+        49.2157,
+        52.3012,
+        50.3703,
+        51.3133,
+        49.7519,
+        52.3225,
+        52.0673,
+        52.6569,
+        49.9772,
+        51.9797
+      ]
+    },
+    {
+      "Model": "yolo11n-seg.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 753.9862,
+      "P95Ms": 834.57812,
+      "MinMs": 701.7292,
+      "MeanMs": 762.1764799999999,
+      "FramesPerSecond": 1.3262842211170442,
+      "SamplesMs": [
+        783.7042,
+        762.5945,
+        743.9168,
+        741.841,
+        701.7292,
+        747.7941,
+        760.1783,
+        726.4445,
+        836.3607,
+        827.9376,
+        793.5594,
+        761.3635,
+        804.3201,
+        727.9161,
+        834.4843,
+        786.9244,
+        741.1168,
+        702.587,
+        728.4497,
+        730.3074
+      ],
+      "WorkingSetMB": 372.4375,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolo11n-seg.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 501.75509999999997,
+      "P95Ms": 528.98297,
+      "MinMs": 484.2941,
+      "MeanMs": 503.8821500000002,
+      "FramesPerSecond": 1.99300415680877,
+      "SamplesMs": [
+        487.6126,
+        502.3255,
+        513.769,
+        528.2414,
+        497.1753,
+        517.0544,
+        502.305,
+        493.428,
+        505.6094,
+        501.4788,
+        501.7204,
+        505.5635,
+        492.6249,
+        499.4491,
+        543.0728,
+        515.0868,
+        493.853,
+        501.7898,
+        491.1892,
+        484.2941
+      ],
+      "WorkingSetMB": 321.62109375,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolo11n-seg.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 71.49155,
+      "P95Ms": 96.180755,
+      "MinMs": 70.2338,
+      "MeanMs": 75.883095,
+      "FramesPerSecond": 13.987667073940905,
+      "SamplesMs": [
+        91.0521,
+        72.5208,
+        70.2338,
+        70.843,
+        70.8213,
+        77.6907,
+        96.1473,
+        96.8164,
+        81.1589,
+        79.501,
+        71.6628,
+        70.3583,
+        71.3203,
+        71.1854,
+        70.9669,
+        70.239,
+        70.4467,
+        72.7423,
+        71.7116,
+        70.2433
+      ]
+    },
+    {
+      "Model": "yolo11n-seg.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 77.12084999999999,
+      "P95Ms": 115.394795,
+      "MinMs": 64.1959,
+      "MeanMs": 81.579865,
+      "FramesPerSecond": 12.966662063501635,
+      "SamplesMs": [
+        64.1959,
+        71.0788,
+        77.3582,
+        76.8835,
+        83.0983,
+        80.3137,
+        75.3678,
+        72.8127,
+        69.4063,
+        77.8317,
+        68.7624,
+        77.6394,
+        74.5546,
+        66.2096,
+        81.8672,
+        67.0191,
+        119.8084,
+        114.1263,
+        115.1625,
+        98.1009
+      ]
+    },
+    {
+      "Model": "yolo11n-pose.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 492.3367,
+      "P95Ms": 512.8797500000001,
+      "MinMs": 477.5164,
+      "MeanMs": 492.39950500000003,
+      "FramesPerSecond": 2.031130321993059,
+      "SamplesMs": [
+        505.4486,
+        494.163,
+        507.8389,
+        493.7454,
+        494.9001,
+        477.5164,
+        486.8622,
+        479.9041,
+        479.2463,
+        483.0617,
+        482.6122,
+        495.0179,
+        499.6806,
+        514.623,
+        498.9839,
+        512.788,
+        487.7834,
+        490.928,
+        480.2406,
+        482.6458
+      ],
+      "WorkingSetMB": 217.88671875,
+      "Engine": "net-cpu",
+      "Backend": "CPU SIMD (256 bits)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolo11n-pose.pt",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 376.46685,
+      "P95Ms": 402.389105,
+      "MinMs": 328.8945,
+      "MeanMs": 370.86205499999994,
+      "FramesPerSecond": 2.6562763759943273,
+      "SamplesMs": [
+        330.0555,
+        341.2676,
+        336.8874,
+        330.1795,
+        328.8945,
+        348.494,
+        367.0993,
+        375.5855,
+        389.8677,
+        383.0349,
+        397.7025,
+        394.5082,
+        377.3482,
+        373.5962,
+        404.6901,
+        402.268,
+        374.6638,
+        388.9985,
+        387.9715,
+        384.1282
+      ],
+      "WorkingSetMB": 204.296875,
+      "Engine": "net-vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Fusion": "managed load-time optimizations"
+    },
+    {
+      "Model": "yolo11n-pose.pt",
+      "Engine": "python-cpu-unfused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": false,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 77.8515,
+      "P95Ms": 87.43344,
+      "MinMs": 68.5699,
+      "MeanMs": 77.807485,
+      "FramesPerSecond": 12.84496766279391,
+      "SamplesMs": [
+        87.8047,
+        72.2923,
+        75.3356,
+        81.0227,
+        85.6912,
+        80.2008,
+        76.465,
+        68.5699,
+        71.3128,
+        77.7288,
+        71.2769,
+        70.0049,
+        81.1299,
+        77.7168,
+        83.7573,
+        87.4139,
+        79.4696,
+        78.2198,
+        72.7626,
+        77.9742
+      ]
+    },
+    {
+      "Model": "yolo11n-pose.pt",
+      "Engine": "python-cpu-fused",
+      "Backend": "PyTorch CPU",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 62.2064,
+      "P95Ms": 70.17878999999999,
+      "MinMs": 56.1969,
+      "MeanMs": 62.695895,
+      "FramesPerSecond": 16.07551634558502,
+      "SamplesMs": [
+        62.1035,
+        57.4102,
+        60.7108,
+        62.3093,
+        61.0591,
+        66.0115,
+        62.6239,
+        59.2081,
+        59.7235,
+        56.1969,
+        60.4594,
+        57.5875,
+        70.1455,
+        69.1015,
+        58.8675,
+        63.7726,
+        63.0716,
+        62.704,
+        70.0402,
+        70.8113
+      ]
+    },
+    {
+      "Model": "yolov8n.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 9.9902,
+      "P95Ms": 10.633545,
+      "MinMs": 9.8884,
+      "MeanMs": 10.04447,
+      "FramesPerSecond": 100.09809613421153,
+      "SamplesMs": [
+        9.8884,
+        9.9995,
+        9.9169,
+        9.9445,
+        9.8942,
+        9.9168,
+        9.9245,
+        9.9915,
+        9.9989,
+        9.9829,
+        10.6327,
+        10.003,
+        9.9152,
+        9.9904,
+        10.2508,
+        10.6496,
+        9.99,
+        10.0162,
+        10.0231,
+        9.9603
+      ]
+    },
+    {
+      "Model": "yolov8n.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 11.08515,
+      "P95Ms": 11.665305,
+      "MinMs": 8.9767,
+      "MeanMs": 10.40144,
+      "FramesPerSecond": 90.21077748158572,
+      "SamplesMs": [
+        11.2915,
+        11.7243,
+        11.6622,
+        11.5602,
+        11.5749,
+        11.4992,
+        11.3841,
+        11.2646,
+        10.9335,
+        11.5635,
+        11.2368,
+        9.0327,
+        9.0016,
+        9.0454,
+        9.0094,
+        9.4837,
+        9.0525,
+        8.9767,
+        9.5872,
+        9.1448
+      ]
+    },
+    {
+      "Model": "yolov9t.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 22.9077,
+      "P95Ms": 27.00636,
+      "MinMs": 21.9197,
+      "MeanMs": 23.647235,
+      "FramesPerSecond": 43.65344403846742,
+      "SamplesMs": [
+        22.3353,
+        22.1663,
+        22.1007,
+        22.5075,
+        22.0427,
+        21.9197,
+        24.5212,
+        29.8423,
+        25.3189,
+        22.8867,
+        22.4671,
+        23.2413,
+        22.345,
+        24.4002,
+        26.8571,
+        22.6757,
+        22.9287,
+        24.5732,
+        23.3918,
+        24.4233
+      ]
+    },
+    {
+      "Model": "yolov9t.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 21.2655,
+      "P95Ms": 26.414794999999998,
+      "MinMs": 20.0371,
+      "MeanMs": 21.764465,
+      "FramesPerSecond": 47.02452328889516,
+      "SamplesMs": [
+        26.3966,
+        22.4448,
+        21.2354,
+        21.367,
+        20.6179,
+        21.8444,
+        21.9703,
+        26.7605,
+        20.6707,
+        20.5611,
+        20.8424,
+        20.902,
+        20.3339,
+        20.0371,
+        20.9685,
+        22.0954,
+        22.1763,
+        21.2705,
+        21.534,
+        21.2605
+      ]
+    },
+    {
+      "Model": "yolov10n.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          300,
+          6
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 13.4293,
+      "P95Ms": 13.900395,
+      "MinMs": 12.8267,
+      "MeanMs": 13.3999,
+      "FramesPerSecond": 74.46404503585444,
+      "SamplesMs": [
+        13.4459,
+        13.2708,
+        13.4432,
+        13.0836,
+        13.1373,
+        13.4,
+        13.4368,
+        13.4218,
+        13.1364,
+        13.209,
+        13.906,
+        13.5659,
+        13.9001,
+        13.3744,
+        13.0052,
+        13.7588,
+        13.6655,
+        13.4933,
+        13.5173,
+        12.8267
+      ]
+    },
+    {
+      "Model": "yolov10n.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          300,
+          6
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 12.796,
+      "P95Ms": 19.028025,
+      "MinMs": 12.2262,
+      "MeanMs": 14.139805,
+      "FramesPerSecond": 78.14942169427947,
+      "SamplesMs": [
+        19.0855,
+        18.847,
+        18.8458,
+        19.025,
+        14.8065,
+        12.2262,
+        12.6933,
+        12.6037,
+        12.2594,
+        12.8279,
+        12.6143,
+        12.8249,
+        12.5935,
+        12.7671,
+        13.8357,
+        14.1598,
+        13.3236,
+        12.2924,
+        12.5246,
+        12.6399
+      ]
+    },
+    {
+      "Model": "yolo11n.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 10.82915,
+      "P95Ms": 11.286845,
+      "MinMs": 10.7663,
+      "MeanMs": 10.95572,
+      "FramesPerSecond": 92.34335104786618,
+      "SamplesMs": [
+        10.8382,
+        10.8081,
+        10.7663,
+        11.5328,
+        11.2311,
+        10.9826,
+        11.184,
+        10.8946,
+        10.8516,
+        10.7801,
+        10.8003,
+        10.7673,
+        11.1752,
+        10.7694,
+        11.2431,
+        10.8129,
+        10.8026,
+        10.8201,
+        11.2739,
+        10.7802
+      ]
+    },
+    {
+      "Model": "yolo11n.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 10.280000000000001,
+      "P95Ms": 16.73646,
+      "MinMs": 9.8211,
+      "MeanMs": 12.046520000000001,
+      "FramesPerSecond": 97.27626459143968,
+      "SamplesMs": [
+        15.8955,
+        16.7946,
+        15.5532,
+        15.9128,
+        15.7837,
+        16.7334,
+        13.8571,
+        9.9412,
+        9.9109,
+        10.4604,
+        9.9143,
+        10.3793,
+        9.9186,
+        9.8895,
+        9.8849,
+        9.8211,
+        9.8506,
+        9.8693,
+        10.2925,
+        10.2675
+      ]
+    },
+    {
+      "Model": "yolov8n-seg.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 13.1244,
+      "P95Ms": 13.610885,
+      "MinMs": 12.9442,
+      "MeanMs": 13.2128,
+      "FramesPerSecond": 76.1939593429033,
+      "SamplesMs": [
+        13.367,
+        13.6733,
+        13.1222,
+        13.0105,
+        13.4561,
+        13.0774,
+        12.9442,
+        13.1266,
+        13.3337,
+        13.6076,
+        13.4098,
+        12.9871,
+        12.9812,
+        12.9685,
+        13.3976,
+        13.0712,
+        13.544,
+        12.9837,
+        13.0359,
+        13.1584
+      ]
+    },
+    {
+      "Model": "yolov8n-seg.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 11.845749999999999,
+      "P95Ms": 13.437005,
+      "MinMs": 11.5152,
+      "MeanMs": 12.41003,
+      "FramesPerSecond": 84.41846231770889,
+      "SamplesMs": [
+        13.4307,
+        13.5568,
+        13.3454,
+        13.3937,
+        13.2814,
+        13.3087,
+        13.3727,
+        13.2364,
+        13.2247,
+        11.5482,
+        11.93,
+        11.5553,
+        11.5152,
+        11.577,
+        11.6425,
+        11.6995,
+        11.7615,
+        11.6708,
+        11.6022,
+        11.5479
+      ]
+    },
+    {
+      "Model": "yolov8n-pose.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 10.2445,
+      "P95Ms": 10.332555,
+      "MinMs": 10.1823,
+      "MeanMs": 10.26342,
+      "FramesPerSecond": 97.61335350675972,
+      "SamplesMs": [
+        10.2741,
+        10.2861,
+        10.2478,
+        10.265,
+        10.2319,
+        10.3144,
+        10.3158,
+        10.5369,
+        10.3218,
+        10.2439,
+        10.2375,
+        10.2451,
+        10.2988,
+        10.2197,
+        10.2312,
+        10.1921,
+        10.1823,
+        10.2437,
+        10.1933,
+        10.187
+      ]
+    },
+    {
+      "Model": "yolov8n-pose.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 9.716249999999999,
+      "P95Ms": 13.095285,
+      "MinMs": 9.3769,
+      "MeanMs": 11.004425,
+      "FramesPerSecond": 102.92036536729707,
+      "SamplesMs": [
+        12.8476,
+        12.8423,
+        12.7673,
+        13.0937,
+        13.1254,
+        12.9021,
+        12.8343,
+        12.8208,
+        12.6974,
+        9.9375,
+        9.4075,
+        9.4509,
+        9.4109,
+        9.3782,
+        9.3928,
+        9.3888,
+        9.3769,
+        9.495,
+        9.4254,
+        9.4937
+      ]
+    },
+    {
+      "Model": "yolo11n-seg.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 14.16005,
+      "P95Ms": 18.78753,
+      "MinMs": 13.7842,
+      "MeanMs": 15.40261,
+      "FramesPerSecond": 70.62121955784055,
+      "SamplesMs": [
+        18.9686,
+        18.778,
+        18.5521,
+        18.643,
+        17.8523,
+        13.8792,
+        13.9115,
+        13.8815,
+        13.846,
+        14.1899,
+        15.5533,
+        17.2777,
+        14.9671,
+        13.8023,
+        13.8529,
+        13.7842,
+        14.1302,
+        14.2264,
+        14.0527,
+        13.9033
+      ]
+    },
+    {
+      "Model": "yolo11n-seg.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          116,
+          8400
+        ],
+        [
+          1,
+          32,
+          160,
+          160
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 12.803799999999999,
+      "P95Ms": 17.443555,
+      "MinMs": 12.3692,
+      "MeanMs": 13.956035,
+      "FramesPerSecond": 78.10181352411004,
+      "SamplesMs": [
+        17.4142,
+        17.1702,
+        17.0343,
+        17.4693,
+        17.4422,
+        15.3271,
+        12.3692,
+        12.3923,
+        12.437,
+        12.8116,
+        12.796,
+        12.5129,
+        12.4114,
+        12.4962,
+        13.0989,
+        12.5154,
+        12.499,
+        12.9185,
+        13.5444,
+        12.4606
+      ]
+    },
+    {
+      "Model": "yolo11n-pose.pt",
+      "Engine": "python-cuda-fused-host-to-host",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "host-to-host",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 11.62905,
+      "P95Ms": 18.294130000000003,
+      "MinMs": 11.1685,
+      "MeanMs": 12.9136,
+      "FramesPerSecond": 85.99154703092687,
+      "SamplesMs": [
+        18.0135,
+        18.4505,
+        18.2859,
+        14.6064,
+        11.5707,
+        11.4456,
+        11.6401,
+        11.1961,
+        12.4841,
+        12.4929,
+        13.4058,
+        12.6962,
+        12.3632,
+        11.6035,
+        11.618,
+        11.4942,
+        11.3394,
+        11.1757,
+        11.2217,
+        11.1685
+      ]
+    },
+    {
+      "Model": "yolo11n-pose.pt",
+      "Engine": "python-cuda-fused-device-only",
+      "Backend": "PyTorch CUDA",
+      "Shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "Outputs": [
+        [
+          1,
+          56,
+          8400
+        ]
+      ],
+      "Fusion": true,
+      "Timing": "device-only",
+      "Iterations": 20,
+      "Warmup": 5,
+      "CpuThreads": 12,
+      "MedianMs": 15.620249999999999,
+      "P95Ms": 17.829040000000003,
+      "MinMs": 10.3583,
+      "MeanMs": 14.74906,
+      "FramesPerSecond": 64.0194619164226,
+      "SamplesMs": [
+        17.4392,
+        17.2578,
+        16.9533,
+        16.946,
+        17.8028,
+        13.9076,
+        11.0023,
+        10.3583,
+        11.4877,
+        10.8127,
+        10.4821,
+        11.6955,
+        14.6231,
+        18.3276,
+        17.4748,
+        15.5981,
+        15.7479,
+        15.8239,
+        15.6281,
+        15.6124
+      ]
+    }
+  ],
+  "TorchBuild": "PyTorch built with:\n  - C++ Version: 201703\n  - MSVC 194234444\n  - Intel(R) oneAPI Math Kernel Library Version 2025.3-Product Build 20251007 for Intel(R) 64 architecture applications\n  - Intel(R) MKL-DNN v3.10.2 (Git Hash f1d471933dc852f956fd05389f9313c7148783d5)\n  - OpenMP 2019\n  - LAPACK is enabled (usually provided by MKL)\n  - CPU capability usage: AVX2\n  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, COMMIT_SHA=70d99e998b4955e0049d13a98d77ae1b14db1f45, CXX_COMPILER=C:/actions-runner/_work/pytorch/pytorch/pytorch/.ci/pytorch/windows/tmp_bin/sccache-cl.exe, CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /Zc:__cplusplus /bigobj /FS /utf-8 -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOCUPTI -DLIBKINETO_NOROCTRACER -DLIBKINETO_NOXPUPTI=ON -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE /wd4624 /wd4068 /wd4067 /wd4267 /wd4661 /wd4717 /wd4244 /wd4804 /wd4273, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, TORCH_VERSION=2.11.0, USE_CUDA=0, USE_CUDNN=OFF, USE_CUSPARSELT=OFF, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_GLOO=ON, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=OFF, USE_OPENMP=ON, USE_ROCM=OFF, USE_ROCM_KERNEL_ASSERT=OFF, USE_XCCL=OFF, USE_XPU=OFF, \n",
+  "CudaReference": {
+    "Torch": "2.11.0+cu126",
+    "Build": "12.6",
+    "TorchBuild": "PyTorch built with:\n  - C++ Version: 201703\n  - MSVC 194234444\n  - Intel(R) oneAPI Math Kernel Library Version 2025.3-Product Build 20251007 for Intel(R) 64 architecture applications\n  - Intel(R) MKL-DNN v3.10.2 (Git Hash f1d471933dc852f956fd05389f9313c7148783d5)\n  - OpenMP 2019\n  - LAPACK is enabled (usually provided by MKL)\n  - CPU capability usage: AVX2\n  - CUDA Runtime 12.6\n  - NVCC architecture flags: -gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_90,code=sm_90\n  - CuDNN 91.0.2  (built against CUDA 12.9)\n  - Magma 2.5.4\n  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, COMMIT_SHA=70d99e998b4955e0049d13a98d77ae1b14db1f45, CUDA_VERSION=12.6, CUDNN_VERSION=9.10.2, CXX_COMPILER=C:/actions-runner/_work/pytorch/pytorch/pytorch/.ci/pytorch/windows/tmp_bin/sccache-cl.exe, CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /Zc:__cplusplus /bigobj /FS /utf-8 -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOROCTRACER -DLIBKINETO_NOXPUPTI=ON -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE /wd4624 /wd4068 /wd4067 /wd4267 /wd4661 /wd4717 /wd4244 /wd4804 /wd4273, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, TORCH_VERSION=2.11.0, USE_CUDA=ON, USE_CUDNN=ON, USE_CUSPARSELT=OFF, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_GLOO=ON, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=OFF, USE_OPENMP=ON, USE_ROCM=OFF, USE_ROCM_KERNEL_ASSERT=OFF, USE_XCCL=OFF, USE_XPU=OFF, \n",
+    "Gpu": "NVIDIA GeForce GTX 1050 Ti",
+    "Capability": [
+      6,
+      1
+    ]
+  }
+}

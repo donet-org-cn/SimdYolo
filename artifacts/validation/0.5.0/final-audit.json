@@ -1,0 +1,246 @@
+{
+  "Version": "0.5.0",
+  "MainDllSha256": "1eea161ca1eeac97ad99e33989d361989d54477dbba304e961fb7dff8697d6e9",
+  "BenchmarkJsonSha256": "4153153001134022dfa1ac35e3e78258c551ed12be32062b5433a456e4518146",
+  "Windows": 128,
+  "Frames": 54600,
+  "CorrectnessOutputs": 160,
+  "AllPassed": true,
+  "RepeatedCoverageExact": true,
+  "InputAndModelHashesMatchPreviousVersion": true,
+  "CpuOracleOutputs": 20,
+  "GpuOracleOutputs": 80,
+  "ReplayedModelFormats": 16,
+  "OnnxOracleOutputs": 30,
+  "ImageModels": 5,
+  "ImageInstances": 24,
+  "Masks": 11,
+  "AllMaskIoUOne": true,
+  "HistoricalComparison": "Separate runs; not a same-window causal A/B",
+  "VersionChanges": [
+    {
+      "Model": "yolov8n",
+      "Engine": "net-cpu",
+      "PreviousMs": 32.95895,
+      "CurrentMs": 30.867425,
+      "LatencyReductionPercent": 6.345848396262621
+    },
+    {
+      "Model": "yolov8n",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 33.175675,
+      "CurrentMs": 31.0631,
+      "LatencyReductionPercent": 6.367843306880716
+    },
+    {
+      "Model": "yolov8n",
+      "Engine": "net-vulkan",
+      "PreviousMs": 11.503275,
+      "CurrentMs": 10.471374999999998,
+      "LatencyReductionPercent": 8.97048883904803
+    },
+    {
+      "Model": "yolov8n",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 11.5002,
+      "CurrentMs": 10.57165,
+      "LatencyReductionPercent": 8.074207405088607
+    },
+    {
+      "Model": "yolov9t",
+      "Engine": "net-cpu",
+      "PreviousMs": 45.219274999999996,
+      "CurrentMs": 45.356300000000005,
+      "LatencyReductionPercent": -0.3030234341439675
+    },
+    {
+      "Model": "yolov9t",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 56.3094,
+      "CurrentMs": 53.972225,
+      "LatencyReductionPercent": 4.1505947497220586
+    },
+    {
+      "Model": "yolov9t",
+      "Engine": "net-vulkan",
+      "PreviousMs": 13.6539,
+      "CurrentMs": 12.88455,
+      "LatencyReductionPercent": 5.634653835167969
+    },
+    {
+      "Model": "yolov9t",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 14.926625,
+      "CurrentMs": 14.14995,
+      "LatencyReductionPercent": 5.203286074380509
+    },
+    {
+      "Model": "yolov10n",
+      "Engine": "net-cpu",
+      "PreviousMs": 36.88465,
+      "CurrentMs": 35.66305,
+      "LatencyReductionPercent": 3.3119468396745066
+    },
+    {
+      "Model": "yolov10n",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 40.014250000000004,
+      "CurrentMs": 38.537475,
+      "LatencyReductionPercent": 3.6906227156575544
+    },
+    {
+      "Model": "yolov10n",
+      "Engine": "net-vulkan",
+      "PreviousMs": 12.078075,
+      "CurrentMs": 10.092649999999999,
+      "LatencyReductionPercent": 16.43825692422014
+    },
+    {
+      "Model": "yolov10n",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 14.3951,
+      "CurrentMs": 10.26155,
+      "LatencyReductionPercent": 28.714979402713425
+    },
+    {
+      "Model": "yolo11n",
+      "Engine": "net-cpu",
+      "PreviousMs": 33.306200000000004,
+      "CurrentMs": 32.68925,
+      "LatencyReductionPercent": 1.8523578192648937
+    },
+    {
+      "Model": "yolo11n",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 34.03635,
+      "CurrentMs": 32.7603,
+      "LatencyReductionPercent": 3.749080027676288
+    },
+    {
+      "Model": "yolo11n",
+      "Engine": "net-vulkan",
+      "PreviousMs": 12.208925,
+      "CurrentMs": 10.657275,
+      "LatencyReductionPercent": 12.709145154057378
+    },
+    {
+      "Model": "yolo11n",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 12.420325,
+      "CurrentMs": 10.602675,
+      "LatencyReductionPercent": 14.634480176645948
+    },
+    {
+      "Model": "yolov8n-seg",
+      "Engine": "net-cpu",
+      "PreviousMs": 40.9046,
+      "CurrentMs": 39.811425,
+      "LatencyReductionPercent": 2.6724989365499274
+    },
+    {
+      "Model": "yolov8n-seg",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 41.469575,
+      "CurrentMs": 40.1845,
+      "LatencyReductionPercent": 3.098838124094594
+    },
+    {
+      "Model": "yolov8n-seg",
+      "Engine": "net-vulkan",
+      "PreviousMs": 14.8009,
+      "CurrentMs": 13.76575,
+      "LatencyReductionPercent": 6.993831456195232
+    },
+    {
+      "Model": "yolov8n-seg",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 14.8857,
+      "CurrentMs": 13.601075,
+      "LatencyReductionPercent": 8.629926708183023
+    },
+    {
+      "Model": "yolov8n-pose",
+      "Engine": "net-cpu",
+      "PreviousMs": 38.505325,
+      "CurrentMs": 37.48995,
+      "LatencyReductionPercent": 2.636972938158555
+    },
+    {
+      "Model": "yolov8n-pose",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 34.775949999999995,
+      "CurrentMs": 34.229699999999994,
+      "LatencyReductionPercent": 1.5707694541773898
+    },
+    {
+      "Model": "yolov8n-pose",
+      "Engine": "net-vulkan",
+      "PreviousMs": 11.5857,
+      "CurrentMs": 10.519950000000001,
+      "LatencyReductionPercent": 9.19883994924776
+    },
+    {
+      "Model": "yolov8n-pose",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 11.821100000000001,
+      "CurrentMs": 10.7867,
+      "LatencyReductionPercent": 8.750454695417531
+    },
+    {
+      "Model": "yolo11n-seg",
+      "Engine": "net-cpu",
+      "PreviousMs": 43.37425,
+      "CurrentMs": 41.4097,
+      "LatencyReductionPercent": 4.529300218447585
+    },
+    {
+      "Model": "yolo11n-seg",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 43.4846,
+      "CurrentMs": 42.0359,
+      "LatencyReductionPercent": 3.331524263762353
+    },
+    {
+      "Model": "yolo11n-seg",
+      "Engine": "net-vulkan",
+      "PreviousMs": 15.95365,
+      "CurrentMs": 13.4936,
+      "LatencyReductionPercent": 15.419982261112652
+    },
+    {
+      "Model": "yolo11n-seg",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 15.711125,
+      "CurrentMs": 13.691849999999999,
+      "LatencyReductionPercent": 12.85251692670003
+    },
+    {
+      "Model": "yolo11n-pose",
+      "Engine": "net-cpu",
+      "PreviousMs": 40.44165,
+      "CurrentMs": 38.874900000000004,
+      "LatencyReductionPercent": 3.8741000923552815
+    },
+    {
+      "Model": "yolo11n-pose",
+      "Engine": "net-onnx-cpu",
+      "PreviousMs": 36.651425,
+      "CurrentMs": 36.133224999999996,
+      "LatencyReductionPercent": 1.4138604433524993
+    },
+    {
+      "Model": "yolo11n-pose",
+      "Engine": "net-vulkan",
+      "PreviousMs": 12.730025,
+      "CurrentMs": 11.045675,
+      "LatencyReductionPercent": 13.23131729906265
+    },
+    {
+      "Model": "yolo11n-pose",
+      "Engine": "net-onnx-vulkan",
+      "PreviousMs": 12.881599999999999,
+      "CurrentMs": 11.2127,
+      "LatencyReductionPercent": 12.955688734318716
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+#version 450
+layout(local_size_x=16,local_size_y=8) in;
+layout(set=0,binding=0,std430) readonly buffer Weights { vec4 a[]; };
+layout(set=0,binding=1,std430) readonly buffer Input { vec4 b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { vec4 c[]; };
+layout(set=0,binding=3,std430) readonly buffer Bias { float d[]; };
+layout(constant_id=0) const uint activation=0;
+layout(constant_id=1) const uint ic=1;
+layout(constant_id=2) const uint spatial=1;
+layout(constant_id=3) const uint oc=1;
+layout(constant_id=4) const uint inputOffset=0;
+layout(constant_id=5) const uint biasOffset=0;
+shared vec4 ta[32][8];
+shared vec4 tb[32][16];
+void main() {
+uint lx=gl_LocalInvocationID.x,ly=gl_LocalInvocationID.y,tid=ly*16+lx;
+uint outputRow=gl_WorkGroupID.y*32+ly*4,outputColumn=gl_WorkGroupID.x*64+lx*4,batch=gl_WorkGroupID.z;
+uint loadedRow=gl_WorkGroupID.y*32+(tid%8)*4,loadedK=tid/8;
+vec4 s0=vec4(0),s1=vec4(0),s2=vec4(0),s3=vec4(0);
+for(uint base=0;base<ic;base+=32) {
+    ta[loadedK][tid%8]=base+loadedK<ic && loadedRow<oc ? a[((base+loadedK)*oc+loadedRow)/4] : vec4(0);
+    ta[loadedK+16][tid%8]=base+loadedK+16<ic && loadedRow<oc ? a[((base+loadedK+16)*oc+loadedRow)/4] : vec4(0);
+    tb[ly+0][lx]=base+ly+0<ic && outputColumn<spatial ? b[inputOffset+((batch*ic+base+ly+0)*spatial+outputColumn)/4] : vec4(0);
+    tb[ly+8][lx]=base+ly+8<ic && outputColumn<spatial ? b[inputOffset+((batch*ic+base+ly+8)*spatial+outputColumn)/4] : vec4(0);
+    tb[ly+16][lx]=base+ly+16<ic && outputColumn<spatial ? b[inputOffset+((batch*ic+base+ly+16)*spatial+outputColumn)/4] : vec4(0);
+    tb[ly+24][lx]=base+ly+24<ic && outputColumn<spatial ? b[inputOffset+((batch*ic+base+ly+24)*spatial+outputColumn)/4] : vec4(0);
+    barrier();
+    {vec4 av=ta[0][ly],bv=tb[0][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[1][ly],bv=tb[1][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[2][ly],bv=tb[2][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[3][ly],bv=tb[3][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[4][ly],bv=tb[4][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[5][ly],bv=tb[5][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[6][ly],bv=tb[6][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[7][ly],bv=tb[7][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[8][ly],bv=tb[8][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[9][ly],bv=tb[9][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[10][ly],bv=tb[10][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[11][ly],bv=tb[11][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[12][ly],bv=tb[12][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[13][ly],bv=tb[13][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[14][ly],bv=tb[14][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[15][ly],bv=tb[15][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[16][ly],bv=tb[16][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[17][ly],bv=tb[17][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[18][ly],bv=tb[18][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[19][ly],bv=tb[19][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[20][ly],bv=tb[20][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[21][ly],bv=tb[21][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[22][ly],bv=tb[22][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[23][ly],bv=tb[23][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[24][ly],bv=tb[24][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[25][ly],bv=tb[25][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[26][ly],bv=tb[26][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[27][ly],bv=tb[27][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[28][ly],bv=tb[28][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[29][ly],bv=tb[29][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[30][ly],bv=tb[30][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    {vec4 av=ta[31][ly],bv=tb[31][lx];s0=fma(bv,vec4(av.x),s0);s1=fma(bv,vec4(av.y),s1);s2=fma(bv,vec4(av.z),s2);s3=fma(bv,vec4(av.w),s3);}
+    barrier();
+}
+if(outputColumn>=spatial || outputRow>=oc) return;
+{vec4 value=s0+d[biasOffset+outputRow+0];c[((batch*oc+outputRow+0)*spatial+outputColumn)/4]=activation==1 ? value/(1+exp(-value)) : value;}
+{vec4 value=s1+d[biasOffset+outputRow+1];c[((batch*oc+outputRow+1)*spatial+outputColumn)/4]=activation==1 ? value/(1+exp(-value)) : value;}
+{vec4 value=s2+d[biasOffset+outputRow+2];c[((batch*oc+outputRow+2)*spatial+outputColumn)/4]=activation==1 ? value/(1+exp(-value)) : value;}
+{vec4 value=s3+d[biasOffset+outputRow+3];c[((batch*oc+outputRow+3)*spatial+outputColumn)/4]=activation==1 ? value/(1+exp(-value)) : value;}
+}

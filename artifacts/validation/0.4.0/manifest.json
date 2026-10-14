@@ -1,0 +1,68 @@
+{
+    "Version":  "0.4.0",
+    "DllSha256":  "ab4c2d0bd0f5a6ce29578317dc9c812973ca7fe2d61bca22f7e14f0328ab8d49",
+    "ReleaseBuildWarnings":  0,
+    "ReleaseBuildErrors":  0,
+    "FullTests":  51,
+    "PortableCpuTests":  37,
+    "PortableIntrinsicsCasesSkip":  true,
+    "CpuPyTorchOutputComparisons":  20,
+    "GpuChangingInputOutputComparisons":  80,
+    "OnnxStaticDynamicComparisons":  30,
+    "ImageModels":  5,
+    "ImageInstances":  24,
+    "BinaryMaskComparisons":  11,
+    "BinaryMaskIoU":  1,
+    "MetalHardwareValidated":  false,
+    "Tolerances":  {
+                       "Absolute":  0.003,
+                       "Relative":  0.0003
+                   },
+    "Records":  [
+                    "tests-vulkan-models.log",
+                    "tests-cpu-portable.log",
+                    "cpu-packed-oracle.json",
+                    "real-model-replay.json",
+                    "onnx-final.json",
+                    "image-final.json",
+                    "pipeline-cache-final.json"
+                ],
+    "Benchmark":  {
+                      "Report":  "../../optimized-runtime-comparison.json",
+                      "Status":  "complete",
+                      "Windows":  128,
+                      "Repeats":  2,
+                      "CheckedOutputs":  160,
+                      "CrossEngineOutputComparisons":  140,
+                      "SelfReferenceOutputComparisons":  20,
+                      "TotalTimedFrames":  51154,
+                      "InputShape":  [
+                                         1,
+                                         3,
+                                         640,
+                                         640
+                                     ],
+                      "Precision":  "FP32",
+                      "CpuThreadLimit":  12,
+                      "AllCorrectnessPassed":  true,
+                      "SameValidatedDll":  true
+                  },
+    "Delivery":  {
+                     "Package":  "../../SimdYolo.0.4.0.nupkg",
+                     "PackageSha256":  "d9d528755ab7f1c31b4017e8642097b1ee89f6b108aa47a9e8801ededa286dab",
+                     "Audit":  "package-audit.json",
+                     "ConsumerLogs":  [
+                                          "consumer-cpu.log",
+                                          "consumer-vulkan.log"
+                                      ],
+                     "ConsumerDevices":  [
+                                             "Cpu",
+                                             "Vulkan"
+                                         ],
+                     "ModelDeviceCombinations":  8,
+                     "ChangingInputFrames":  32,
+                     "AllPassed":  true,
+                     "BenchmarkDllMatchesConsumer":  true,
+                     "PackedDocumentationMatchesWorkspace":  true
+                 }
+}

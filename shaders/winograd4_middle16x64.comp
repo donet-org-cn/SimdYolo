@@ -1,0 +1,53 @@
+#version 450
+layout(local_size_x=16,local_size_y=8) in;
+layout(set=0,binding=0,std430) readonly buffer Weights { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Input { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Bias { float d[]; };
+layout(constant_id=0) const uint activation=0;
+layout(constant_id=1) const uint ic=1;
+layout(constant_id=2) const uint ih=1;
+layout(constant_id=3) const uint iw=1;
+layout(constant_id=4) const uint oc=1;
+layout(constant_id=5) const uint oh=1;
+layout(constant_id=6) const uint ow=1;
+layout(constant_id=7) const uint kh=1;
+layout(constant_id=8) const uint kw=1;
+layout(constant_id=9) const uint sy=1;
+layout(constant_id=10) const uint sx=1;
+layout(constant_id=11) const uint py=0;
+layout(constant_id=12) const uint px=0;
+layout(constant_id=13) const uint dy=1;
+layout(constant_id=14) const uint dx=1;
+layout(constant_id=15) const uint groups=1;
+shared float ta[16][17];
+shared float tb[16][64];
+void main() {
+uint lx=gl_LocalInvocationID.x,ly=gl_LocalInvocationID.y,row=gl_WorkGroupID.y*16+ly,col=gl_WorkGroupID.x*64+lx;
+uint group=gl_GlobalInvocationID.z%groups,batch=gl_GlobalInvocationID.z/groups,cig=ic/groups,cog=oc/groups,k=cig,spatial=oh*ow,co=group*cog+row;
+float s00=0,s01=0,s02=0,s03=0,s10=0,s11=0,s12=0,s13=0;
+for(uint base=0;base<k;base+=16) {
+ta[ly+0][lx+0]=(row+0<cog && base+lx+0<k) ? a[(batch%36*oc+co+0)*k+base+lx+0] : 0;
+ta[ly+8][lx+0]=(row+8<cog && base+lx+0<k) ? a[(batch%36*oc+co+8)*k+base+lx+0] : 0;
+tb[ly+0][lx+0]=(col+0<spatial && base+ly+0<k) ? b[(batch*ic+group*cig+base+ly+0)*spatial+col+0] : 0;
+tb[ly+0][lx+16]=(col+16<spatial && base+ly+0<k) ? b[(batch*ic+group*cig+base+ly+0)*spatial+col+16] : 0;
+tb[ly+0][lx+32]=(col+32<spatial && base+ly+0<k) ? b[(batch*ic+group*cig+base+ly+0)*spatial+col+32] : 0;
+tb[ly+0][lx+48]=(col+48<spatial && base+ly+0<k) ? b[(batch*ic+group*cig+base+ly+0)*spatial+col+48] : 0;
+tb[ly+8][lx+0]=(col+0<spatial && base+ly+8<k) ? b[(batch*ic+group*cig+base+ly+8)*spatial+col+0] : 0;
+tb[ly+8][lx+16]=(col+16<spatial && base+ly+8<k) ? b[(batch*ic+group*cig+base+ly+8)*spatial+col+16] : 0;
+tb[ly+8][lx+32]=(col+32<spatial && base+ly+8<k) ? b[(batch*ic+group*cig+base+ly+8)*spatial+col+32] : 0;
+tb[ly+8][lx+48]=(col+48<spatial && base+ly+8<k) ? b[(batch*ic+group*cig+base+ly+8)*spatial+col+48] : 0;
+barrier();
+#define MAC(j) s00=fma(ta[ly+0][j],tb[j][lx+0],s00); s01=fma(ta[ly+0][j],tb[j][lx+16],s01); s02=fma(ta[ly+0][j],tb[j][lx+32],s02); s03=fma(ta[ly+0][j],tb[j][lx+48],s03); s10=fma(ta[ly+8][j],tb[j][lx+0],s10); s11=fma(ta[ly+8][j],tb[j][lx+16],s11); s12=fma(ta[ly+8][j],tb[j][lx+32],s12); s13=fma(ta[ly+8][j],tb[j][lx+48],s13);
+MAC(0) MAC(1) MAC(2) MAC(3) MAC(4) MAC(5) MAC(6) MAC(7) MAC(8) MAC(9) MAC(10) MAC(11) MAC(12) MAC(13) MAC(14) MAC(15)
+barrier();
+}
+if(row+0<cog && col+0<spatial) { float value=s00+d[co+0]; c[(batch*oc+co+0)*spatial+col+0]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+0<cog && col+16<spatial) { float value=s01+d[co+0]; c[(batch*oc+co+0)*spatial+col+16]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+0<cog && col+32<spatial) { float value=s02+d[co+0]; c[(batch*oc+co+0)*spatial+col+32]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+0<cog && col+48<spatial) { float value=s03+d[co+0]; c[(batch*oc+co+0)*spatial+col+48]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+8<cog && col+0<spatial) { float value=s10+d[co+8]; c[(batch*oc+co+8)*spatial+col+0]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+8<cog && col+16<spatial) { float value=s11+d[co+8]; c[(batch*oc+co+8)*spatial+col+16]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+8<cog && col+32<spatial) { float value=s12+d[co+8]; c[(batch*oc+co+8)*spatial+col+32]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+8<cog && col+48<spatial) { float value=s13+d[co+8]; c[(batch*oc+co+8)*spatial+col+48]=(activation==1) ? value/(1+exp(-value)) : value; }
+}

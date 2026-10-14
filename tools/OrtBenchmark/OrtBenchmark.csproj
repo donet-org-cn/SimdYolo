@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RestorePackagesPath>../../.cache/nuget</RestorePackagesPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 仅供速度对照工具使用；SimdYolo 主库不依赖 ONNX Runtime。 -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.26.0" />
+  </ItemGroup>
+</Project>

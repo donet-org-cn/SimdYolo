@@ -1,0 +1,20 @@
+#version 450
+layout(local_size_x=128) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Anchors { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Scores { float c[]; };
+layout(set=0,binding=3,std430) writeonly buffer Keys { float d[]; };
+layout(constant_id=0) const uint count=1;
+layout(constant_id=1) const uint anchors=1;
+layout(constant_id=2) const uint classes=1;
+layout(constant_id=3) const uint k=1;
+layout(constant_id=4) const uint inputOffset=0;
+layout(constant_id=5) const uint anchorOffset=0;
+layout(constant_id=6) const uint tieBySelection=0;
+void main() {
+    uint i=gl_GlobalInvocationID.x;
+    if(i>=count) return;
+    uint category=i%classes,position=i/classes%k,batch=i/(classes*k),anchor=uint(b[anchorOffset+batch*k+position]);
+    c[i]=a[inputOffset+(batch*(classes+4)+category+4)*anchors+anchor];
+    d[i]=float((tieBySelection==1 ? position : anchor)*classes+category);
+}

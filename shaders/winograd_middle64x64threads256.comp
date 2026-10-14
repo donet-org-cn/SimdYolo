@@ -1,0 +1,189 @@
+#version 450
+layout(local_size_x=16,local_size_y=16) in;
+layout(set=0,binding=0,std430) readonly buffer Weights { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Input { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Bias { float d[]; };
+layout(constant_id=0) const uint activation=0;
+layout(constant_id=1) const uint ic=1;
+layout(constant_id=2) const uint ih=1;
+layout(constant_id=3) const uint iw=1;
+layout(constant_id=4) const uint oc=1;
+layout(constant_id=5) const uint oh=1;
+layout(constant_id=6) const uint ow=1;
+layout(constant_id=7) const uint kh=1;
+layout(constant_id=8) const uint kw=1;
+layout(constant_id=9) const uint sy=1;
+layout(constant_id=10) const uint sx=1;
+layout(constant_id=11) const uint py=0;
+layout(constant_id=12) const uint px=0;
+layout(constant_id=13) const uint dy=1;
+layout(constant_id=14) const uint dx=1;
+layout(constant_id=15) const uint groups=1;
+
+layout(constant_id=16) const uint planes=16;
+shared float ta[64][17];
+shared float tb[16][64];
+void main() {
+uint lx=gl_LocalInvocationID.x,ly=gl_LocalInvocationID.y,row=gl_WorkGroupID.y*64+ly,col=gl_WorkGroupID.x*64+lx,batch=gl_WorkGroupID.z,spatial=oh*ow;
+vec4 s0=vec4(0);
+vec4 s1=vec4(0);
+vec4 s2=vec4(0);
+vec4 s3=vec4(0);
+for(uint base=0;base<ic;base+=16) {
+ta[ly+0][lx]=(row+0<oc && base+lx<ic) ? a[(batch%planes*oc+row+0)*ic+base+lx] : 0;
+ta[ly+16][lx]=(row+16<oc && base+lx<ic) ? a[(batch%planes*oc+row+16)*ic+base+lx] : 0;
+ta[ly+32][lx]=(row+32<oc && base+lx<ic) ? a[(batch%planes*oc+row+32)*ic+base+lx] : 0;
+ta[ly+48][lx]=(row+48<oc && base+lx<ic) ? a[(batch%planes*oc+row+48)*ic+base+lx] : 0;
+tb[ly][lx+0]=(col+0<spatial && base+ly<ic) ? b[(batch*ic+base+ly)*spatial+col+0] : 0;
+tb[ly][lx+16]=(col+16<spatial && base+ly<ic) ? b[(batch*ic+base+ly)*spatial+col+16] : 0;
+tb[ly][lx+32]=(col+32<spatial && base+ly<ic) ? b[(batch*ic+base+ly)*spatial+col+32] : 0;
+tb[ly][lx+48]=(col+48<spatial && base+ly<ic) ? b[(batch*ic+base+ly)*spatial+col+48] : 0;
+barrier();
+{
+vec4 av=vec4(ta[ly+0][0],ta[ly+16][0],ta[ly+32][0],ta[ly+48][0]);
+vec4 bv=vec4(tb[0][lx+0],tb[0][lx+16],tb[0][lx+32],tb[0][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][1],ta[ly+16][1],ta[ly+32][1],ta[ly+48][1]);
+vec4 bv=vec4(tb[1][lx+0],tb[1][lx+16],tb[1][lx+32],tb[1][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][2],ta[ly+16][2],ta[ly+32][2],ta[ly+48][2]);
+vec4 bv=vec4(tb[2][lx+0],tb[2][lx+16],tb[2][lx+32],tb[2][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][3],ta[ly+16][3],ta[ly+32][3],ta[ly+48][3]);
+vec4 bv=vec4(tb[3][lx+0],tb[3][lx+16],tb[3][lx+32],tb[3][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][4],ta[ly+16][4],ta[ly+32][4],ta[ly+48][4]);
+vec4 bv=vec4(tb[4][lx+0],tb[4][lx+16],tb[4][lx+32],tb[4][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][5],ta[ly+16][5],ta[ly+32][5],ta[ly+48][5]);
+vec4 bv=vec4(tb[5][lx+0],tb[5][lx+16],tb[5][lx+32],tb[5][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][6],ta[ly+16][6],ta[ly+32][6],ta[ly+48][6]);
+vec4 bv=vec4(tb[6][lx+0],tb[6][lx+16],tb[6][lx+32],tb[6][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][7],ta[ly+16][7],ta[ly+32][7],ta[ly+48][7]);
+vec4 bv=vec4(tb[7][lx+0],tb[7][lx+16],tb[7][lx+32],tb[7][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][8],ta[ly+16][8],ta[ly+32][8],ta[ly+48][8]);
+vec4 bv=vec4(tb[8][lx+0],tb[8][lx+16],tb[8][lx+32],tb[8][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][9],ta[ly+16][9],ta[ly+32][9],ta[ly+48][9]);
+vec4 bv=vec4(tb[9][lx+0],tb[9][lx+16],tb[9][lx+32],tb[9][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][10],ta[ly+16][10],ta[ly+32][10],ta[ly+48][10]);
+vec4 bv=vec4(tb[10][lx+0],tb[10][lx+16],tb[10][lx+32],tb[10][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][11],ta[ly+16][11],ta[ly+32][11],ta[ly+48][11]);
+vec4 bv=vec4(tb[11][lx+0],tb[11][lx+16],tb[11][lx+32],tb[11][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][12],ta[ly+16][12],ta[ly+32][12],ta[ly+48][12]);
+vec4 bv=vec4(tb[12][lx+0],tb[12][lx+16],tb[12][lx+32],tb[12][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][13],ta[ly+16][13],ta[ly+32][13],ta[ly+48][13]);
+vec4 bv=vec4(tb[13][lx+0],tb[13][lx+16],tb[13][lx+32],tb[13][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][14],ta[ly+16][14],ta[ly+32][14],ta[ly+48][14]);
+vec4 bv=vec4(tb[14][lx+0],tb[14][lx+16],tb[14][lx+32],tb[14][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+{
+vec4 av=vec4(ta[ly+0][15],ta[ly+16][15],ta[ly+32][15],ta[ly+48][15]);
+vec4 bv=vec4(tb[15][lx+0],tb[15][lx+16],tb[15][lx+32],tb[15][lx+48]);
+s0=fma(bv,vec4(av[0]),s0);
+s1=fma(bv,vec4(av[1]),s1);
+s2=fma(bv,vec4(av[2]),s2);
+s3=fma(bv,vec4(av[3]),s3);
+}
+barrier();
+}
+if(row+0<oc && col+0<spatial) { float value=s0[0]; c[(batch*oc+row+0)*spatial+col+0]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+0<oc && col+16<spatial) { float value=s0[1]; c[(batch*oc+row+0)*spatial+col+16]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+0<oc && col+32<spatial) { float value=s0[2]; c[(batch*oc+row+0)*spatial+col+32]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+0<oc && col+48<spatial) { float value=s0[3]; c[(batch*oc+row+0)*spatial+col+48]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+16<oc && col+0<spatial) { float value=s1[0]; c[(batch*oc+row+16)*spatial+col+0]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+16<oc && col+16<spatial) { float value=s1[1]; c[(batch*oc+row+16)*spatial+col+16]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+16<oc && col+32<spatial) { float value=s1[2]; c[(batch*oc+row+16)*spatial+col+32]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+16<oc && col+48<spatial) { float value=s1[3]; c[(batch*oc+row+16)*spatial+col+48]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+32<oc && col+0<spatial) { float value=s2[0]; c[(batch*oc+row+32)*spatial+col+0]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+32<oc && col+16<spatial) { float value=s2[1]; c[(batch*oc+row+32)*spatial+col+16]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+32<oc && col+32<spatial) { float value=s2[2]; c[(batch*oc+row+32)*spatial+col+32]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+32<oc && col+48<spatial) { float value=s2[3]; c[(batch*oc+row+32)*spatial+col+48]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+48<oc && col+0<spatial) { float value=s3[0]; c[(batch*oc+row+48)*spatial+col+0]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+48<oc && col+16<spatial) { float value=s3[1]; c[(batch*oc+row+48)*spatial+col+16]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+48<oc && col+32<spatial) { float value=s3[2]; c[(batch*oc+row+48)*spatial+col+32]=(activation==1) ? value/(1+exp(-value)) : value; }
+if(row+48<oc && col+48<spatial) { float value=s3[3]; c[(batch*oc+row+48)*spatial+col+48]=(activation==1) ? value/(1+exp(-value)) : value; }
+}

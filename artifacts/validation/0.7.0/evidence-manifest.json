@@ -1,0 +1,20 @@
+{
+  "Version": "0.7.0",
+  "RecordedAtUtc": "2026-10-14T07:06:57.630891+00:00",
+  "MainDllSha256": "51d21ba2bca561f3a21efdc3ab11be08814ae32c6510cdc910bd0338d0aaccfe",
+  "BenchmarkSha256": "278461517703bef74de53f5cdc5d68a32cd8a53db55b0eb676c693af6dfd413c",
+  "EvidenceHashes": {
+    "build.log": "f521c743487abee76d351db8f00ef3cecdb493808e486bcb2d18df1693c5154f",
+    "test-vulkan.log": "f2f58da389d3dce5d932f1a45ea2188b0752bf3b466a2fa470e2a857be0acc0e",
+    "test-portable.log": "16ede747e49ed57155de40103450ce69271d84702ae7bfd52a7fadd2aba8a3d4",
+    "cpu-packed-oracle.json": "aadd77876b06aa1c783c83ba18fce49eb0cbbe99115fed5ec7c0013d59f5393e",
+    "real-model-replay.json": "db5a5ca9bb096216aa72f9849016434f9a92f06ae867c08fa2c4f34f955354a9",
+    "onnx-oracle.json": "dc3f51d9e4ad90c780a13a8da885fd1e4166f3537515d2d6b5fe872607e8c9bd",
+    "image-oracle.json": "30d58d8f02e638ea1c02b907f61604dc51f9e309531ac01f0506220690bdaaae",
+    "consumer-cpu.log": "cdab1bd6e223d08dd09d9a83acb793a222c82225bd7bb0f3d74644f2fc80328d",
+    "consumer-vulkan.log": "aa138085d6463fe908e85fa9709d9c9cfbb9f2b2f3343474c1f094614aee49d7",
+    "package-audit.json": "2f8fdc3f1a58da1d59bdc308690268ea10af519deb2bf2d4538d202ca2e62fd8",
+    "final-audit.json": "6d4a65cbe51862954b62373d043a49d74027a0ec1df0bd7fe998845a7f9235a4"
+  },
+  "IdentityNote": "This manifest was written after the frozen-DLL validations. CPU and GPU replay oracle JSON include DLL identity. ONNX and image oracle JSON retain their original row schema without DLL identity; their files and the frozen CLI are bound here. No main-library rebuild occurred between these validations, the formal benchmark and package consumption."
+}

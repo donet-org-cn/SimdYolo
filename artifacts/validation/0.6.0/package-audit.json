@@ -1,0 +1,48 @@
+{
+  "Package": "SimdYolo.0.6.0.nupkg",
+  "PackageSha256": "004956528ae5363047c32057bc84682536b018fef4b391bffaaee7a28aafe334",
+  "MainDllSha256": "dd4e31583af2b9a0ef06ba1dbd0968ed87483591d2ff53d3e557c4a02f8675a0",
+  "MainDllMatchesBenchmark": true,
+  "ExternalNugetDependencies": [],
+  "Entries": [
+    "_rels/.rels",
+    "SimdYolo.nuspec",
+    "README.md",
+    "VALIDATION.md",
+    "lib/net10.0/SimdYolo.dll",
+    "[Content_Types].xml",
+    "package/services/metadata/core-properties/nuget.psmdcp"
+  ],
+  "OnlyManagedLibrary": true,
+  "NativeMathRuntimeAssets": [],
+  "PythonAssets": [],
+  "GpuApi": "system Vulkan/Metal; shaders embedded in managed DLL",
+  "ConsumerSmoke": {
+    "LocalNugetFeed": true,
+    "Project": ".cache/package-smoke/PackageSmoke.csproj",
+    "RuntimeCommand": "dotnet PackageSmoke.dll F:/simdyolo cpu|vulkan",
+    "Devices": [
+      "Cpu",
+      "Vulkan"
+    ],
+    "Models": [
+      "yolov8n.pt",
+      "yolov8n-dynamic.onnx",
+      "yolov8n-seg.pt",
+      "yolo11n-pose.pt"
+    ],
+    "InputShape": [
+      1,
+      3,
+      64,
+      64
+    ],
+    "FramesPerModelAndDevice": 4,
+    "FiniteOutputsAndPublishedOutputOwnership": true,
+    "PythonOrOrtRuntimeUsed": false,
+    "Passed": true
+  },
+  "ConsumerDllSha256": "dd4e31583af2b9a0ef06ba1dbd0968ed87483591d2ff53d3e557c4a02f8675a0",
+  "PackedDocumentationMatchesWorkspace": true,
+  "SizeBytes": 662463
+}

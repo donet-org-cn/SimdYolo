@@ -1,0 +1,49 @@
+#version 450
+layout(local_size_x=16,local_size_y=8) in;
+layout(set=0,binding=0,std430) readonly buffer Weights { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Input { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Bias { float d[]; };
+layout(constant_id=0) const uint activation=0;
+layout(constant_id=1) const uint ic=1;
+layout(constant_id=2) const uint ih=1;
+layout(constant_id=3) const uint iw=1;
+layout(constant_id=4) const uint oc=1;
+layout(constant_id=5) const uint oh=1;
+layout(constant_id=6) const uint ow=1;
+layout(constant_id=7) const uint kh=1;
+layout(constant_id=8) const uint kw=1;
+layout(constant_id=9) const uint sy=1;
+layout(constant_id=10) const uint sx=1;
+layout(constant_id=11) const uint py=0;
+layout(constant_id=12) const uint px=0;
+layout(constant_id=13) const uint dy=1;
+layout(constant_id=14) const uint dx=1;
+layout(constant_id=15) const uint groups=1;
+shared float ta[32][8];
+shared float tb[8][64];
+void main() {
+    uint lx=gl_LocalInvocationID.x,ly=gl_LocalInvocationID.y,row=gl_WorkGroupID.y*32+ly,col=gl_WorkGroupID.x*64+lx;
+    uint group=gl_GlobalInvocationID.z%groups,batch=gl_GlobalInvocationID.z/groups,cig=ic/groups,cog=oc/groups,k=cig*kh*kw,spatial=oh*ow,co=group*cog+row;
+    float s00=0,s01=0,s02=0,s03=0,s10=0,s11=0,s12=0,s13=0,s20=0,s21=0,s22=0,s23=0,s30=0,s31=0,s32=0,s33=0;
+    for(uint base=0;base<k;base+=8) {
+        if(lx<8) {
+            ta[ly][lx]=(row<cog && base+lx<k) ? a[co*k+base+lx] : 0;
+            ta[ly+8][lx]=(row+8<cog && base+lx<k) ? a[(co+8)*k+base+lx] : 0;
+            ta[ly+16][lx]=(row+16<cog && base+lx<k) ? a[(co+16)*k+base+lx] : 0;
+            ta[ly+24][lx]=(row+24<cog && base+lx<k) ? a[(co+24)*k+base+lx] : 0;
+        }
+        uint ki=base+ly,ci=group*cig+ki/(kh*kw);
+        #define LOAD(x) { int iy=int((col+x)/ow*sy + (ki/kw%kh)*dy)-int(py); int ix=int((col+x)%ow*sx + ki%kw*dx)-int(px); tb[ly][lx+x]=(col+x<spatial && ki<k && iy>=0 && ix>=0 && iy<int(ih) && ix<int(iw)) ? b[((batch*ic+ci)*ih+uint(iy))*iw+uint(ix)] : 0; }
+        LOAD(0) LOAD(16) LOAD(32) LOAD(48)
+        barrier();
+        #define MAC(j) s00=fma(ta[ly][j],tb[j][lx],s00); s01=fma(ta[ly][j],tb[j][lx+16],s01); s02=fma(ta[ly][j],tb[j][lx+32],s02); s03=fma(ta[ly][j],tb[j][lx+48],s03); s10=fma(ta[ly+8][j],tb[j][lx],s10); s11=fma(ta[ly+8][j],tb[j][lx+16],s11); s12=fma(ta[ly+8][j],tb[j][lx+32],s12); s13=fma(ta[ly+8][j],tb[j][lx+48],s13); s20=fma(ta[ly+16][j],tb[j][lx],s20); s21=fma(ta[ly+16][j],tb[j][lx+16],s21); s22=fma(ta[ly+16][j],tb[j][lx+32],s22); s23=fma(ta[ly+16][j],tb[j][lx+48],s23); s30=fma(ta[ly+24][j],tb[j][lx],s30); s31=fma(ta[ly+24][j],tb[j][lx+16],s31); s32=fma(ta[ly+24][j],tb[j][lx+32],s32); s33=fma(ta[ly+24][j],tb[j][lx+48],s33);
+        MAC(0) MAC(1) MAC(2) MAC(3) MAC(4) MAC(5) MAC(6) MAC(7)
+        barrier();
+    }
+    #define WRITE(r,x,sum) if(row+r<cog && col+x<spatial) { float value=sum+d[co+r]; c[(batch*oc+co+r)*spatial+col+x]=(activation==1) ? value/(1+exp(-value)) : value; }
+    WRITE(0,0,s00) WRITE(0,16,s01) WRITE(0,32,s02) WRITE(0,48,s03)
+    WRITE(8,0,s10) WRITE(8,16,s11) WRITE(8,32,s12) WRITE(8,48,s13)
+    WRITE(16,0,s20) WRITE(16,16,s21) WRITE(16,32,s22) WRITE(16,48,s23)
+    WRITE(24,0,s30) WRITE(24,16,s31) WRITE(24,32,s32) WRITE(24,48,s33)
+}

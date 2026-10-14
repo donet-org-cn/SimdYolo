@@ -1,0 +1,96 @@
+#version 450
+layout(local_size_x=128) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Bias { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Unused { float d[]; };
+layout(constant_id=0) const uint spec0=1;
+layout(constant_id=1) const uint spec1=1;
+layout(constant_id=2) const uint spec2=1;
+layout(constant_id=3) const uint spec3=1;
+layout(constant_id=4) const uint spec4=1;
+layout(constant_id=5) const uint spec5=1;
+layout(constant_id=6) const uint spec6=1;
+layout(push_constant) uniform Params { uint v[32]; } p;
+void main() {
+uint i=gl_GlobalInvocationID.x;
+if(i>=spec0) return;
+uint tiles=spec4*spec5,tile=i%tiles,channel=i/tiles%spec1,batch=i/(tiles*spec1),stride=spec1*tiles,base=batch*36*stride+channel*tiles+tile;
+float m00=a[base+0*stride];
+float m01=a[base+1*stride];
+float m02=a[base+2*stride];
+float m03=a[base+3*stride];
+float m04=a[base+4*stride];
+float m05=a[base+5*stride];
+float m10=a[base+6*stride];
+float m11=a[base+7*stride];
+float m12=a[base+8*stride];
+float m13=a[base+9*stride];
+float m14=a[base+10*stride];
+float m15=a[base+11*stride];
+float m20=a[base+12*stride];
+float m21=a[base+13*stride];
+float m22=a[base+14*stride];
+float m23=a[base+15*stride];
+float m24=a[base+16*stride];
+float m25=a[base+17*stride];
+float m30=a[base+18*stride];
+float m31=a[base+19*stride];
+float m32=a[base+20*stride];
+float m33=a[base+21*stride];
+float m34=a[base+22*stride];
+float m35=a[base+23*stride];
+float m40=a[base+24*stride];
+float m41=a[base+25*stride];
+float m42=a[base+26*stride];
+float m43=a[base+27*stride];
+float m44=a[base+28*stride];
+float m45=a[base+29*stride];
+float m50=a[base+30*stride];
+float m51=a[base+31*stride];
+float m52=a[base+32*stride];
+float m53=a[base+33*stride];
+float m54=a[base+34*stride];
+float m55=a[base+35*stride];
+float t00=(1.0*m00)+(1.0*m10)+(1.0*m20)+(1.0*m30)+(1.0*m40);
+float t01=(1.0*m01)+(1.0*m11)+(1.0*m21)+(1.0*m31)+(1.0*m41);
+float t02=(1.0*m02)+(1.0*m12)+(1.0*m22)+(1.0*m32)+(1.0*m42);
+float t03=(1.0*m03)+(1.0*m13)+(1.0*m23)+(1.0*m33)+(1.0*m43);
+float t04=(1.0*m04)+(1.0*m14)+(1.0*m24)+(1.0*m34)+(1.0*m44);
+float t05=(1.0*m05)+(1.0*m15)+(1.0*m25)+(1.0*m35)+(1.0*m45);
+float t10=(1.0*m10)+(-1.0*m20)+(2.0*m30)+(-2.0*m40);
+float t11=(1.0*m11)+(-1.0*m21)+(2.0*m31)+(-2.0*m41);
+float t12=(1.0*m12)+(-1.0*m22)+(2.0*m32)+(-2.0*m42);
+float t13=(1.0*m13)+(-1.0*m23)+(2.0*m33)+(-2.0*m43);
+float t14=(1.0*m14)+(-1.0*m24)+(2.0*m34)+(-2.0*m44);
+float t15=(1.0*m15)+(-1.0*m25)+(2.0*m35)+(-2.0*m45);
+float t20=(1.0*m10)+(1.0*m20)+(4.0*m30)+(4.0*m40);
+float t21=(1.0*m11)+(1.0*m21)+(4.0*m31)+(4.0*m41);
+float t22=(1.0*m12)+(1.0*m22)+(4.0*m32)+(4.0*m42);
+float t23=(1.0*m13)+(1.0*m23)+(4.0*m33)+(4.0*m43);
+float t24=(1.0*m14)+(1.0*m24)+(4.0*m34)+(4.0*m44);
+float t25=(1.0*m15)+(1.0*m25)+(4.0*m35)+(4.0*m45);
+float t30=(1.0*m10)+(-1.0*m20)+(8.0*m30)+(-8.0*m40)+(1.0*m50);
+float t31=(1.0*m11)+(-1.0*m21)+(8.0*m31)+(-8.0*m41)+(1.0*m51);
+float t32=(1.0*m12)+(-1.0*m22)+(8.0*m32)+(-8.0*m42)+(1.0*m52);
+float t33=(1.0*m13)+(-1.0*m23)+(8.0*m33)+(-8.0*m43)+(1.0*m53);
+float t34=(1.0*m14)+(-1.0*m24)+(8.0*m34)+(-8.0*m44)+(1.0*m54);
+float t35=(1.0*m15)+(-1.0*m25)+(8.0*m35)+(-8.0*m45)+(1.0*m55);
+uint y=tile/spec4*4,x=tile%spec4*4;
+if(y+0<spec2 && x+0<spec3) { float v=(1.0*t00)+(1.0*t01)+(1.0*t02)+(1.0*t03)+(1.0*t04)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+0)*spec3+x+0]=v; }
+if(y+0<spec2 && x+1<spec3) { float v=(1.0*t01)+(-1.0*t02)+(2.0*t03)+(-2.0*t04)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+0)*spec3+x+1]=v; }
+if(y+0<spec2 && x+2<spec3) { float v=(1.0*t01)+(1.0*t02)+(4.0*t03)+(4.0*t04)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+0)*spec3+x+2]=v; }
+if(y+0<spec2 && x+3<spec3) { float v=(1.0*t01)+(-1.0*t02)+(8.0*t03)+(-8.0*t04)+(1.0*t05)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+0)*spec3+x+3]=v; }
+if(y+1<spec2 && x+0<spec3) { float v=(1.0*t10)+(1.0*t11)+(1.0*t12)+(1.0*t13)+(1.0*t14)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+1)*spec3+x+0]=v; }
+if(y+1<spec2 && x+1<spec3) { float v=(1.0*t11)+(-1.0*t12)+(2.0*t13)+(-2.0*t14)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+1)*spec3+x+1]=v; }
+if(y+1<spec2 && x+2<spec3) { float v=(1.0*t11)+(1.0*t12)+(4.0*t13)+(4.0*t14)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+1)*spec3+x+2]=v; }
+if(y+1<spec2 && x+3<spec3) { float v=(1.0*t11)+(-1.0*t12)+(8.0*t13)+(-8.0*t14)+(1.0*t15)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+1)*spec3+x+3]=v; }
+if(y+2<spec2 && x+0<spec3) { float v=(1.0*t20)+(1.0*t21)+(1.0*t22)+(1.0*t23)+(1.0*t24)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+2)*spec3+x+0]=v; }
+if(y+2<spec2 && x+1<spec3) { float v=(1.0*t21)+(-1.0*t22)+(2.0*t23)+(-2.0*t24)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+2)*spec3+x+1]=v; }
+if(y+2<spec2 && x+2<spec3) { float v=(1.0*t21)+(1.0*t22)+(4.0*t23)+(4.0*t24)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+2)*spec3+x+2]=v; }
+if(y+2<spec2 && x+3<spec3) { float v=(1.0*t21)+(-1.0*t22)+(8.0*t23)+(-8.0*t24)+(1.0*t25)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+2)*spec3+x+3]=v; }
+if(y+3<spec2 && x+0<spec3) { float v=(1.0*t30)+(1.0*t31)+(1.0*t32)+(1.0*t33)+(1.0*t34)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+3)*spec3+x+0]=v; }
+if(y+3<spec2 && x+1<spec3) { float v=(1.0*t31)+(-1.0*t32)+(2.0*t33)+(-2.0*t34)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+3)*spec3+x+1]=v; }
+if(y+3<spec2 && x+2<spec3) { float v=(1.0*t31)+(1.0*t32)+(4.0*t33)+(4.0*t34)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+3)*spec3+x+2]=v; }
+if(y+3<spec2 && x+3<spec3) { float v=(1.0*t31)+(-1.0*t32)+(8.0*t33)+(-8.0*t34)+(1.0*t35)+b[channel]; if(spec6==1) v=v/(1+exp(-v)); c[((batch*spec1+channel)*spec2+y+3)*spec3+x+3]=v; }
+}

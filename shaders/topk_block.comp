@@ -1,0 +1,49 @@
+#version 450
+layout(local_size_x=128) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Keys { float b[]; };
+struct Item { float score; uint key; };
+layout(set=0,binding=2,std430) writeonly buffer Output { Item c[]; };
+layout(constant_id=0) const uint rows=1;
+layout(constant_id=1) const uint size=1;
+layout(constant_id=2) const uint k=1;
+layout(constant_id=3) const uint largest=1;
+layout(constant_id=4) const uint nanFirst=1;
+layout(constant_id=5) const uint inputOffset=0;
+layout(constant_id=6) const uint keyed=0;
+layout(constant_id=7) const uint keyOffset=0;
+shared float scores[256];
+shared uint indices[256];
+bool better(float x,uint xi,float y,uint yi) {
+    if(xi==0xffffffffu) return false;
+    if(yi==0xffffffffu) return true;
+    uint xb=floatBitsToUint(x),yb=floatBitsToUint(y),xm=xb&0x7fffffffu,ym=yb&0x7fffffffu;
+    bool xn=xm>0x7f800000u,yn=ym>0x7f800000u;
+    if(xn!=yn) return nanFirst==1 ? xn : !xn;
+    // Ordered integer keys preserve subnormals even on GPUs that flush FP32.
+    uint xo=(xb&0x80000000u)!=0 ? ~xb : xb^0x80000000u,yo=(yb&0x80000000u)!=0 ? ~yb : yb^0x80000000u;
+    if(!xn && !(xm==0 && ym==0) && xo!=yo) return largest==1 ? xo>yo : xo<yo;
+    return xi<yi;
+}
+void main() {
+    uint tid=gl_LocalInvocationID.x,row=gl_WorkGroupID.y,start=gl_WorkGroupID.x*256;
+    for(uint j=0;j<2;j++) {
+        uint local=tid+j*128,i=start+local;
+        scores[local]=i<size ? a[inputOffset+row*size+i] : 0;
+        indices[local]=i<size ? (keyed==1 ? uint(b[keyOffset+row*size+i]) : i) : 0xffffffffu;
+    }
+    barrier();
+    for(uint length=2;length<=256;length*=2) {
+        for(uint stride=length/2;stride>0;stride/=2) {
+            // Each pair has one writer, avoiding cross-warp read/write races.
+            uint i=(tid/stride)*(stride*2)+tid%stride,j=i+stride;
+            float x=scores[i],y=scores[j]; uint xi=indices[i],yi=indices[j];
+            bool ascending=(i&length)==0;
+            bool swap=ascending ? better(y,yi,x,xi) : better(x,xi,y,yi);
+            if(swap) { scores[i]=y;indices[i]=yi;scores[j]=x;indices[j]=xi; }
+            barrier();
+        }
+    }
+    uint blocks=(size+255)/256,outputBase=(row*blocks+gl_WorkGroupID.x)*256;
+    for(uint j=0;j<2;j++) { uint i=tid+j*128;c[outputBase+i]=Item(scores[i],indices[i]); }
+}

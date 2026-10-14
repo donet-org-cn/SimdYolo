@@ -1,0 +1,53 @@
+#version 450
+layout(local_size_x=16,local_size_y=8) in;
+layout(set=0,binding=0,std430) readonly buffer Weights { float a[]; };
+layout(set=0,binding=1,std430) readonly buffer Input { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Bias { float d[]; };
+layout(constant_id=0) const uint activation=0;
+layout(constant_id=1) const uint ic=1;
+layout(constant_id=2) const uint ih=1;
+layout(constant_id=3) const uint iw=1;
+layout(constant_id=4) const uint oc=1;
+layout(constant_id=5) const uint oh=1;
+layout(constant_id=6) const uint ow=1;
+layout(constant_id=7) const uint kh=1;
+layout(constant_id=8) const uint kw=1;
+layout(constant_id=9) const uint sy=1;
+layout(constant_id=10) const uint sx=1;
+layout(constant_id=11) const uint py=0;
+layout(constant_id=12) const uint px=0;
+layout(constant_id=13) const uint dy=1;
+layout(constant_id=14) const uint dx=1;
+layout(constant_id=15) const uint groups=1;
+shared float ta[16][16];
+shared float tb[16][16];
+void main() {
+    uint row=gl_WorkGroupID.y*16+gl_LocalInvocationID.y, col=gl_GlobalInvocationID.x;
+    uint lx=gl_LocalInvocationID.x, ly=gl_LocalInvocationID.y;
+    uint group=gl_GlobalInvocationID.z%groups, batch=gl_GlobalInvocationID.z/groups;
+    uint cig=ic/groups, cog=oc/groups, spatial=oh*ow, k=cig*kh*kw;
+    uint co=group*cog+row;
+    float sum=0, sum2=0;
+    for(uint base=0;base<k;base+=16) {
+        ta[ly][lx]=(row<cog && base+lx<k) ? a[co*k+base+lx] : 0;
+        ta[ly+8][lx]=(row+8<cog && base+lx<k) ? a[(co+8)*k+base+lx] : 0;
+        uint ki=base+ly;
+        int iy=int(col/ow*sy + (ki/kw%kh)*dy)-int(py);
+        int ix=int(col%ow*sx + ki%kw*dx)-int(px);
+        uint ci=group*cig+ki/(kh*kw);
+        tb[ly][lx]=(col<spatial && ki<k && iy>=0 && ix>=0 && iy<int(ih) && ix<int(iw)) ? b[((batch*ic+ci)*ih+uint(iy))*iw+uint(ix)] : 0;
+        ki+=8;
+        iy=int(col/ow*sy + (ki/kw%kh)*dy)-int(py);
+        ix=int(col%ow*sx + ki%kw*dx)-int(px);
+        ci=group*cig+ki/(kh*kw);
+        tb[ly+8][lx]=(col<spatial && ki<k && iy>=0 && ix>=0 && iy<int(ih) && ix<int(iw)) ? b[((batch*ic+ci)*ih+uint(iy))*iw+uint(ix)] : 0;
+        barrier();
+        #define MAC(j) sum=fma(ta[ly][j],tb[j][lx],sum); sum2=fma(ta[ly+8][j],tb[j][lx],sum2);
+        MAC(0) MAC(1) MAC(2) MAC(3) MAC(4) MAC(5) MAC(6) MAC(7)
+        MAC(8) MAC(9) MAC(10) MAC(11) MAC(12) MAC(13) MAC(14) MAC(15)
+        barrier();
+    }
+    if(row<cog && col<spatial) { float value=sum+d[co]; c[(batch*oc+co)*spatial+col]=(activation==1) ? value/(1+exp(-value)) : value; }
+    if(row+8<cog && col<spatial) { float value=sum2+d[co+8]; c[(batch*oc+co+8)*spatial+col]=(activation==1) ? value/(1+exp(-value)) : value; }
+}
