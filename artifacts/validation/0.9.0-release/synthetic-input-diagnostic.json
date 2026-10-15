@@ -1,0 +1,19 @@
+{
+  "Status": "failed",
+  "Input": "default synthetic uniform RGB tensor, not the historical image input",
+  "InputSha256": "dd80e4472fba8829d1550659a8fc6eea6c817b5a85c80eac4b334fcf83166e27",
+  "CompletedWindows": 62,
+  "Engine": "ort-net-cuda",
+  "Model": "yolo26n-seg",
+  "MaxSortedScoreError": 1.0851770639419556e-05,
+  "BadSortedScoreCount": 4,
+  "ScoreTolerance": {
+    "atol": 2e-07,
+    "rtol": 0.0003
+  },
+  "ReferenceDirectory": ".cache\\runtime-comparison\\yolo26n-seg-torch-cpu-1-1792032408503658000",
+  "ActualDirectory": ".cache\\runtime-comparison\\yolo26n-seg-ort-net-cuda-1-1792032465728702000",
+  "Error": "Output mismatch yolo26n-seg: {'Shape': [1, 300, 38], 'MaxAbsError': 638.593994140625, 'Validation': 'TopK scores and unique complete anchor/class/payload pairing', 'Passed': False}",
+  "RawFailedReportSha256": "8739b683e7835d6044c45b16e76b543808f418296e80cafe9a8109878bae64e7",
+  "Policy": "Failure retained. No tolerance changes. Official 0.9.0 comparison will use the same real-image tensor as the 0.8.1 comparison."
+}

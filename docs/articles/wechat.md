@@ -1,179 +1,131 @@
-# 纯 C# 跑 YOLO：我把它和 PyTorch、ORT 放在同一台电脑上实测
+# 纯 C# 跑 YOLO：推理、检测头微调和网页版，这次一起交付
 
-> **0.8.1 更新：** 首次加载、首帧和稳态推理已重新实测，当前 CPU/GPU 排名及优化前后对照见 [0.8.1 性能结果](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/optimization-0.8.1.md)。
->
-> 本文下方的旧速度表和性能插图属于 **0.7.x 历史记录**，不代表当前版本速度，也不用于宣传当前性能；评估新版本请以这份 0.8.1 实测为准，其中同时保留跨窗口波动和未领先的结果。
+![SimdYolo 0.9.0：纯 C# YOLO 推理与检测头微调](assets/0.9.0/01-wechat-cover.png)
 
-![SimdYolo：纯 C# 主库，直接加载 .pt 与 ONNX，支持检测、分割和姿态](assets/01-wechat-cover.png)
+**代码：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
 
-**源码仓库：** [https://github.com/hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
+**下载：** [0.9.0 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) · [33个模型包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-models-v0.9.0.zip)
 
-**发布包与模型：** [0.7.1 下载页面](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.7.1) · [24 个模型 ZIP 直链](https://github.com/hnlyf168/SimdYolo/releases/download/v0.7.1/SimdYolo-models-v0.7.1.zip)
+我希望在 .NET 应用里，模型加载、计算和后处理都能直接用 C# 完成。于是有了 SimdYolo：直接读支持范围内的 `.pt` 和 ONNX，CPU 用 SIMD，GPU 走 Vulkan/Metal API。
 
-我做了一个叫 **SimdYolo** 的 YOLO 推理库，希望在 .NET 应用里直接加载模型、执行推理，再拿到检测框、分割掩码和姿态关键点。
+现在的 0.9.0 又增加了两个入口：**真实的 YOLOv8 检测头微调，以及能在浏览器里操作的推理、训练示例。** 这篇文章和配图全部换成当前版本，性能数据也重新测量，不再沿用 0.7.x 的表。
 
-这个项目最关心两件事：**主库保持纯 C#，推理速度要有实际使用价值。**
+## 先看速度：把原版、C# 和 ORT 放在同一台机器上
 
-所以，模型解析、计算图、CPU 算子、预处理和结果解码都写在 C# 里。CPU 用 SIMD；GPU 通过系统 Vulkan、Metal API 执行着色器。主库没有 Python、PyTorch、TorchSharp 或 ONNX Runtime 的运行依赖。
+测试时间：2026-10-15 10:53:49 +0800。硬件是 i7-8700K、GTX 1050 Ti、31.93 GiB 内存。11个模型、PT/ONNX、CPU/GPU，完成176个独立窗口、39,134次推理，224项输出校验通过。
 
-代码和模型已经放到公开仓库。下面先看它能做什么，再看同机实测结果。
+统一 FP32、batch=1、640×640、CPU线程上限12。每配置两轮，每轮预热60次，再计至少4秒/40帧。GPU 包含输入上传和全部输出回读；图片预处理、NMS、最终掩码后处理、加载和冷首帧不计入下面的稳态数值。
 
-## 一份模型，直接接入 .NET 应用
+## CPU / GPU 速度排名
 
-SimdYolo 可以直接读取支持范围内的 `.pt` 检查点，也可以读取 ONNX。
+每格为中位耗时 ms + 名次，①最快、④最慢，第一名加粗；重复窗口取各窗口中位数的中位数，按未舍入值排序。小幅差距不代表稳定胜出或统计显著性。
 
-这里的“直接读取 `.pt`”，是由 C# 解析 Torch ZIP 中的模块结构和权重，**运行时无需先转成 ONNX**。不过，单独的 `state_dict` 缺少网络结构，不能据此还原任意自定义模型；TorchScript 和未知模块也不在当前支持范围内。
+### CPU 速度排名
 
-目前已经验证的模型包括：
+| 模型 | 原版 PyTorch CPU | 我们的 `.pt` CPU | 我们的 ONNX CPU | ORT CPU（.NET） |
+| --- | ---: | ---: | ---: | ---: |
+| yolov8n | 44.98 ④ | **21.74 ①** | 22.24 ② | 24.45 ③ |
+| yolov9t | 77.56 ④ | **30.20 ①** | 33.62 ③ | 31.05 ② |
+| yolov10n | 49.19 ④ | **21.57 ①** | 22.64 ② | 22.92 ③ |
+| yolo11n | 51.80 ④ | **21.71 ①** | 22.72 ② | 23.64 ③ |
+| yolo26n | 54.27 ④ | 22.76 ③ | 22.66 ② | **18.54 ①** |
+| yolov8n-seg | 57.56 ④ | **28.07 ①** | 28.61 ② | 34.38 ③ |
+| yolo11n-seg | 65.14 ④ | **27.99 ①** | 29.48 ② | 33.52 ③ |
+| yolo26n-seg | 69.02 ④ | 30.58 ② | 31.44 ③ | **29.57 ①** |
+| yolov8n-pose | 56.94 ④ | **26.88 ①** | 28.04 ② | 31.25 ③ |
+| yolo11n-pose | 66.76 ④ | **23.27 ①** | 29.65 ③ | 25.35 ② |
+| yolo26n-pose | 59.78 ④ | 24.98 ② | 25.49 ③ | **21.91 ①** |
+| 第一名次数（完整四配置 11/11 模型） | 0 | 8 | 0 | 3 |
 
-- YOLOv8n、Ultralytics YOLOv9t、YOLOv10n、YOLO11n 的目标检测。
-- YOLOv8n、YOLO11n 的实例分割和姿态估计。
-- 对应的 `.pt` 和 ONNX 推理路径。
+### GPU 速度排名
 
-本地 **0.8.0 开发版**还补齐了 YOLO26n 的检测、分割、姿态：官方 PT、静态/动态 ONNX 在 CPU/Vulkan 上通过数值和真实图片对照。新版本包含无 DFL 回归、Proto26 多尺度原型、Pose26 坐标解码和端到端实例结果。目前上方的 0.7.1 Release 及 24 模型 ZIP 尚未包含这些新增内容；旧性能表也不包含 YOLO26。
+| 模型 | 原版 PyTorch CUDA | 我们的 `.pt` Vulkan | 我们的 ONNX Vulkan | ORT CUDA（.NET） |
+| --- | ---: | ---: | ---: | ---: |
+| yolov8n | **9.83 ①** | 10.39 ② | 10.63 ③ | 12.69 ④ |
+| yolov9t | 22.27 ④ | **12.87 ①** | 14.09 ② | 17.81 ③ |
+| yolov10n | 10.67 ③ | **10.07 ①** | 10.28 ② | 13.52 ④ |
+| yolo11n | **10.52 ①** | 10.62 ② | 10.66 ③ | 13.69 ④ |
+| yolo26n | 12.37 ③ | **10.99 ①** | 11.08 ② | 13.21 ④ |
+| yolov8n-seg | **12.83 ①** | 13.75 ② | 13.88 ③ | 16.56 ④ |
+| yolo11n-seg | 13.61 ② | **13.50 ①** | 13.66 ③ | 17.58 ④ |
+| yolo26n-seg | 16.44 ③ | 14.75 ② | **14.57 ①** | 17.23 ④ |
+| yolov8n-pose | **10.23 ①** | 10.55 ② | 10.86 ③ | 13.17 ④ |
+| yolo11n-pose | 11.18 ② | **11.08 ①** | 11.26 ③ | 14.33 ④ |
+| yolo26n-pose | 13.52 ③ | **12.00 ①** | 12.22 ② | 14.11 ④ |
+| 第一名次数（完整四配置 11/11 模型） | 4 | 6 | 1 | 0 |
 
-标签也可以独立读取：调用 `ModelInfo.Read(modelPath).ClassNames`，即可获取 PT 或 ONNX 保存的“类别编号 → 名称”，无需初始化 GPU、加载权重数据。已加载的会话直接使用 `detector.ClassNames`。支持中文和转义字符，缺少标签时返回空映射，不默认填入 COCO 名称；模型通道数使用 `ClassCount`，稀疏标签不能直接按条目数计数。
 
-如果你的应用已经用 C# 处理摄像头、视频帧或图片，可以把解码后的 RGB/BGR 字节交给这个库。图片解码仍由调用方完成，库负责后续预处理、推理和结果解码。
+①表示本次窗口汇总数字最快；小差距和两轮换位不能解释成稳定领先，也不能据此说 C# 在所有模型上都比 ORT 好。
 
-![SimdYolo 模型加载、图融合、CPU/Vulkan/Metal 后端与公开输出的架构示意](assets/03-architecture.png)
+![当前版本检测模型 CPU 实测](assets/0.9.0/04-cpu-detection.png)
 
-*架构图中的 Metal 已有实现，当前还没有 macOS 实机验证结果。本文的 GPU 数据来自 Windows/Vulkan。*
+![当前版本分割和姿态 CPU 实测](assets/0.9.0/05-cpu-vision.png)
 
-## 选 Vulkan，还有一个直接的好处：部署更轻
+![当前版本检测模型 GPU 实测](assets/0.9.0/06-gpu-detection.png)
 
-对 .NET 项目来说，我也希望 GPU 加速能少一些环境配置。
+图中细线为两个窗口中位数的范围，不是置信区间。对照使用原版 Ultralytics `fuse()`，ORT 开启图优化；没有拿这些结果外推到 TensorRT、`torch.compile` 或 FP16/INT8。
 
-**SimdYolo 的 Vulkan 路径不依赖 CUDA Toolkit、cuDNN 或 cuBLAS。** 不需要为本库另外安装一套庞大的 CUDA 开发工具链，也不需要在应用中携带这些 CUDA 计算库。运行所需的是 64 位 .NET 进程、模型文件，以及可用的 Vulkan loader 和兼容显卡驱动。
+## 快，也要看第一次打开和内存
 
-仓库已经提供预编译的 SPIR-V，普通构建和运行也无需安装 Vulkan SDK；修改着色器后重新生成 SPIR-V，才需要相应编译工具。0.7.1 的库包约 **710 KiB**，包含中文文档和着色器；这个大小不包含模型、.NET 运行时或显卡驱动。
+第一次使用模型要经历读取、解析、准备后端和首次计算。它和预热后的稳态延迟是两回事。
 
-Vulkan 还有两个适合部署的特点：
+![模型加载、首次前向和稳态分开看](../../artifacts/performance-0.9.0-startup.png)
 
-- **跨厂商。** 支持所需 Vulkan 计算能力的 NVIDIA、AMD、Intel 等设备可以采用统一 API 路径，减少对单一厂商计算生态的绑定。不同型号的兼容性和性能仍要验证，厂商支持可查 [Khronos 产品名录](https://www.khronos.org/conformance/adopters/conformant-products/vulkan)。
-- **API 本身跨平台。** Windows、Linux、Android 等平台都有 Vulkan 生态，计算内核和执行逻辑具备复用基础。[Khronos 的平台说明](https://docs.vulkan.org/guide/latest/platforms.html)列出了各平台情况。
+这张图把加载、首次前向和稳态拆开。首次前向包含 GPU 上传与回读，但不包含模型加载；新建进程也不代表系统文件缓存和 GPU 驱动缓存都已清空。
 
-![Vulkan 部署优势：无需 CUDA 依赖、使用预编译 SPIR-V、跨厂商与跨平台，并标注当前验证范围](assets/10-vulkan-deployment.png)
+![CPU 内存实际采样](assets/0.9.0/09-cpu-memory.png)
 
-项目当前已实测的是 **Windows + Vulkan**；Linux 路径仍待实机验证，移动平台尚未验证。macOS 这边使用独立 Metal 后端，当前同样待验证；不能把 Vulkan API 的跨平台能力写成所有平台已经测试通过。
+内存图保留整个进程 RSS，包含宿主、模型和缓存。速度领先不代表内存更小。CPU% 要结合 CPU ms/帧理解；GPU 使用率和显存是整卡采样，包含桌面等其他进程，不能说成单模型占用。
 
-这里的优势是减少本库的 CUDA 依赖和配置成本。比较部署体积时，应查看各实现实际分发的运行库；本库的 Vulkan 路径免除了 CUDA 计算库及其版本配套成本。
+[完整报告](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/runtime-comparison-0.9.0.md)保留每一轮、P95、资源数据和程序集摘要，[原始 JSON](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/runtime-comparison-0.9.0.json)可以重新取数画图。
 
-## 先把测试条件摆出来
+## 不依赖 CUDA 的 Vulkan 路径
 
-我用同一台电脑比较了原版 PyTorch、SimdYolo 和 ONNX Runtime：
+对做 .NET 应用的人，部署成本也很实际。
 
-- CPU：Intel Core i7-8700K，线程上限统一为 12。
-- GPU：NVIDIA GeForce GTX 1050 Ti。
-- 输入：同一份 640×640 张量，batch=1，FP32。
-- 每种配置独立进程，串行跑两轮；预热 30 次，每个窗口至少 8 秒、40 次推理。
+SimdYolo 的 Vulkan 路径不调用 CUDA、cuDNN、cuBLAS，不需要安装一套 CUDA Toolkit。运行时需要的是 .NET、模型、Vulkan loader 和兼容显卡驱动；包里已有预编译 SPIR-V，普通运行不需要 Vulkan SDK。
 
-8 个模型、8 种 CPU/GPU 配置，共 **128 个测量窗口、57,628 次计时推理**。
+![Vulkan 部署需要什么、验证到了哪里](assets/0.9.0/10-vulkan-deployment.png)
 
-计时包含网络前向和输出头解码；GPU 还包含输入上传、全部输出回读。图片预处理、NMS、最终 mask 后处理和冷首帧没有算进去。因此，下文的耗时适合比较稳态推理，完整视频或图像流程还需单独测量。
+Vulkan 采用跨平台、跨厂商 API，给复用计算实现提供了基础。**这不意味着仓库已把每种显卡、每个平台都测过。** 本轮是 Windows/NVIDIA/Vulkan 实测，Metal 有独立实现但没有 macOS 实机结果；部署到其他设备仍需验证。
 
-本文图表使用 **0.7.0 冻结程序集**的正式数据。当前下载版本为 0.7.1，补齐了中文代码注释和 IDE XML 文档；1,636 个方法的签名与 IL 与 0.7.0 一致，没有重新生成性能测量数据。
+## 推理之外，加入真正的检测头微调
 
-## CPU：纯 C# 路径已经跑出可用的成绩
+当前训练核心同样使用纯 C#，没有让网页后台启动 Python。
 
-先看目标检测。图中每个数字是中位耗时，越小越快；细线表示两轮窗口中位数的范围。
+训练从标准 YOLOv8 检测 PT 初始化，冻结骨干和 FPN，更新三尺度检测头的卷积、BN 和分类输出。支持自定义类别、TAL/BCE/CIoU/DFL、带动量的 SGD，以及完整轮次的保存和恢复。CPU 复用 SIMD 矩阵运算；Vulkan 加速冻结网络和头部前后向 GEMM，BN、损失和优化器仍在 CPU。
 
-![四个检测模型的 CPU 实测：PyTorch、C# .pt、C# ONNX、ORT .NET](assets/04-cpu-detection.png)
+![推理与训练共享哪些能力](assets/0.9.0/03-architecture.png)
 
-拿 YOLOv8n 举例：
+第一阶段的范围是**检测头微调**。全参数、YOLO26、分割/姿态和 Metal 训练还没有实现。梯度累加按图像平均，每图独立 BN，也不能当成多图联合 BN。
 
-| 实现 | 中位耗时 |
-| --- | ---: |
-| 原版 PyTorch CPU | 44.87 ms |
-| SimdYolo `.pt` CPU | **21.99 ms** |
-| SimdYolo ONNX CPU | 22.64 ms |
-| ORT CPU（.NET） | 24.25 ms |
+训练生成 `.sytrain`，包含原 PT、已更新参数、BN、SGD 动量、类别和数据集摘要。它可直接交给 `YoloDetector` 推理或继续训练；它不是 PyTorch `.pt`，也暂未提供 ONNX 导出。
 
-在这组配置里，C# `.pt` 路径把中位耗时从约 45 ms 降到了约 22 ms。分割和姿态也一起测了：
+目前12项训练测试、117项推理回归，以及与固定原版 PyTorch/Ultralytics 的640项数值对照通过。单图训练的损失下降只是流程验证，不能当作独立验证集精度，更没有据此宣称训练比 PyTorch 更快。
 
-![四个分割与姿态模型的 CPU 实测，比较四种推理配置](assets/05-cpu-vision.png)
-
-按本次汇总数值，`.pt` CPU 路径在 **8/8 个模型上快于原版 PyTorch CPU，在 7/8 个模型上快于 ORT CPU**；C# ONNX CPU 路径相对 ORT 更快的是 5/8 个。
-
-有两个结果需要单独读：
-
-- **YOLOv9t 仍由 ORT 领先**：ORT 为 28.48 ms，C# `.pt` 为 29.80 ms。
-- **YOLOv10n 基本持平**：C# `.pt` 为 22.33 ms，ORT 为 22.36 ms；未舍入差值只有约 0.031 ms，两轮排名发生交换。
-
-所以，数值排在前面，也要结合波动看。小幅差距还不足以证明稳定领先。
-
-## 速度来自算子、内存访问和调度一起优化
-
-这次 CPU 优化涉及的内容包括：
-
-- 卷积按需打包空间面板，减少完整 im2col 的分配和内存往返。
-- 使用 AVX/FMA 与分块 GEMM，复用固定权重布局，融合偏置和 SiLU。
-- 为适用的卷积、depthwise、激活和转置提供 SIMD 路径。
-- 按实际内存地址划分缓存行，减少并行写入竞争。
-- 用专属执行器和临时张量池控制线程、调度与分配成本。
-
-这些结果比较的是几套完整推理实现。PyTorch 自身也使用高度优化的底层算子，语言名称无法解释全部性能差异。
-
-## GPU：Vulkan 在这张显卡上的表现怎么样？
-
-![GTX 1050 Ti 上四个检测模型的 GPU 实测，含输入上传和全部输出回读](assets/06-gpu-detection.png)
-
-YOLOv9t 这一项，PyTorch CUDA 为 **21.76 ms**，C# `.pt` Vulkan 为 **12.86 ms**，ORT CUDA 为 **17.73 ms**。
-
-完整 8 模型结果中，C# 的 `.pt` 和 ONNX Vulkan 路径都低于 ORT CUDA 的中位耗时。不过，PyTorch CUDA 在多个模型上仍然更快，例如 YOLOv8n；YOLO11n 的 C# ONNX 与 PyTorch CUDA 只有约 0.008 ms 的差值，两轮名次交换，同样接近持平。
-
-GPU 的优化重点是让固定权重留在设备上、中间结果尽量留在显存里，并减少命令记录和回读次数。符合条件的固定形状图还能重放命令缓冲区，每帧仍会上传新输入并回读实际输出。
-
-这些结论对应当前显卡、FP32 和测试实现。Metal、TensorRT、FP16/INT8、`torch.compile` 等配置没有包含在本次比较里。
-
-## 还有一项代价：内存
-
-速度之外，进程内存也要看。此次测量中，C# `.pt` CPU 路径的 RSS 约为 ORT 的 **2.04～3.60 倍**，ONNX CPU 路径约为 **1.51～3.09 倍**。
-
-RSS 包括宿主运行库、模型和缓存。当前内存成本仍有优化空间；不能由速度排名推导出资源占用全面领先。CPU 时间、RSS、GPU 使用率及整卡显存采样都保留在完整报告中。
-
-## 下载后怎么试？
-
-使用 Git LFS 下载源码和模型：
+## 打开网页，上传图片，也上传自己的标注
 
 ```powershell
-git lfs install
 git clone https://github.com/hnlyf168/SimdYolo.git
 cd SimdYolo
 git lfs pull
-dotnet build -c Release
+dotnet run --project examples/SimdYolo.Web -c Release
 ```
 
-需要 .NET 10 SDK。随后可以先跑一个 CPU 模型：
+打开 `http://127.0.0.1:5188`。或者下载 Release 的网页版运行包，配合33模型 ZIP 使用；包内有具体步骤。
 
-```powershell
-dotnet run --project src/SimdYolo.Cli -c Release -- bench models/pt/yolov8n.pt cpu 640 40 12 30
-```
+![网页版实际图片推理](../../artifacts/validation/0.9.0/web-inference.png)
 
-有 Vulkan 驱动的机器可以把 `cpu` 改成 `vulkan`。这条命令用于单模型上手，完整对比的两轮及持续时间由仓库里的比较工具控制。
+推理页支持检测框、分割掩码和姿态关键点。模型下拉框也能选择训练生成的结果，最近两个模型会话可以复用。
 
-业务代码中，假定已准备好 RGB24 的 `rgbBytes`、`imageWidth` 和 `imageHeight`：
+![真实训练曲线与模型下载](../../artifacts/validation/0.9.0/web-training.png)
 
-```csharp
-using SimdYolo;
+训练页可以先用内置方块数据跑流程，再导入自己的图片和 YOLO 检测 `.txt`，填写类别列表，查看实际损失曲线，取消、恢复、下载模型。目录导入缺少标签的图像会作为背景图，需核对标注是否匹配。示例默认只绑定本地，没有公网账号或鉴权。
 
-using var detector = new YoloDetector("models/pt/yolo11n-seg.pt",
-    new DetectorOptions { Device = ComputeDevice.Cpu });
+## 下载与使用边界
 
-IReadOnlyList<YoloInstance> results =
-    detector.Predict(rgbBytes, imageWidth, imageHeight);
-```
+当前发布包含11个 PT、22个 ONNX，覆盖 YOLOv8/9/10/11/26 的已验证 nano/tiny 检测模型，以及 v8/11/26 的分割和姿态模型。模型标签可通过 `ModelInfo.Read(path).ClassNames` 独立读取。
 
-换成 `yolo11n-pose.pt` 可返回关键点；换成检测权重可返回框。支持的 ONNX 模型也直接传入文件路径。实际处理连续帧时，应复用检测器并先预热，最后释放会话。
+`.pt` 要包含受支持完整 YOLO 结构；单独 `state_dict`、TorchScript、未知自定义模块不能按扩展名直接推理。其他尺度、自训练模型和设备应单独验证。
 
-不使用 Git LFS，也可以在 Release 下载源码和独立模型 ZIP。模型包内有 **8 个 `.pt`、16 个 ONNX**、来源和哈希清单；其中 `*-opset12.onnx` 固定输入为 128×128，需要按该尺寸运行。
-
-## 源码、模型和实测数据
-
-- [SimdYolo 公开仓库](https://github.com/hnlyf168/SimdYolo)
-- [0.7.1 包与模型下载](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.7.1)
-- [模型格式、输入尺寸及来源](https://github.com/hnlyf168/SimdYolo/blob/main/models/README.md)
-- [CPU/GPU 完整报告](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/optimized-runtime-comparison.md)
-- [原始测量 JSON](https://github.com/hnlyf168/SimdYolo/blob/main/artifacts/optimized-runtime-comparison.json)
-
-模型保留上游 AGPL-3.0 许可证及来源，源码当前未新增许可证。这个阶段的目标，是让 .NET 项目获得一个能直接接入、性能有记录、限制有说明的 YOLO 推理实现。
+[0.9.0 下载](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0)提供主库、训练库、33模型、网页版和本文图文包。模型保留上游 AGPL-3.0、原许可证和来源，项目源码暂未新增许可证。

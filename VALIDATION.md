@@ -1,5 +1,11 @@
 # 验证记录
 
+## 0.9.0 当前版本性能与正式发布
+
+0.9.0程序集以与0.8.1相同的固定实拍图张量重新比较11个模型、8个CPU/GPU配置、两轮共176个独立窗口；统一FP32、batch=1、640×640、12线程，预热60次，每窗口至少4秒/40帧。完成39,134次推理，224项输出校验通过。
+
+当前[完整结果](artifacts/runtime-comparison-0.9.0.md)、[原始JSON](artifacts/runtime-comparison-0.9.0.json)、[CPU图](artifacts/performance-0.9.0-cpu.png)、[GPU图](artifacts/performance-0.9.0-gpu.png)包含加载、首帧、稳态和资源口径。额外随机输入下ORT CUDA的YOLO26分割校验超差单列保留，未混入正式矩阵或放宽容差。当前图文、中文Release修复、发布包摘要与复现输入见[0.9.0发布验证](artifacts/validation/0.9.0-release/README.md)。
+
 ## 0.9.0 训练与网页示例
 
 训练模块通过 12 项单元/集成测试，包含真实微调、SGD 断点一致性、取消、重入拒绝、快照校验和 Vulkan 训练。CPU/Vulkan 既有推理回归通过 117 项。固定 Ultralytics 8.4.0 / PyTorch 2.11.0 CPU 独立参考，CPU、Vulkan、小目标和空标签四组共 640/640 检查通过；网页 API 和真实无头浏览器流程通过。
