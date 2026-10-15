@@ -18,6 +18,12 @@ internal static class Program
         {
             if (args.Length != 3) throw new ArgumentException("PackageAudit DLL XML OUTPUT.json");
             string dll = Path.GetFullPath(args[0]);
+            // 训练程序集依赖同目录主库；只从被审查输出目录解析，仍记录实际程序集引用。
+            AssemblyLoadContext.Default.Resolving += (_, name) =>
+            {
+                string candidate = Path.Combine(Path.GetDirectoryName(dll)!, name.Name + ".dll");
+                return File.Exists(candidate) ? AssemblyLoadContext.Default.LoadFromAssemblyPath(candidate) : null;
+            };
             using var stream = File.OpenRead(dll); using var pe = new PEReader(stream);
             bool ilOnly = pe.PEHeaders.CorHeader is { } cor && (cor.Flags & CorFlags.ILOnly) != 0;
             var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(dll);

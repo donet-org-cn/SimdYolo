@@ -1,6 +1,6 @@
 namespace SimdYolo;
 
-/// <summary>统一 PT 与 ONNX 模型的输入元数据和前向推理接口。</summary>
+/// <summary>统一 PT、ONNX 与原生训练归档的输入元数据和前向推理接口。</summary>
 internal interface IModel
 {
     /// <summary>模型要求的输入维度；负维度表示允许由本次输入决定大小。</summary>
@@ -139,7 +139,7 @@ public readonly record struct Detection(int ClassId, float Confidence, float X, 
 /// <param name="PadY">顶部填边像素数。</param>
 public readonly record struct Letterbox(int SourceWidth, int SourceHeight, int TargetWidth, int TargetHeight, float ScaleX, float ScaleY, int PadX, int PadY);
 
-/// <summary>加载 PT 或 ONNX 的推理会话；同一会话串行执行推理并负责释放后端资源。</summary>
+/// <summary>加载 PT、ONNX 或原生训练归档的推理会话；同一会话串行执行推理并负责释放后端资源。</summary>
 public sealed class YoloDetector : IDisposable
 {
     /// <summary>由本会话独占并负责释放的计算后端。</summary>
@@ -184,7 +184,7 @@ public sealed class YoloDetector : IDisposable
     /// <value>最终采用的解码任务；显式配置优先于模型元数据。</value>
     public YoloTask Task => options.Task == YoloTask.Auto ? model.Task : options.Task;
     /// <summary>校验选项，创建计算后端，并加载 .pt、.pth 或 .onnx 模型；加载失败会释放已创建后端。</summary>
-    /// <param name="path">模型文件路径，扩展名决定 PT 或 ONNX 解析方式。</param>
+    /// <param name="path">模型文件路径，扩展名决定 PT、ONNX 或 .sytrain 解析方式。</param>
     /// <param name="options">推理和解码配置；null 使用默认配置。</param>
     /// <exception cref="ArgumentException">设备、尺寸、阈值、线程数或任务选项不合法。</exception>
     /// <exception cref="NotSupportedException">文件扩展名不支持，或模型解析器不支持检查点或算子。</exception>
@@ -205,10 +205,21 @@ public sealed class YoloDetector : IDisposable
         try
         {
             var ops = new TensorOps(backend);
-            model = Path.GetExtension(path).ToLowerInvariant() switch { ".onnx" => new OnnxModel(path, ops, this.options.LayerCompleted), ".pt" or ".pth" => new PtModel(path, ops, this.options.LayerCompleted), _ => throw new NotSupportedException("Use .pt/.pth YOLO checkpoint or .onnx.") };
-            Info = new(Path.GetExtension(path).Equals(".onnx", StringComparison.OrdinalIgnoreCase) ? "ONNX" : "PT", model.Names, model.ClassCount, model.Task, model.EndToEnd, model.InputShape, model.KeypointShape);
+            model = Path.GetExtension(path).ToLowerInvariant() switch { ".onnx" => new OnnxModel(path, ops, this.options.LayerCompleted), ".pt" or ".pth" => new PtModel(path, ops, this.options.LayerCompleted), ".sytrain" => LoadTrainingModel(path, ops, this.options.LayerCompleted), _ => throw new NotSupportedException("Use .pt/.pth, .onnx or .sytrain.") };
+            Info = new(Path.GetExtension(path).ToLowerInvariant() switch { ".onnx" => "ONNX", ".sytrain" => "SYTRAIN", _ => "PT" }, model.Names, model.ClassCount, model.Task, model.EndToEnd, model.InputShape, model.KeypointShape);
         }
         catch { backend.Dispose(); throw; }
+    }
+    /// <summary>从自包含训练归档恢复冻结骨干与已更新的检测头，再生成推理融合权重。</summary>
+    /// <param name="path">原生 .sytrain 文件路径。</param>
+    /// <param name="ops">当前会话的计算后端封装。</param>
+    /// <param name="trace">可选的逐层计时回调。</param>
+    /// <returns>持有独立原始权重流的 PT 执行模型。</returns>
+    /// <exception cref="InvalidDataException">训练归档损坏或头参数不完整。</exception>
+    private static PtModel LoadTrainingModel(string path, TensorOps ops, Action<LayerTiming>? trace)
+    {
+        var state = TrainingModelState.Load(path);
+        return new PtModel(new MemoryStream(state.Source, false), ops, trace, state);
     }
     /// <summary>对 NCHW 张量执行前向推理，返回可由调用方持有的原始输出。</summary>
     /// <param name="nchw">已预处理的连续 FP32 NCHW 图像输入。</param>

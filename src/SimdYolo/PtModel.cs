@@ -4,7 +4,7 @@ using System.Text;
 namespace SimdYolo;
 
 /// <summary>用纯 C# 读取完整 YOLO torch.save 检查点并解释执行支持的模块，不导入或运行 Python。</summary>
-internal sealed class PtModel : IModel
+internal sealed partial class PtModel : IModel
 {
     /// <summary>按模型顺序保存的顶层 YOLO 模块。</summary>
     private readonly PyObject[] layers;
@@ -28,7 +28,9 @@ internal sealed class PtModel : IModel
     private readonly Dictionary<PyObject, (Tensor Weight, Tensor Bias)> fused = [];
     /// <summary>PT 模型接受的 NCHW RGB 输入模板，空间尺寸由运行时决定。</summary>
     /// <value>PT 模型接受的 NCHW RGB 输入模板，空间尺寸由运行时决定。</value>
-    public int[] InputShape => [1, 3, -1, -1];
+    public int[] InputShape => trainedImageSize > 0 ? [1, 3, trainedImageSize, trainedImageSize] : [1, 3, -1, -1];
+    /// <summary>原生训练归档声明的固定推理尺寸；普通 PT 为零并保持动态尺寸。</summary>
+    private readonly int trainedImageSize;
     /// <summary>检查点保存的类别编号与名称。</summary>
     /// <value>检查点保存的类别编号与名称。</value>
     public IReadOnlyDictionary<int, string> Names { get; }
@@ -56,10 +58,19 @@ internal sealed class PtModel : IModel
     /// <exception cref="NotSupportedException">检查点不是完整的受支持 YOLO 模型、使用 TorchScript、旧 Pickle 或大端存储。</exception>
     /// <exception cref="InvalidDataException">元数据超限、模型为空、路由不合法或存储内容损坏。</exception>
     public PtModel(string path, TensorOps ops, Action<LayerTiming>? trace = null)
+        : this(File.OpenRead(path), ops, trace, null) { }
+
+    /// <summary>从拥有所有权的 PT 流读取模型，可在融合前替换检测头训练参数。</summary>
+    /// <param name="source">本构造函数负责关闭的 PT ZIP 流。</param>
+    /// <param name="ops">前向算子集合。</param>
+    /// <param name="trace">可选层计时回调。</param>
+    /// <param name="trainingState">可选的检测头训练快照。</param>
+    internal PtModel(Stream source, TensorOps ops, Action<LayerTiming>? trace, TrainingModelState? trainingState)
     {
         this.ops = ops;
         this.trace = trace;
-        using var stream = File.OpenRead(path); using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
+        trainedImageSize = trainingState?.Manifest.ImageSize ?? 0;
+        using var stream = source; using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
         var data = zip.Entries.SingleOrDefault(e => e.FullName.EndsWith("/data.pkl", StringComparison.Ordinal)) ?? throw new NotSupportedException("PT requires torch.save ZIP checkpoint with data.pkl. Legacy pickle and TorchScript are unsupported.");
         string prefix = data.FullName[..^"data.pkl".Length];
         if (zip.Entries.Any(e => e.FullName.StartsWith(prefix + "code/", StringComparison.Ordinal))) throw new NotSupportedException("TorchScript .pt is not a YOLO nn.Module checkpoint.");
@@ -72,6 +83,7 @@ internal sealed class PtModel : IModel
         if (root is not PyObject model || !model.Has("model")) throw new NotSupportedException("PT must contain a YOLO detection nn.Module. A state_dict alone has no executable architecture; export ONNX or save the full model.");
         layers = model.Child("model").Children;
         if (layers.Length == 0) throw new InvalidDataException("PT model has no layers.");
+        trainingState?.Apply(layers[^1]);
         foreach (var layer in layers) Validate(layer);
         from = layers.Select(l => l.Get("f") switch { List<object?> list => list.Select(Convert.ToInt32).ToArray(), object?[] tuple => tuple.Select(Convert.ToInt32).ToArray(), null => new[] { -1 }, var f => new[] { Convert.ToInt32(f) } }).ToArray();
         uses = new int[layers.Length];
@@ -83,7 +95,7 @@ internal sealed class PtModel : IModel
         }
         routedValues = new object?[layers.Length]; remainingUses = new int[layers.Length]; retainedValues = new object?[layers.Length + 1];
         routedArguments = from.Select(route => route.Length > 1 ? new object[route.Length] : Array.Empty<object>()).ToArray();
-        Names = ModelInfo.ReadNames(model.Get("names"));
+        Names = trainingState is null ? ModelInfo.ReadNames(model.Get("names")) : trainingState.Manifest.ClassNames.Select((name, index) => (name, index)).ToDictionary(p => p.index, p => p.name);
         ClassCount = layers[^1].Int("nc", ModelInfo.LabelClassCount(Names));
         EndToEnd = ModelInfo.IsEndToEnd(layers[^1], model);
         layers[^1].State["_end2end"] = EndToEnd;
@@ -171,6 +183,7 @@ internal sealed class PtModel : IModel
     public Tensor[] Run(Tensor input)
     {
         if (input.Rank != 4 || input.Shape[1] != 3 || input.Shape[2] % 32 != 0 || input.Shape[3] % 32 != 0) throw new ArgumentException("PT YOLO expects NCHW RGB, height/width multiples of 32.");
+        if (trainedImageSize > 0 && (input.Shape[2] != trainedImageSize || input.Shape[3] != trainedImageSize)) throw new ArgumentException("训练归档推理尺寸必须与保存时一致。");
         object?[] values = routedValues; int[] remaining = remainingUses; Array.Copy(uses, remaining, uses.Length); object result = input;
         try
         {
@@ -185,6 +198,8 @@ internal sealed class PtModel : IModel
                     object[] args = routedArguments[i]; for (int j = 0; j < args.Length; j++) args[j] = LayerInput(from[i][j]); argument = args;
                 }
                 long started = trace is not null ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                if (extractingFeatures && i == layers.Length - 1)
+                    return ((object[])argument).Cast<Tensor>().ToArray();
                 result = Forward(layers[i], argument); values[i] = result;
                 if (trace is not null && ops.Backend is IDeviceBackend device) device.Flush();
                 trace?.Invoke(new(i.ToString(), layers[i].Type.Name, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds));

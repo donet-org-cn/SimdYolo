@@ -1,0 +1,918 @@
+{
+  "sourceModel": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+  "classNames": [
+    "object-a",
+    "object-b"
+  ],
+  "strides": [
+    8,
+    16,
+    32
+  ],
+  "truth": [
+    {
+      "classId": 0,
+      "x1": 21,
+      "y1": 21,
+      "x2": 25,
+      "y2": 25
+    },
+    {
+      "classId": 1,
+      "x1": 28,
+      "y1": 26,
+      "x2": 33,
+      "y2": 31
+    }
+  ],
+  "features": [
+    {
+      "path": "feature-0.f32",
+      "shape": [
+        1,
+        64,
+        8,
+        8
+      ]
+    },
+    {
+      "path": "feature-1.f32",
+      "shape": [
+        1,
+        128,
+        4,
+        4
+      ]
+    },
+    {
+      "path": "feature-2.f32",
+      "shape": [
+        1,
+        256,
+        2,
+        2
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "cv2.0.0.conv.weight",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-0.f32",
+      "gradientPath": "gradient-0.f32",
+      "afterPath": "after-0.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-1.f32",
+      "gradientPath": "gradient-1.f32",
+      "afterPath": "after-1.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-2.f32",
+      "gradientPath": "gradient-2.f32",
+      "afterPath": "after-2.f32"
+    },
+    {
+      "name": "cv2.0.1.conv.weight",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-3.f32",
+      "gradientPath": "gradient-3.f32",
+      "afterPath": "after-3.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-4.f32",
+      "gradientPath": "gradient-4.f32",
+      "afterPath": "after-4.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-5.f32",
+      "gradientPath": "gradient-5.f32",
+      "afterPath": "after-5.f32"
+    },
+    {
+      "name": "cv2.0.2.weight",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "path": "parameter-6.f32",
+      "gradientPath": "gradient-6.f32",
+      "afterPath": "after-6.f32"
+    },
+    {
+      "name": "cv2.0.2.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-7.f32",
+      "gradientPath": "gradient-7.f32",
+      "afterPath": "after-7.f32"
+    },
+    {
+      "name": "cv2.1.0.conv.weight",
+      "shape": [
+        64,
+        128,
+        3,
+        3
+      ],
+      "path": "parameter-8.f32",
+      "gradientPath": "gradient-8.f32",
+      "afterPath": "after-8.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-9.f32",
+      "gradientPath": "gradient-9.f32",
+      "afterPath": "after-9.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-10.f32",
+      "gradientPath": "gradient-10.f32",
+      "afterPath": "after-10.f32"
+    },
+    {
+      "name": "cv2.1.1.conv.weight",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-11.f32",
+      "gradientPath": "gradient-11.f32",
+      "afterPath": "after-11.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-12.f32",
+      "gradientPath": "gradient-12.f32",
+      "afterPath": "after-12.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-13.f32",
+      "gradientPath": "gradient-13.f32",
+      "afterPath": "after-13.f32"
+    },
+    {
+      "name": "cv2.1.2.weight",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "path": "parameter-14.f32",
+      "gradientPath": "gradient-14.f32",
+      "afterPath": "after-14.f32"
+    },
+    {
+      "name": "cv2.1.2.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-15.f32",
+      "gradientPath": "gradient-15.f32",
+      "afterPath": "after-15.f32"
+    },
+    {
+      "name": "cv2.2.0.conv.weight",
+      "shape": [
+        64,
+        256,
+        3,
+        3
+      ],
+      "path": "parameter-16.f32",
+      "gradientPath": "gradient-16.f32",
+      "afterPath": "after-16.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-17.f32",
+      "gradientPath": "gradient-17.f32",
+      "afterPath": "after-17.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-18.f32",
+      "gradientPath": "gradient-18.f32",
+      "afterPath": "after-18.f32"
+    },
+    {
+      "name": "cv2.2.1.conv.weight",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-19.f32",
+      "gradientPath": "gradient-19.f32",
+      "afterPath": "after-19.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-20.f32",
+      "gradientPath": "gradient-20.f32",
+      "afterPath": "after-20.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-21.f32",
+      "gradientPath": "gradient-21.f32",
+      "afterPath": "after-21.f32"
+    },
+    {
+      "name": "cv2.2.2.weight",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "path": "parameter-22.f32",
+      "gradientPath": "gradient-22.f32",
+      "afterPath": "after-22.f32"
+    },
+    {
+      "name": "cv2.2.2.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-23.f32",
+      "gradientPath": "gradient-23.f32",
+      "afterPath": "after-23.f32"
+    },
+    {
+      "name": "cv3.0.0.conv.weight",
+      "shape": [
+        80,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-24.f32",
+      "gradientPath": "gradient-24.f32",
+      "afterPath": "after-24.f32"
+    },
+    {
+      "name": "cv3.0.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-25.f32",
+      "gradientPath": "gradient-25.f32",
+      "afterPath": "after-25.f32"
+    },
+    {
+      "name": "cv3.0.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-26.f32",
+      "gradientPath": "gradient-26.f32",
+      "afterPath": "after-26.f32"
+    },
+    {
+      "name": "cv3.0.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        3,
+        3
+      ],
+      "path": "parameter-27.f32",
+      "gradientPath": "gradient-27.f32",
+      "afterPath": "after-27.f32"
+    },
+    {
+      "name": "cv3.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-28.f32",
+      "gradientPath": "gradient-28.f32",
+      "afterPath": "after-28.f32"
+    },
+    {
+      "name": "cv3.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-29.f32",
+      "gradientPath": "gradient-29.f32",
+      "afterPath": "after-29.f32"
+    },
+    {
+      "name": "cv3.0.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-30.f32",
+      "gradientPath": "gradient-30.f32",
+      "afterPath": "after-30.f32"
+    },
+    {
+      "name": "cv3.0.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-31.f32",
+      "gradientPath": "gradient-31.f32",
+      "afterPath": "after-31.f32"
+    },
+    {
+      "name": "cv3.1.0.conv.weight",
+      "shape": [
+        80,
+        128,
+        3,
+        3
+      ],
+      "path": "parameter-32.f32",
+      "gradientPath": "gradient-32.f32",
+      "afterPath": "after-32.f32"
+    },
+    {
+      "name": "cv3.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-33.f32",
+      "gradientPath": "gradient-33.f32",
+      "afterPath": "after-33.f32"
+    },
+    {
+      "name": "cv3.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-34.f32",
+      "gradientPath": "gradient-34.f32",
+      "afterPath": "after-34.f32"
+    },
+    {
+      "name": "cv3.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        3,
+        3
+      ],
+      "path": "parameter-35.f32",
+      "gradientPath": "gradient-35.f32",
+      "afterPath": "after-35.f32"
+    },
+    {
+      "name": "cv3.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-36.f32",
+      "gradientPath": "gradient-36.f32",
+      "afterPath": "after-36.f32"
+    },
+    {
+      "name": "cv3.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-37.f32",
+      "gradientPath": "gradient-37.f32",
+      "afterPath": "after-37.f32"
+    },
+    {
+      "name": "cv3.1.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-38.f32",
+      "gradientPath": "gradient-38.f32",
+      "afterPath": "after-38.f32"
+    },
+    {
+      "name": "cv3.1.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-39.f32",
+      "gradientPath": "gradient-39.f32",
+      "afterPath": "after-39.f32"
+    },
+    {
+      "name": "cv3.2.0.conv.weight",
+      "shape": [
+        80,
+        256,
+        3,
+        3
+      ],
+      "path": "parameter-40.f32",
+      "gradientPath": "gradient-40.f32",
+      "afterPath": "after-40.f32"
+    },
+    {
+      "name": "cv3.2.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-41.f32",
+      "gradientPath": "gradient-41.f32",
+      "afterPath": "after-41.f32"
+    },
+    {
+      "name": "cv3.2.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-42.f32",
+      "gradientPath": "gradient-42.f32",
+      "afterPath": "after-42.f32"
+    },
+    {
+      "name": "cv3.2.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        3,
+        3
+      ],
+      "path": "parameter-43.f32",
+      "gradientPath": "gradient-43.f32",
+      "afterPath": "after-43.f32"
+    },
+    {
+      "name": "cv3.2.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-44.f32",
+      "gradientPath": "gradient-44.f32",
+      "afterPath": "after-44.f32"
+    },
+    {
+      "name": "cv3.2.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-45.f32",
+      "gradientPath": "gradient-45.f32",
+      "afterPath": "after-45.f32"
+    },
+    {
+      "name": "cv3.2.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-46.f32",
+      "gradientPath": "gradient-46.f32",
+      "afterPath": "after-46.f32"
+    },
+    {
+      "name": "cv3.2.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-47.f32",
+      "gradientPath": "gradient-47.f32",
+      "afterPath": "after-47.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-48.f32",
+      "gradientPath": null,
+      "afterPath": "after-48.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-49.f32",
+      "gradientPath": null,
+      "afterPath": "after-49.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-50.f32",
+      "gradientPath": null,
+      "afterPath": "after-50.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-51.f32",
+      "gradientPath": null,
+      "afterPath": "after-51.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-52.f32",
+      "gradientPath": null,
+      "afterPath": "after-52.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-53.f32",
+      "gradientPath": null,
+      "afterPath": "after-53.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-54.f32",
+      "gradientPath": null,
+      "afterPath": "after-54.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-55.f32",
+      "gradientPath": null,
+      "afterPath": "after-55.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-56.f32",
+      "gradientPath": null,
+      "afterPath": "after-56.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-57.f32",
+      "gradientPath": null,
+      "afterPath": "after-57.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-58.f32",
+      "gradientPath": null,
+      "afterPath": "after-58.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-59.f32",
+      "gradientPath": null,
+      "afterPath": "after-59.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-60.f32",
+      "gradientPath": null,
+      "afterPath": "after-60.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-61.f32",
+      "gradientPath": null,
+      "afterPath": "after-61.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-62.f32",
+      "gradientPath": null,
+      "afterPath": "after-62.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-63.f32",
+      "gradientPath": null,
+      "afterPath": "after-63.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-64.f32",
+      "gradientPath": null,
+      "afterPath": "after-64.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-65.f32",
+      "gradientPath": null,
+      "afterPath": "after-65.f32"
+    },
+    {
+      "name": "cv3.0.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-66.f32",
+      "gradientPath": null,
+      "afterPath": "after-66.f32"
+    },
+    {
+      "name": "cv3.0.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-67.f32",
+      "gradientPath": null,
+      "afterPath": "after-67.f32"
+    },
+    {
+      "name": "cv3.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-68.f32",
+      "gradientPath": null,
+      "afterPath": "after-68.f32"
+    },
+    {
+      "name": "cv3.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-69.f32",
+      "gradientPath": null,
+      "afterPath": "after-69.f32"
+    },
+    {
+      "name": "cv3.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-70.f32",
+      "gradientPath": null,
+      "afterPath": "after-70.f32"
+    },
+    {
+      "name": "cv3.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-71.f32",
+      "gradientPath": null,
+      "afterPath": "after-71.f32"
+    },
+    {
+      "name": "cv3.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-72.f32",
+      "gradientPath": null,
+      "afterPath": "after-72.f32"
+    },
+    {
+      "name": "cv3.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-73.f32",
+      "gradientPath": null,
+      "afterPath": "after-73.f32"
+    },
+    {
+      "name": "cv3.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-74.f32",
+      "gradientPath": null,
+      "afterPath": "after-74.f32"
+    },
+    {
+      "name": "cv3.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-75.f32",
+      "gradientPath": null,
+      "afterPath": "after-75.f32"
+    },
+    {
+      "name": "cv3.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-76.f32",
+      "gradientPath": null,
+      "afterPath": "after-76.f32"
+    },
+    {
+      "name": "cv3.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-77.f32",
+      "gradientPath": null,
+      "afterPath": "after-77.f32"
+    },
+    {
+      "name": "cv3.2.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-78.f32",
+      "gradientPath": null,
+      "afterPath": "after-78.f32"
+    },
+    {
+      "name": "cv3.2.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-79.f32",
+      "gradientPath": null,
+      "afterPath": "after-79.f32"
+    },
+    {
+      "name": "cv3.2.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-80.f32",
+      "gradientPath": null,
+      "afterPath": "after-80.f32"
+    },
+    {
+      "name": "cv3.2.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-81.f32",
+      "gradientPath": null,
+      "afterPath": "after-81.f32"
+    },
+    {
+      "name": "cv3.2.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-82.f32",
+      "gradientPath": null,
+      "afterPath": "after-82.f32"
+    },
+    {
+      "name": "cv3.2.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-83.f32",
+      "gradientPath": null,
+      "afterPath": "after-83.f32"
+    }
+  ],
+  "boxes": [
+    {
+      "path": "boxes-0.f32",
+      "shape": [
+        1,
+        64,
+        8,
+        8
+      ],
+      "gradientPath": "boxes-gradient-0.f32"
+    },
+    {
+      "path": "boxes-1.f32",
+      "shape": [
+        1,
+        64,
+        4,
+        4
+      ],
+      "gradientPath": "boxes-gradient-1.f32"
+    },
+    {
+      "path": "boxes-2.f32",
+      "shape": [
+        1,
+        64,
+        2,
+        2
+      ],
+      "gradientPath": "boxes-gradient-2.f32"
+    }
+  ],
+  "classes": [
+    {
+      "path": "classes-0.f32",
+      "shape": [
+        1,
+        2,
+        8,
+        8
+      ],
+      "gradientPath": "classes-gradient-0.f32"
+    },
+    {
+      "path": "classes-1.f32",
+      "shape": [
+        1,
+        2,
+        4,
+        4
+      ],
+      "gradientPath": "classes-gradient-1.f32"
+    },
+    {
+      "path": "classes-2.f32",
+      "shape": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "gradientPath": "classes-gradient-2.f32"
+    }
+  ],
+  "loss": {
+    "box": 2.193851E-08,
+    "classification": 0.3043392,
+    "dfl": 2.4182196E-08,
+    "total": 0.30433926,
+    "positives": 5
+  },
+  "coreAssemblySha256": "26e27a62d7bacebe727fc37a33e3cfd3226be081caf2f4bdad7e2c7fec65fb7f",
+  "trainingAssemblySha256": "1c4d223bd6f149829de1d50c9a72111b13ee74ad65f38e813c3b26aa86265749"
+}

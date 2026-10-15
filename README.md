@@ -1,10 +1,19 @@
 # SimdYolo
 
-[模型下载和使用](models/README.md) · [0.7.1 下载](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.7.1) · [模型来源与许可证](THIRD_PARTY_NOTICES.md)
+[网页推理/训练示例](examples/SimdYolo.Web/README.md) · [纯 C# 训练说明](docs/training.md) · [模型下载和使用](models/README.md) · [模型来源与许可证](THIRD_PARTY_NOTICES.md)
 
 C# / .NET 10 的 YOLO 推理库，包含目标检测、实例分割和姿态估计。主库为纯托管 C# 程序集：模型解析、计算图、CPU 算子、图像预处理和结果解码均由 C# 实现，CPU 使用 .NET SIMD / intrinsics。没有外部 NuGet 运行依赖，不调用 Python、PyTorch、LibTorch、TorchSharp、ONNX Runtime、BLAS/MKL/OpenBLAS 或其他原生数学运行库，也不在运行时把 `.pt` 转成 ONNX。GPU 通过 P/Invoke 调用系统 Vulkan / Metal API，执行包内嵌入的 SPIR-V / MSL 着色器。
 
-当前实现为 **0.8.1**，优化权重加载、会话首帧和稳态执行。PT 连续 storage 使用批量转换，ONNX 解析借用 protobuf 数据视图；PT 复用模块路由工作区，CPU 对完整写入的临时结果省去预清零，以弱引用缓存整组 Winograd 权重面板。注意力批次 MatMul 直接按广播偏移读取输入、写入输出，省去逐 head 的整矩阵复制；无 DFL 的单桶检测头直接使用回归值并以 SIMD 还原坐标。YOLO26 检测、分割、姿态 ONNX 输出头严格匹配后融合为两阶段 TopK，保留全部实例字段，并可在 Vulkan 执行和捕获命令重放。仍使用 FP32；主库没有增加 Python、ORT 或原生数学依赖。
+当前版本 **0.9.0** 新增独立纯 C# 训练模块和 ASP.NET Core 网页示例。第一阶段支持 **YOLOv8 检测头微调**：冻结骨干/FPN，支持自定义类别、真实反向传播、SGD 动量、CPU SIMD 与 Vulkan GEMM 混合训练、取消和断点恢复。生成的自包含 `.sytrain` 可直接交给 `YoloDetector` 推理。网页版提供 PT/ONNX 检测、分割、姿态推理，以及数据集导入、真实损失曲线、模型下载和重新加载。
+
+```powershell
+dotnet run --project examples/SimdYolo.Web -c Release
+# 浏览器打开 http://127.0.0.1:5188
+```
+
+训练测试 **12 项通过**，与固定原版 PyTorch/Ultralytics 的独立数值对照 **640/640 检查通过**，既有 CPU/Vulkan 推理回归 **117 项通过**。本阶段尚无全参数、YOLO26、分割/姿态或 Metal 训练，也未进行训练性能或独立验证集 mAP 比较。详见[训练范围与使用](docs/training.md)、[网页示例](examples/SimdYolo.Web/README.md)、[0.9.0 验证](artifacts/validation/0.9.0/README.md)。下方 0.8.1 及更早速度表保留原版本和原始数据，不代表 0.9.0 的测量。
+
+0.8.1 优化权重加载、会话首帧和稳态执行。PT 连续 storage 使用批量转换，ONNX 解析借用 protobuf 数据视图；PT 复用模块路由工作区，CPU 对完整写入的临时结果省去预清零，以弱引用缓存整组 Winograd 权重面板。注意力批次 MatMul 直接按广播偏移读取输入、写入输出，省去逐 head 的整矩阵复制；无 DFL 的单桶检测头直接使用回归值并以 SIMD 还原坐标。YOLO26 检测、分割、姿态 ONNX 输出头严格匹配后融合为两阶段 TopK，保留全部实例字段，并可在 Vulkan 执行和捕获命令重放。仍使用 FP32；主库没有增加 Python、ORT 或原生数学依赖。
 
 0.8.0 新增 **YOLO26 检测、实例分割和姿态推理**，直接加载官方 `.pt` 或 ONNX，支持无 DFL 回归、SPPF 残差、Proto26 多尺度融合、Pose26 坐标公式和端到端实例附加字段。新增 `ModelInfo.Read`，不初始化 GPU、不加载权重存储即可读取类别标签。官方 nano 模型已在 CPU/Vulkan、静态/动态输入及 batch=2 上验证，记录见 [YOLO26 验证](artifacts/validation/0.8.0/yolo26.md)。上面的 0.7.1 Release 是旧版本，不包含这些新功能；下方标为 0.7.0 的表格保留当时的原始测量。
 

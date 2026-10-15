@@ -1,0 +1,47 @@
+PASS 卷积权重和输入梯度的独立有限差分
+
+PASS SiLU 极值和有限差分
+
+PASS BatchNorm 参数和输入反向、运行方差
+
+PASS SGD 动量和权重衰减
+
+PASS 空标签背景样本仍产生分类梯度
+
+PASS 数据集拒绝坏标签和配置
+
+step 10: 4.90316
+
+step 20: 4.29396
+
+step 30: 2.44856
+
+step 40: 3.29239
+
+step 50: 3.67586
+
+step 60: 2.39206
+
+step 70: 3.13501
+
+step 80: 1.38032
+
+step 90: 1.08008
+
+step 100: 1.24824
+
+eval loss 4.365893 -> 1.162812
+
+PASS 真实 YOLOv8 微调损失下降与快照推理
+
+PASS SGD 断点恢复与连续训练一致
+
+PASS 取消保存最近完整轮次
+
+PASS 训练会话拒绝并发重入且从输出错误中恢复
+
+PASS 原生训练快照保留模型许可证并拒绝缺参和错误尺寸
+
+PASS Vulkan 真实训练更新及原生快照 CPU/GPU 推理一致
+
+12 training tests passed.

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>0.9.0</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Pure managed YOLOv8 detection-head fine-tuning with CPU SIMD and optional Vulkan matrix operations.</Description>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../SimdYolo/SimdYolo.csproj" /><InternalsVisibleTo Include="SimdYolo.Training.Tests" /></ItemGroup>
+  <ItemGroup>
+    <None Include="../../docs/training.md" Pack="true" PackagePath="/README.md" />
+    <None Include="../../THIRD_PARTY_NOTICES.md" Pack="true" PackagePath="/" />
+    <EmbeddedResource Include="../../models/manifest.json" LogicalName="SimdYolo.ModelManifest.json" />
+    <EmbeddedResource Include="../../models/LICENSE-AGPL-3.0.txt" LogicalName="SimdYolo.ModelLicense.txt" />
+  </ItemGroup>
+</Project>

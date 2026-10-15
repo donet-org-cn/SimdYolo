@@ -4,14 +4,14 @@ using System.IO.Compression;
 
 namespace SimdYolo;
 
-/// <summary>从 PT 或 ONNX 独立读取类别标签及推理元数据，不加载权重数据或创建计算后端。</summary>
+/// <summary>从 PT、ONNX 或原生训练归档独立读取类别标签及推理元数据，不加载权重数据或创建计算后端。</summary>
 public sealed class ModelInfo
 {
     /// <summary>保存输入维度，防止调用者改变元数据。</summary>
     private readonly int[] inputShape;
     /// <summary>保存关键点维度，防止调用者改变元数据。</summary>
     private readonly int[] keypointShape;
-    /// <summary>模型文件格式，值为 PT 或 ONNX。</summary>
+    /// <summary>模型文件格式，值为 PT、ONNX 或 SYTRAIN。</summary>
     /// <value>从文件扩展名确定的模型格式。</value>
     public string Format { get; }
     /// <summary>模型原始类别编号到名称的只读映射；模型未保存名称时为空。</summary>
@@ -30,7 +30,7 @@ public sealed class ModelInfo
     /// <value>端到端模式；分割和姿态在六字段之后附加实例数据。</value>
     public bool EndToEnd { get; }
     /// <summary>图像输入维度的副本；-1 表示动态维度。</summary>
-    /// <value>PT 使用 [1,3,-1,-1]，ONNX 读取图声明的输入维度。</value>
+    /// <value>PT 使用 [1,3,-1,-1]，ONNX 使用图声明；SYTRAIN 使用保存时的固定训练尺寸。</value>
     public int[] InputShape => (int[])inputShape.Clone();
     /// <summary>关键点数量与分量数的副本；非姿态模型为空。</summary>
     /// <value>姿态模型通常使用 [17,3]。</value>
@@ -51,10 +51,10 @@ public sealed class ModelInfo
     }
 
     /// <summary>读取模型标签和元数据；PT 仅解释 Pickle 数据，ONNX 流式跳过权重和节点。</summary>
-    /// <param name="path">扩展名为 .pt、.pth 或 .onnx 的模型路径。</param>
+    /// <param name="path">扩展名为 .pt、.pth、.onnx 或 .sytrain 的模型路径。</param>
     /// <returns>包含原始类别名称的元数据快照；缺少名称时返回空映射，不预设 COCO 标签。</returns>
     /// <exception cref="ArgumentException">路径为空或包含无效字符。</exception>
-    /// <exception cref="NotSupportedException">文件格式不是 PT/ONNX，或 PT 使用不支持的保存格式。</exception>
+    /// <exception cref="NotSupportedException">文件格式不是 PT/ONNX/SYTRAIN，或 PT 使用不支持的保存格式。</exception>
     /// <exception cref="InvalidDataException">模型元数据、标签编号或归档损坏。</exception>
     /// <exception cref="IOException">文件无法打开、读取或被截断。</exception>
     /// <exception cref="UnauthorizedAccessException">没有读取模型文件的权限。</exception>
@@ -64,9 +64,20 @@ public sealed class ModelInfo
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         return Path.GetExtension(path).ToLowerInvariant() switch
         {
-            ".pt" or ".pth" => ReadPt(path), ".onnx" => ReadOnnx(path),
-            _ => throw new NotSupportedException("Model metadata requires .pt or .onnx.")
+            ".pt" or ".pth" => ReadPt(path), ".onnx" => ReadOnnx(path), ".sytrain" => ReadTraining(path),
+            _ => throw new NotSupportedException("模型元数据需要 .pt、.onnx 或 .sytrain 文件。")
         };
+    }
+
+    /// <summary>读取原生训练归档中的类别和任务，不读取参数或初始化设备。</summary>
+    /// <param name="path">包含训练元数据的归档路径。</param>
+    /// <returns>检测任务、训练时尺寸及保存类别的快照。</returns>
+    /// <exception cref="InvalidDataException">归档或训练元数据损坏。</exception>
+    private static ModelInfo ReadTraining(string path)
+    {
+        using var stream = File.OpenRead(path); using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
+        var manifest = TrainingModelState.ReadManifest(zip);
+        return new("SYTRAIN", manifest.ClassNames.Select((name, index) => (name, index)).ToDictionary(p => p.index, p => p.name), manifest.ClassNames.Length, YoloTask.Detection, false, [1, 3, manifest.ImageSize, manifest.ImageSize], [17, 3]);
     }
 
     /// <summary>读取 PT 的符号对象及标签，使用不读取张量存储的 Pickle 模式。</summary>
