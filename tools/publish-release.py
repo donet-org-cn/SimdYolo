@@ -89,10 +89,18 @@ def main():
     parser.add_argument("--tag", required=True)
     parser.add_argument("--notes", type=Path)
     parser.add_argument("--target")
+    parser.add_argument("--release-id", type=int, help="GitHub草稿可能使用临时tag，可用明确ID继续操作同一草稿")
     parser.add_argument("--asset", type=Path, action="append", default=[])
     args = parser.parse_args()
     github = GitHub(args.repo)
-    release = github.release(args.tag)
+    state_path = Path(__file__).resolve().parent.parent / ".cache/release-state" / (args.repo.replace("/", "-") + "-" + args.tag + ".json")
+    release = github.request(f"/repos/{args.repo}/releases/{args.release_id}") if args.release_id else github.release(args.tag)
+    if release is None and state_path.is_file():
+        saved = json.loads(state_path.read_text(encoding="utf-8"))
+        if saved["repository"] == args.repo and saved["tag"] == args.tag:
+            release = github.request(f"/repos/{args.repo}/releases/{saved['id']}")
+    if release is not None and not release["draft"] and release["tag_name"] != args.tag:
+        raise RuntimeError("指定ID属于其他已发布版本，拒绝更改其tag。")
     body = None
     if args.notes:
         body = args.notes.read_text(encoding="utf-8-sig")
@@ -107,7 +115,7 @@ def main():
                 parser.error("创建草稿需要 --target 提交 SHA。")
             release = github.request(f"/repos/{args.repo}/releases", "POST", {"tag_name": args.tag, "target_commitish": args.target, "name": title, "body": body, "draft": True, "prerelease": False})
         else:
-            changes = {"name": title, "body": body}
+            changes = {"name": title, "body": body, "tag_name": args.tag}
             if args.target and release["draft"]: changes["target_commitish"] = args.target
             release = github.request(f"/repos/{args.repo}/releases/{release['id']}", "PATCH", changes)
         checked = github.request(f"/repos/{args.repo}/releases/{release['id']}")
@@ -115,6 +123,8 @@ def main():
             raise RuntimeError("GitHub 回读的中文内容与本地 UTF-8 文件不同。")
     if release is None:
         raise RuntimeError("目标 Release 不存在。")
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps({"repository": args.repo, "tag": args.tag, "id": release["id"]}), encoding="utf-8")
     if args.operation == "upload":
         for asset in args.asset:
             if not asset.is_file():
@@ -132,11 +142,13 @@ def main():
             if uploaded.get("digest") != "sha256:" + sha or uploaded["size"] != asset.stat().st_size:
                 raise RuntimeError("GitHub 附件摘要或长度不同。")
             print(json.dumps({"uploaded": asset.name, "sha256": sha, "url": uploaded["browser_download_url"]}), flush=True)
-        release = github.release(args.tag)
+        release = github.request(f"/repos/{args.repo}/releases/{release['id']}")
     if args.operation == "publish":
         if not release["assets"]:
             raise RuntimeError("没有附件，未发布空 Release。")
-        release = github.request(f"/repos/{args.repo}/releases/{release['id']}", "PATCH", {"draft": False, "prerelease": False, "make_latest": "true"})
+        changes = {"tag_name": args.tag, "draft": False, "prerelease": False, "make_latest": "true"}
+        if args.target and release["draft"]: changes["target_commitish"] = args.target
+        release = github.request(f"/repos/{args.repo}/releases/{release['id']}", "PATCH", changes)
     print(json.dumps({"tag": args.tag, "id": release["id"], "draft": release["draft"], "url": release["html_url"], "assets": [item["name"] for item in release["assets"]]}, ensure_ascii=True))
 
 
