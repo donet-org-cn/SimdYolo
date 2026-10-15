@@ -50,7 +50,7 @@ internal sealed class TrainingService : BackgroundService
 
     internal TrainingJob Enqueue(TrainRequest request)
     {
-        if (!workspace.Models.TryGetValue(request.ModelId, out var model) || !model.Trainable) throw new ArgumentException("请选择可训练的 YOLOv8 检测 PT 或本程序训练快照。");
+        if (!workspace.Models.TryGetValue(request.ModelId, out var model) || !model.Trainable) throw new ArgumentException("请选择可训练的 YOLOv8/v9/v10/YOLO11/YOLO26 检测 PT 或本程序训练快照。");
         if (!workspace.Datasets.ContainsKey(request.DatasetId)) throw new ArgumentException("数据集不存在。");
         if (request.Epochs is < 1 or > 500 || request.BatchSize is < 1 or > 32 || request.ImageSize is < 64 or > 640 || request.ImageSize % 32 != 0 || !float.IsFinite(request.LearningRate) || request.LearningRate is <= 0 or > 1) throw new ArgumentException("训练参数超出本地示例范围。");
         _ = Workspace.Device(request.Backend, true);

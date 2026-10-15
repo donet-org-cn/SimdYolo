@@ -1,5 +1,7 @@
 # SimdYolo 0.9.0 图文发布包
 
+0.10.0 源码新增五代检测头训练，两篇文章开头补充更新说明及真实训练图。下列0.9.0推理图表、历史发布包保持原版本；新增[训练评测与资源表](../../artifacts/training-evaluation-0.10.0.md)、[CPU训练图](../../artifacts/training-performance-0.10.0-cpu.png)、[GPU训练图](../../artifacts/training-performance-0.10.0-gpu.png)和[损失曲线](../../artifacts/training-loss-0.10.0.png)单独标版本。
+
 微信公众号和博客园分别写作，正文、表格、PNG/SVG与数据清单均更新为**0.9.0当前程序集实测**，不再沿用0.7.x图表。所有文字文件使用UTF-8。
 
 [0.9.0 发布与33模型下载](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) · [完整性能报告](../../artifacts/runtime-comparison-0.9.0.md) · [文档/图文ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-docs-v0.9.0.zip)

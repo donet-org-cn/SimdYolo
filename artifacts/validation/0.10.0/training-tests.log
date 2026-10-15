@@ -1,0 +1,29 @@
+["dotnet", "tests/SimdYolo.Training.Tests/bin/Release/net10.0/SimdYolo.Training.Tests.dll", "--integration", "--vulkan"]
+PASS 卷积权重和输入梯度的独立有限差分
+PASS 分组及深度卷积的权重、偏置和输入独立有限差分
+PASS YOLO26 损失调度首轮、中间轮、末轮和延长训练边界
+PASS SiLU 极值和有限差分
+PASS BatchNorm 参数和输入反向、运行方差
+PASS SGD 动量和权重衰减
+PASS 空标签背景样本仍产生分类梯度
+PASS 数据集拒绝坏标签和配置
+PASS 五代训练能力按真实结构识别、拒绝其他任务和ONNX
+step 10: 4.90313
+step 20: 4.30247
+step 30: 2.69120
+step 40: 3.16372
+step 50: 3.49925
+step 60: 2.75244
+step 70: 2.64165
+step 80: 1.68114
+step 90: 1.36904
+step 100: 1.10732
+eval loss 4.365892 -> 1.530205
+PASS 真实 YOLOv8 微调损失下降与快照推理
+PASS SGD 断点恢复与连续训练一致
+PASS 取消保存最近完整轮次
+PASS 训练会话拒绝并发重入且从输出错误中恢复
+PASS 原生训练快照保留模型许可证并拒绝缺参和错误尺寸
+PASS 归档向后读取及双头损坏检测
+PASS Vulkan 真实训练更新及原生快照 CPU/GPU 推理一致
+16 training tests passed.

@@ -2,21 +2,24 @@ using System.Numerics;
 
 namespace SimdYolo.Training;
 
-/// <summary>YOLOv8 检测损失：TAL 标签分配、BCE、CIoU 与 DFL；分配结果不参与求导。</summary>
+/// <summary>检测损失：TAL、BCE、CIoU，以及 DFL 或 YOLO26 的归一化 L1；分配不参与求导。</summary>
 internal static class DetectionLoss
 {
     internal readonly record struct Result(float Box, float Classification, float Dfl, int Positives)
     { internal float Total => Box + Classification + Dfl; }
 
-    /// <summary>解码 DFL，执行停止梯度的 TAL 分配并计算加权损失；需要时写入头输出的累加梯度。</summary>
-    /// <param name="boxes">按尺度排列、每个位置含64通道的框分布 logits。</param><param name="classes">相同位置的未激活分类 logits。</param>
+    /// <summary>解码分布或直接距离，执行停止梯度的 TAL 分配并计算损失，需要时累加输出梯度。</summary>
+    /// <param name="boxes">按尺度排列、每个位置含四乘以回归桶数通道的原始输出。</param><param name="classes">相同位置的未激活分类 logits。</param>
     /// <param name="strides">各尺度像素步长。</param><param name="truth">已映射至输入像素坐标的真值框。</param>
     /// <param name="nc">分类通道数量。</param><param name="backward">是否向两个输出分支写入梯度。</param>
-    /// <returns>已按分配分数归一化的 CIoU、BCE、DFL 与正样本数。</returns>
+    /// <param name="bins">16 为 DFL 分布，1 为直接距离回归。</param><param name="topk">首次 TAL 候选数。</param>
+    /// <param name="topk2">冲突处理后的二次候选数。</param><param name="gradientScale">当前分支的梯度权重，不改变返回损失。</param>
+    /// <returns>已归一化的 CIoU、BCE、DFL 或 L1 与正样本数。</returns>
     /// <exception cref="ArgumentException">框与类别通道或空间形状不一致。</exception>
-    internal static Result Compute(GradientValue[] boxes, GradientValue[] classes, float[] strides, TrainingBox[] truth, int nc, bool backward = true)
+    internal static Result Compute(GradientValue[] boxes, GradientValue[] classes, float[] strides, TrainingBox[] truth, int nc, bool backward = true, int bins = 16, int topk = 10, int topk2 = 10, float gradientScale = 1)
     {
-        const int bins = 16; int anchors = boxes.Sum(v => v.Value.Shape[2] * v.Value.Shape[3]);
+        if (bins is not (1 or 16) || topk < 1 || topk2 < 1 || topk2 > topk || !float.IsFinite(gradientScale)) throw new ArgumentException("检测损失的回归通道、TAL 或梯度权重无效。");
+        int anchors = boxes.Sum(v => v.Value.Shape[2] * v.Value.Shape[3]);
         var location = new (int Level, int Pixel, int Spatial)[anchors];
         var centersX = new float[anchors]; var centersY = new float[anchors]; var strideAt = new float[anchors];
         var decoded = new TrainingBox[anchors]; var probabilities = new float[anchors * 4 * bins]; var expected = new float[anchors * 4];
@@ -24,12 +27,13 @@ internal static class DetectionLoss
         for (int level = 0; level < boxes.Length; level++)
         {
             var tensor = boxes[level].Value; int h = tensor.Shape[2], w = tensor.Shape[3], spatial = h * w;
-            if (tensor.Shape[1] != 64 || classes[level].Value.Shape[1] != nc || classes[level].Value.Shape[2] != h || classes[level].Value.Shape[3] != w) throw new ArgumentException("检测头原始输出形状不匹配。");
+            if (tensor.Shape[1] != 4 * bins || classes[level].Value.Shape[1] != nc || classes[level].Value.Shape[2] != h || classes[level].Value.Shape[3] != w) throw new ArgumentException("检测头原始输出形状不匹配。");
             for (int pixel = 0; pixel < spatial; pixel++, anchor++)
             {
                 location[anchor] = (level, pixel, spatial); centersX[anchor] = (pixel % w + .5f) * strides[level]; centersY[anchor] = (pixel / w + .5f) * strides[level]; strideAt[anchor] = strides[level];
                 for (int d = 0; d < 4; d++)
                 {
+                    if (bins == 1) { expected[anchor * 4 + d] = tensor.Data[d * spatial + pixel]; continue; }
                     float maximum = float.NegativeInfinity;
                     for (int bin = 0; bin < bins; bin++) maximum = MathF.Max(maximum, tensor.Data[(d * bins + bin) * spatial + pixel]);
                     float sum = 0; int start = (anchor * 4 + d) * bins;
@@ -58,7 +62,7 @@ internal static class DetectionLoss
                 float iou = inside ? MathF.Max(0, BoxMath.Ciou(decoded[a], box).Value) : 0; overlap[index] = iou;
                 float metric = inside ? MathF.Pow(HeadOperations.Sigmoid(classes[l].Value.Data[box.ClassId * spatial + p]), .5f) * MathF.Pow(iou, 6) : 0;
                 alignment[index] = metric;
-                top.Enqueue(a, (metric, -a)); if (top.Count > 10) top.Dequeue();
+                top.Enqueue(a, (metric, -a)); if (top.Count > topk) top.Dequeue();
             }
             foreach (var item in top.UnorderedItems) selected[gt * anchors + item.Element] = insideCandidates[gt * anchors + item.Element];
         }
@@ -75,6 +79,16 @@ internal static class DetectionLoss
             }
             assigned[a] = chosen;
         }
+        // YOLO26 在处理跨目标冲突之后，才对保留的匹配执行第二次 TopK。
+        if (topk2 != topk)
+        {
+            for (int gt = 0; gt < truth.Length; gt++)
+            {
+                var keep = Enumerable.Range(0, anchors).OrderByDescending(a => selected[gt * anchors + a] ? alignment[gt * anchors + a] : 0).ThenBy(a => a).Take(topk2).ToHashSet();
+                for (int a = 0; a < anchors; a++) if (!keep.Contains(a)) selected[gt * anchors + a] = false;
+            }
+            for (int a = 0; a < anchors; a++) { assigned[a] = -1; for (int gt = 0; gt < truth.Length; gt++) if (selected[gt * anchors + a]) { assigned[a] = gt; break; } }
+        }
         var maxAlignment = new float[truth.Length]; var maxOverlap = new float[truth.Length];
         for (int gt = 0; gt < truth.Length; gt++) for (int a = 0; a < anchors; a++) if (selected[gt * anchors + a])
         { maxAlignment[gt] = MathF.Max(maxAlignment[gt], alignment[gt * anchors + a]); maxOverlap[gt] = MathF.Max(maxOverlap[gt], overlap[gt * anchors + a]); }
@@ -82,6 +96,9 @@ internal static class DetectionLoss
         for (int a = 0; a < anchors; a++) if (assigned[a] is int gt && gt >= 0)
         { scores[a] = alignment[gt * anchors + a] * maxOverlap[gt] / (maxAlignment[gt] + 1e-9f); scoreSum += scores[a]; }
         scoreSum = MathF.Max(1, scoreSum);
+        // 官方先拼接全部尺度再计算框损失：任一正样本存在时，未命中尺度也有显式零梯度。
+        // 全背景时框损失完全不连接，才保留 grad=None 的 SGD 语义。
+        if (backward && assigned.Any(gt => gt >= 0)) foreach (var output in boxes) _ = output.Gradient;
         float boxLoss = 0, classLoss = 0, dflLoss = 0; int positives = 0;
         for (int a = 0; a < anchors; a++)
         {
@@ -90,7 +107,7 @@ internal static class DetectionLoss
             {
                 int index = c * spatial + pixel; float logit = classes[level].Value.Data[index]; float target = gt >= 0 && truth[gt].ClassId == c ? weight : 0;
                 classLoss += (MathF.Max(logit, 0) - logit * target + MathF.Log(1 + MathF.Exp(-MathF.Abs(logit)))) * (.5f / scoreSum);
-                if (backward) classes[level].Gradient[index] += (HeadOperations.Sigmoid(logit) - target) * (.5f / scoreSum);
+                if (backward) classes[level].Gradient[index] += (HeadOperations.Sigmoid(logit) - target) * (.5f / scoreSum) * gradientScale;
             }
             if (gt < 0) continue; positives++;
             var targetBox = truth[gt]; float inverseStride = 1 / strideAt[a];
@@ -98,11 +115,21 @@ internal static class DetectionLoss
             var targetGrid = new TrainingBox(gt, targetBox.X1 * inverseStride, targetBox.Y1 * inverseStride, targetBox.X2 * inverseStride, targetBox.Y2 * inverseStride);
             var ciou = BoxMath.Ciou(predictedGrid, targetGrid);
             float boxScale = 7.5f * weight / scoreSum; boxLoss += (1 - ciou.Value) * boxScale;
-            Vector4 coordinateGradient = -ciou.Gradient * boxScale;
+            Vector4 coordinateGradient = -ciou.Gradient * (boxScale * gradientScale);
             float[] distanceGradient = [-coordinateGradient.X, -coordinateGradient.Y, coordinateGradient.Z, coordinateGradient.W];
             float[] distances = [(centersX[a] - targetBox.X1) / strideAt[a], (centersY[a] - targetBox.Y1) / strideAt[a], (targetBox.X2 - centersX[a]) / strideAt[a], (targetBox.Y2 - centersY[a]) / strideAt[a]];
             for (int d = 0; d < 4; d++)
             {
+                if (bins == 1)
+                {
+                    // reg_max=1 没有 softmax/DFL；官方在第三损失分量使用按图像宽高归一化的 L1。
+                    float imageExtent = (d % 2 == 0 ? boxes[0].Value.Shape[3] : boxes[0].Value.Shape[2]) * strides[0];
+                    float normalization = strideAt[a] / imageExtent, delta = expected[a * 4 + d] - distances[d];
+                    float l1Scale = 1.5f * weight / (4 * scoreSum);
+                    dflLoss += MathF.Abs(delta) * normalization * l1Scale;
+                    if (backward) boxes[level].Gradient[d * spatial + pixel] += distanceGradient[d] + MathF.Sign(delta) * normalization * l1Scale * gradientScale;
+                    continue;
+                }
                 float target = Math.Clamp(distances[d], 0, bins - 1 - .01f); int left = (int)target; float rightWeight = target - left;
                 int start = (a * 4 + d) * bins; float scale = 1.5f * weight / (4 * scoreSum);
                 // 以 log-sum-exp 计算交叉熵，避免概率下溢后截断损失而导数仍非零。
@@ -114,7 +141,7 @@ internal static class DetectionLoss
                 if (backward) for (int bin = 0; bin < bins; bin++)
                 {
                     float p = probabilities[start + bin], targetProbability = bin == left ? 1 - rightWeight : bin == left + 1 ? rightWeight : 0;
-                    boxes[level].Gradient[(d * bins + bin) * spatial + pixel] += p * (bin - expected[a * 4 + d]) * distanceGradient[d] + scale * (p - targetProbability);
+                    boxes[level].Gradient[(d * bins + bin) * spatial + pixel] += p * (bin - expected[a * 4 + d]) * distanceGradient[d] + scale * (p - targetProbability) * gradientScale;
                 }
             }
         }

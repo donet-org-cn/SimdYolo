@@ -9,7 +9,8 @@ import base64, hashlib, io, json, time
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--url', default='http://127.0.0.1:5188')
 parser.add_argument('--image', type=Path, required=True, help='用于检测、分割、姿态验证的真实照片，例如官方 bus.jpg')
-parser.add_argument('--output', type=Path, default=Path('artifacts/validation/0.9.0/web-api.json'))
+parser.add_argument('--output', type=Path, default=Path('artifacts/validation/0.10.0/web-api.json'))
+parser.add_argument('--version', default='0.10.0')
 args=parser.parse_args()
 BASE=args.url.rstrip('/')
 def api(path, value=None):
@@ -27,7 +28,7 @@ def wait(job):
         time.sleep(.25)
     raise AssertionError('Training did not finish')
 
-info=api('/api/info'); assert info['version']=='0.9.0' and len(info['models'])>=33
+info=api('/api/info'); assert info['version']==args.version and len(info['models'])>=33
 model=next(m for m in info['models'] if m['name']=='yolov8n.pt')
 with urlopen(BASE+'/api/sample') as response:
     picture=Image.open(io.BytesIO(response.read())).convert('RGB')

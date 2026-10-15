@@ -1,5 +1,9 @@
 # 纯 C# 跑 YOLO：推理、检测头微调和网页版，这次一起交付
 
+> 0.10.0 源码更新：检测头训练已扩展到 v8、v9、v10、YOLO11、YOLO26，网页也可选择五个系列。新增双分支、深度卷积、YOLO26 标签分配与渐进损失；[训练测试与评测](../../artifacts/training-evaluation-0.10.0.md)。下文推理图表与 0.9.0 下载链接继续对应当时的冻结版本，旧发布包只支持 v8 训练。
+
+![五代检测头的实际训练曲线，合成单图流程验证](../../artifacts/training-loss-0.10.0.png)
+
 ![SimdYolo 0.9.0：纯 C# YOLO 推理与检测头微调](assets/0.9.0/01-wechat-cover.png)
 
 **代码：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)

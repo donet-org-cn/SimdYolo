@@ -18,7 +18,7 @@ def sha(path):
 
 def main():
     """只允许完整且数值检查通过的结果进入当前版本文章。"""
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--version",default="0.9.0");args=parser.parse_args();version=args.version
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--version",default="0.9.0");parser.add_argument("--source-version");args=parser.parse_args();version=args.version
     report_path=ROOT/f"artifacts/runtime-comparison-{version}.json";report=json.loads(report_path.read_text(encoding="utf-8"))
     assert report["Status"]=="complete"
     expected=len(report["Models"])*len(report["Engines"])*report["Repeats"]
@@ -55,6 +55,7 @@ def main():
     manifest={"SourceReportSha256":sha(report_path),"MeasuredVersion":version,"CurrentRelease":version,"AssemblySha256":report["SimdYoloDllSha256"],
               "MeasurementWindows":len(report["Records"]),"TimedFrames":sum(r["Iterations"] for r in report["Records"]),"CorrectnessOutputs":sum(len(r["Correctness"]) for r in report["Records"]),
               "Articles":articles,"Files":files,"Checks":{"AllRankTablesMatchRawReport":True,"Utf8WithoutReplacementCharacters":True,"RelativeLinksExist":True,"PngAndSvgValidated":True}}
+    manifest["CurrentSourceVersion"]=args.source_version or version
     (ROOT/"docs/articles/manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8",newline="\n")
     print(json.dumps({"status":"passed","documents":len(articles),"png":10,"svg":10,"version":version}))
 

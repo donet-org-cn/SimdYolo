@@ -1,0 +1,6480 @@
+{
+  "status": "passed",
+  "sourceModel": "F:\\simdyolo\\models\\pt\\yolo11n.pt",
+  "sourceModelSha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+  "fixtureSha256": "61b79f2e22d491d8649296acd61e7457e9cb56f095a9e8a380a2874a31c2a077",
+  "coreAssemblySha256": "30970ba0592dabd32bd848521fb9c8a6218165cd5960238f395abc84fbd82d18",
+  "trainingAssemblySha256": "e5971a8d0671a5b97ae72ee02146860391194e2102b3b63414e92e4ebb143232",
+  "headKind": "Dfl",
+  "regMax": 16,
+  "csharpDevice": "Cpu",
+  "epoch": 0,
+  "scheduleEpochs": 5,
+  "reference": {
+    "ultralyticsVersion": "8.4.0",
+    "torchVersion": "2.11.0+cpu",
+    "device": "cpu",
+    "threads": 2,
+    "sources": {
+      "nn/modules/head.py": "1f7eb0a5a37f85bf3ebf396e15f47618b8ec645dce84fd5bd289e1d6fd19dc1e",
+      "utils/loss.py": "4fee4c40850e967605bed7bb72f36f6b926fbf2e5af3808c69f961cd786d59f4",
+      "utils/tal.py": "bdf71f4b2efccddb476c6ce5be8e540f1fac0b01cb45d181a833b7097ed9891d",
+      "utils/metrics.py": "a6e3069f52df548943bf1e4aed44b846d2bc1d85ba71197d3b39df5749d43ef9"
+    }
+  },
+  "validatorSha256": "3a52059829f7a03d4a5bf08ef82aa61688d0146da8b1d89beeee23605c82bf21",
+  "totalChecks": 418,
+  "passedChecks": 418,
+  "failedChecks": 0,
+  "checks": [
+    {
+      "name": "one2many.officialHead.weight",
+      "category": "schedule",
+      "shape": [],
+      "elements": 1,
+      "atol": 1e-07,
+      "rtol": 1e-07,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.topk",
+      "category": "assignmentConfig",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.topk2",
+      "category": "assignmentConfig",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.box",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 9.168677631794928e-14,
+      "maxToleranceRatio": 9.168677348358644e-10,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.classification",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 1.6236059570406969e-06,
+      "maxToleranceRatio": 0.009323032153365,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.dfl",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 1.0116907022052652e-13,
+      "maxToleranceRatio": 1.0116906680008986e-09,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.total",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 1.6234082794164273e-06,
+      "maxToleranceRatio": 0.00932189657495683,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.officialHead.positives",
+      "category": "assignment",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.boxes.0",
+      "category": "headForward",
+      "shape": [
+        1,
+        64,
+        8,
+        8
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 9.059906005859375e-06,
+      "maxToleranceRatio": 0.00899865712347542,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.boxes.0.gradient",
+      "category": "headOutputGradient",
+      "shape": [
+        1,
+        64,
+        8,
+        8
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.7192471324942744e-15,
+      "maxToleranceRatio": 7.438494258284925e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.boxes.1",
+      "category": "headForward",
+      "shape": [
+        1,
+        64,
+        4,
+        4
+      ],
+      "elements": 1024,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.337860107421875e-06,
+      "maxToleranceRatio": 0.0023586805613514585,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.boxes.1.gradient",
+      "category": "headOutputGradient",
+      "shape": [
+        1,
+        64,
+        4,
+        4
+      ],
+      "elements": 1024,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.boxes.2",
+      "category": "headForward",
+      "shape": [
+        1,
+        64,
+        2,
+        2
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.867813110351562e-06,
+      "maxToleranceRatio": 0.006565359434213337,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.boxes.2.gradient",
+      "category": "headOutputGradient",
+      "shape": [
+        1,
+        64,
+        2,
+        2
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.classes.0",
+      "category": "headForward",
+      "shape": [
+        1,
+        2,
+        8,
+        8
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.76837158203125e-06,
+      "maxToleranceRatio": 0.0003068593288645523,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.classes.0.gradient",
+      "category": "headOutputGradient",
+      "shape": [
+        1,
+        2,
+        8,
+        8
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.6763806343078613e-08,
+      "maxToleranceRatio": 3.257838972317157e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.classes.1",
+      "category": "headForward",
+      "shape": [
+        1,
+        2,
+        4,
+        4
+      ],
+      "elements": 32,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.337860107421875e-06,
+      "maxToleranceRatio": 0.0002056692312248672,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.classes.1.gradient",
+      "category": "headOutputGradient",
+      "shape": [
+        1,
+        2,
+        4,
+        4
+      ],
+      "elements": 32,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.0978193283081055e-08,
+      "maxToleranceRatio": 6.910811913722057e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.classes.2",
+      "category": "headForward",
+      "shape": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "elements": 8,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.337860107421875e-06,
+      "maxToleranceRatio": 0.00028699550392843545,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.classes.2.gradient",
+      "category": "headOutputGradient",
+      "shape": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "elements": 8,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.1641532182693481e-08,
+      "maxToleranceRatio": 2.2831191635745818e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.904787935331115e-14,
+      "maxToleranceRatio": 1.5809575576326353e-10,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.10702591327572e-15,
+      "maxToleranceRatio": 1.021405180343766e-11,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.372302437298913e-15,
+      "maxToleranceRatio": 6.7446048715553644e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.6407322429331543e-14,
+      "maxToleranceRatio": 9.281464390953571e-11,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.9976021664879227e-15,
+      "maxToleranceRatio": 5.995204324707102e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.8735013540549517e-15,
+      "maxToleranceRatio": 3.747002705418895e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.175237850427948e-14,
+      "maxToleranceRatio": 6.350475617226706e-11,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.496403249731884e-15,
+      "maxToleranceRatio": 8.992806481727953e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        128,
+        3,
+        3
+      ],
+      "elements": 73728,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        128,
+        3,
+        3
+      ],
+      "elements": 73728,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        256,
+        3,
+        3
+      ],
+      "elements": 147456,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        256,
+        3,
+        3
+      ],
+      "elements": 147456,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "elements": 576,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.421438694000244e-07,
+      "maxToleranceRatio": 0.00043225500947290514,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "elements": 576,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.2584572434425354e-08,
+      "maxToleranceRatio": 4.4675083776075766e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.816079020500183e-08,
+      "maxToleranceRatio": 3.630418179212913e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "elements": 5120,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.60770320892334e-07,
+      "maxToleranceRatio": 0.00041240625475592787,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "elements": 5120,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.165485734120011e-08,
+      "maxToleranceRatio": 8.327897510007139e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.1886080503463745e-08,
+      "maxToleranceRatio": 4.2495338885192036e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.812594175338745e-07,
+      "maxToleranceRatio": 0.0005265986990724393,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.7695128917694092e-08,
+      "maxToleranceRatio": 3.5078064571110474e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.7706846594810486e-08,
+      "maxToleranceRatio": 5.5110433881167105e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.537884473800659e-07,
+      "maxToleranceRatio": 0.0012852347730945195,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.498318493366241e-09,
+      "maxToleranceRatio": 1.690667307975222e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.51925802230835e-09,
+      "maxToleranceRatio": 1.2974983432127806e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 9.834766387939453e-07,
+      "maxToleranceRatio": 0.0007448352447009485,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.3527612686157227e-08,
+      "maxToleranceRatio": 5.425551177524252e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "elements": 1152,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.854534149169922e-07,
+      "maxToleranceRatio": 0.0008022029093543051,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "elements": 1152,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.450580596923828e-08,
+      "maxToleranceRatio": 0.00013714164810208748,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.9802322387695312e-08,
+      "maxToleranceRatio": 5.951681629789451e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "elements": 10240,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.748603820800781e-07,
+      "maxToleranceRatio": 0.0008099407647047962,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "elements": 10240,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.960464477539063e-08,
+      "maxToleranceRatio": 9.63077290046412e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.043081283569336e-07,
+      "maxToleranceRatio": 0.00015700176862492357,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.9073486328125e-06,
+      "maxToleranceRatio": 0.0016141696547562754,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.1548399925231934e-07,
+      "maxToleranceRatio": 0.00018702649792629242,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.774199962615967e-08,
+      "maxToleranceRatio": 0.00011529742764149159,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.046627044677734e-07,
+      "maxToleranceRatio": 0.001297435836418277,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.5832483768463135e-08,
+      "maxToleranceRatio": 2.9830184445610428e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.210719347000122e-08,
+      "maxToleranceRatio": 2.3147523791505707e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.940696716308594e-07,
+      "maxToleranceRatio": 0.000607035934989527,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.940696716308594e-08,
+      "maxToleranceRatio": 0.00011504264669260444,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "elements": 2304,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.960464477539062e-07,
+      "maxToleranceRatio": 0.0009520879794579051,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "elements": 2304,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.1641532182693481e-08,
+      "maxToleranceRatio": 2.3214230426694176e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.6763806343078613e-08,
+      "maxToleranceRatio": 3.346358413762903e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "elements": 20480,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.677567631006241e-07,
+      "maxToleranceRatio": 0.0009241922829252497,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "elements": 20480,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.122274160385132e-09,
+      "maxToleranceRatio": 1.0155350017446474e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.984919309616089e-09,
+      "maxToleranceRatio": 1.384173162159147e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.917383193969727e-07,
+      "maxToleranceRatio": 0.0007815615144331675,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.0943040251731873e-08,
+      "maxToleranceRatio": 2.1645194435755894e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.05359673500061e-09,
+      "maxToleranceRatio": 1.2107076248931993e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 9.883660823106766e-08,
+      "maxToleranceRatio": 0.0001972254522232804,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.6775524020195007e-09,
+      "maxToleranceRatio": 5.35186283174678e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.0954757928848267e-09,
+      "maxToleranceRatio": 4.152188630807052e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.weight.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.0803341865539551e-07,
+      "maxToleranceRatio": 0.00018981524692934565,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.weight.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.weight.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.bias.gradient",
+      "category": "parameterGradient",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.9601733729073945e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.bias.connected",
+      "category": "gradientConnectivity",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.bias.after",
+      "category": "parameterUnchangedBeforeSgd",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.4901161193847656e-08,
+      "maxToleranceRatio": 0.00015815451645648354,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.226824266011377e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 5.631546264245081e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 9.313225746154785e-10,
+      "maxToleranceRatio": 1.7789285152430204e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.0001059649571131738,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00011266621153272749,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.4901161193847656e-08,
+      "maxToleranceRatio": 0.0001617527109673482,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.206073527933168e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.4901161193847656e-08,
+      "maxToleranceRatio": 0.00016348969673217123,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 2.9802322387695312e-08,
+      "maxToleranceRatio": 0.00028332538723674377,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 9.313225746154785e-09,
+      "maxToleranceRatio": 0.00016360568394155307,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.4901161193847656e-08,
+      "maxToleranceRatio": 0.00016941858641502495,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.4901161193847656e-08,
+      "maxToleranceRatio": 0.00014046663550086602,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.1641532182693481e-10,
+      "maxToleranceRatio": 2.311883373455183e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 2.9802322387695312e-08,
+      "maxToleranceRatio": 0.00022509644369678414,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 4.656612873077393e-10,
+      "maxToleranceRatio": 8.995421392579584e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.251616277243278e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.1641532182693481e-10,
+      "maxToleranceRatio": 2.3110711470416933e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 2.9802322387695312e-08,
+      "maxToleranceRatio": 0.00016359346258929157,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 4.656612873077393e-10,
+      "maxToleranceRatio": 9.013963660005393e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.862645149230957e-09,
+      "maxToleranceRatio": 3.230736753912271e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.1641532182693481e-10,
+      "maxToleranceRatio": 2.3064199805131543e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.4901161193847656e-08,
+      "maxToleranceRatio": 0.00014232603495863307,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 4.656612873077393e-10,
+      "maxToleranceRatio": 9.090604696142933e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.862645149230957e-09,
+      "maxToleranceRatio": 3.433013106047634e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 5.820766091346741e-11,
+      "maxToleranceRatio": 1.1573957941998163e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 2.9802322387695312e-08,
+      "maxToleranceRatio": 0.00016987716386133786,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 4.656612873077393e-10,
+      "maxToleranceRatio": 9.02073817912907e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 9.313225746154785e-10,
+      "maxToleranceRatio": 1.7692427932769833e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.1641532182693481e-10,
+      "maxToleranceRatio": 2.313347586424559e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00010451000707877631,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 9.313225746154785e-10,
+      "maxToleranceRatio": 1.7718735391954718e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 5.97767745149469e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 2.3283064365386963e-10,
+      "maxToleranceRatio": 4.576091861112334e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.running_mean.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 9.256949821703741e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.running_var.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.862645149230957e-09,
+      "maxToleranceRatio": 3.3616739140602387e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.num_batches_tracked.after",
+      "category": "batchNormRunningStatistics",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.275957614183426e-12,
+      "maxToleranceRatio": 1.454801184258791e-08,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.10702591327572e-15,
+      "maxToleranceRatio": 1.021405180343766e-11,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.372302437298913e-15,
+      "maxToleranceRatio": 6.7446048715553644e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.275957614183426e-12,
+      "maxToleranceRatio": 1.4547983436968508e-08,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.9976021664879227e-15,
+      "maxToleranceRatio": 5.995204324707102e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.8735013540549517e-15,
+      "maxToleranceRatio": 3.747002705418895e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.4551915228366852e-11,
+      "maxToleranceRatio": 2.9089158042913347e-08,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.0.2.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.496403249731884e-15,
+      "maxToleranceRatio": 8.992806481727953e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        128,
+        3,
+        3
+      ],
+      "elements": 73728,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        128,
+        3,
+        3
+      ],
+      "elements": 73728,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.1.2.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        256,
+        3,
+        3
+      ],
+      "elements": 147456,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        256,
+        3,
+        3
+      ],
+      "elements": 147456,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "elements": 36864,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv2.2.2.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "elements": 576,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.228842956293578e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "elements": 576,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.421438694000244e-07,
+      "maxToleranceRatio": 0.00043221825175628954,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.2584572434425354e-08,
+      "maxToleranceRatio": 4.4675083776075766e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        64
+      ],
+      "elements": 64,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.816079020500183e-08,
+      "maxToleranceRatio": 3.630418179212913e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "elements": 5120,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00010804412612868162,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "elements": 5120,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.60770320892334e-07,
+      "maxToleranceRatio": 0.0004124073627015765,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.165485734120011e-08,
+      "maxToleranceRatio": 8.327897510007139e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.1886080503463745e-08,
+      "maxToleranceRatio": 4.2495338885192036e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.208587094326728e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.812594175338745e-07,
+      "maxToleranceRatio": 0.0005265951804293294,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.7695128917694092e-08,
+      "maxToleranceRatio": 3.5078064571110474e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.7706846594810486e-08,
+      "maxToleranceRatio": 5.5110433881167105e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00010752074147679588,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.537884473800659e-07,
+      "maxToleranceRatio": 0.0012852876690764346,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.498318493366241e-09,
+      "maxToleranceRatio": 1.690667307975222e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.51925802230835e-09,
+      "maxToleranceRatio": 1.2974983432127806e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 9.360926636630012e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 9.834766387939453e-07,
+      "maxToleranceRatio": 0.0007448073386544174,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.0.2.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.3527612686157227e-08,
+      "maxToleranceRatio": 5.425551177524252e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "elements": 1152,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.266027323012142e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "elements": 1152,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.854534149169922e-07,
+      "maxToleranceRatio": 0.0008022026579756698,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.450580596923828e-08,
+      "maxToleranceRatio": 0.00013714164810208748,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        128
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.9802322387695312e-08,
+      "maxToleranceRatio": 5.951681629789451e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "elements": 10240,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00010829283226528626,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "elements": 10240,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 7.748603820800781e-07,
+      "maxToleranceRatio": 0.0008099476123665288,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.960464477539063e-08,
+      "maxToleranceRatio": 9.63077290046412e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.043081283569336e-07,
+      "maxToleranceRatio": 0.00015700176862492357,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 5.587935447692871e-09,
+      "maxToleranceRatio": 0.00010452179543526561,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.9073486328125e-06,
+      "maxToleranceRatio": 0.0016141859491960386,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.1548399925231934e-07,
+      "maxToleranceRatio": 0.00018702649792629242,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.774199962615967e-08,
+      "maxToleranceRatio": 0.00011529742764149159,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00010713572113857416,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.046627044677734e-07,
+      "maxToleranceRatio": 0.0012974182313868078,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.5832483768463135e-08,
+      "maxToleranceRatio": 2.9830184445610428e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.210719347000122e-08,
+      "maxToleranceRatio": 2.3147523791505707e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 0.00010508535458094752,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.940696716308594e-07,
+      "maxToleranceRatio": 0.0006070640399949978,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.1.2.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 8.940696716308594e-08,
+      "maxToleranceRatio": 0.00011504264669260444,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "elements": 2304,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.203636579207095e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "elements": 2304,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.960464477539062e-07,
+      "maxToleranceRatio": 0.0009520906803807103,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.1641532182693481e-08,
+      "maxToleranceRatio": 2.3214230426694176e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.1641532182693481e-10,
+      "maxToleranceRatio": 2.3036806824049166e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        256
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.6763806343078613e-08,
+      "maxToleranceRatio": 3.346358413762903e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "elements": 20480,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.208724361639295e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "elements": 20480,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.677567631006241e-07,
+      "maxToleranceRatio": 0.0009242007460884471,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 5.122274160385132e-09,
+      "maxToleranceRatio": 1.0155350017446474e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.984919309616089e-09,
+      "maxToleranceRatio": 1.384173162159147e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 1.862645149230957e-09,
+      "maxToleranceRatio": 3.4007680702702065e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "elements": 720,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.917383193969727e-07,
+      "maxToleranceRatio": 0.0007815589970466542,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.0943040251731873e-08,
+      "maxToleranceRatio": 2.1645194435755894e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 6.05359673500061e-09,
+      "maxToleranceRatio": 1.2107076248931993e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.248167334418724e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "elements": 6400,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 9.883660823106766e-08,
+      "maxToleranceRatio": 0.00019722742343538036,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.6775524020195007e-09,
+      "maxToleranceRatio": 5.35186283174678e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        80
+      ],
+      "elements": 80,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.0954757928848267e-09,
+      "maxToleranceRatio": 4.152188630807052e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.weight.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 7.450580596923828e-09,
+      "maxToleranceRatio": 9.232383449098805e-05,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.weight.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "elements": 160,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 1.0803341865539551e-07,
+      "maxToleranceRatio": 0.00018977931087467518,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.bias.sgd",
+      "category": "sgdParameter",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 5e-05,
+      "rtol": 0.0003,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "cv3.2.2.bias.momentum",
+      "category": "sgdMomentum",
+      "shape": [
+        2
+      ],
+      "elements": 2,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.725290298461914e-09,
+      "maxToleranceRatio": 6.9601733729073945e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.weight",
+      "category": "schedule",
+      "shape": [],
+      "elements": 1,
+      "atol": 1e-07,
+      "rtol": 1e-07,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.topk",
+      "category": "assignmentConfig",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.topk2",
+      "category": "assignmentConfig",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.box",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 8.19168137012479e-14,
+      "maxToleranceRatio": 8.191681116891159e-10,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.classification",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 1.6236059570406969e-06,
+      "maxToleranceRatio": 0.009323032153365,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.dfl",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 9.051092918412502e-14,
+      "maxToleranceRatio": 9.051092612403355e-10,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.total",
+      "category": "loss",
+      "shape": [],
+      "elements": 1,
+      "atol": 0.0001,
+      "rtol": 0.0003,
+      "maxAbsError": 1.6234082794164273e-06,
+      "maxToleranceRatio": 0.00932189657495683,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.fixtureLogits.positives",
+      "category": "assignment",
+      "shape": [],
+      "elements": 1,
+      "atol": 0,
+      "rtol": 0,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.isolated.boxes.0.gradient",
+      "category": "isolatedLossGradient",
+      "shape": [
+        1,
+        64,
+        8,
+        8
+      ],
+      "elements": 4096,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 3.011479954295737e-15,
+      "maxToleranceRatio": 6.022959903163557e-12,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.isolated.boxes.1.gradient",
+      "category": "isolatedLossGradient",
+      "shape": [
+        1,
+        64,
+        4,
+        4
+      ],
+      "elements": 1024,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.isolated.boxes.2.gradient",
+      "category": "isolatedLossGradient",
+      "shape": [
+        1,
+        64,
+        2,
+        2
+      ],
+      "elements": 256,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 0.0,
+      "maxToleranceRatio": 0.0,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.isolated.classes.0.gradient",
+      "category": "isolatedLossGradient",
+      "shape": [
+        1,
+        2,
+        8,
+        8
+      ],
+      "elements": 128,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 2.3283064365386963e-10,
+      "maxToleranceRatio": 4.6219227104558024e-07,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.isolated.classes.1.gradient",
+      "category": "isolatedLossGradient",
+      "shape": [
+        1,
+        2,
+        4,
+        4
+      ],
+      "elements": 32,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 9.313225746154785e-10,
+      "maxToleranceRatio": 1.8132148655136991e-06,
+      "failedElements": 0,
+      "passed": true
+    },
+    {
+      "name": "one2many.isolated.classes.2.gradient",
+      "category": "isolatedLossGradient",
+      "shape": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "elements": 8,
+      "atol": 0.0005,
+      "rtol": 0.002,
+      "maxAbsError": 4.656612873077393e-10,
+      "maxToleranceRatio": 9.158869048269001e-07,
+      "failedElements": 0,
+      "passed": true
+    }
+  ],
+  "files": {
+    "parameter-0.f32": "99c5ddcb5704d693315286cb9672e98cdccd397f132cd092e9832bc9b9f772c0",
+    "parameter-1.f32": "4749fd35af10a3cbac4713733cea6ae6074e5befd44837f8b1e2035d96d79454",
+    "parameter-2.f32": "69feda9e987e52ab8fc4c9243e9048e0af64f6fe50112e69fac614266a2e90d2",
+    "parameter-3.f32": "3fe4444ef3a7167014c131084ab83b2c8f5b8389f58d0a160da6f572454a2e33",
+    "parameter-4.f32": "a4b179a6f6482f804b0594cc76b4cf5d3cbe94d9d0bd57c0c98f11fdf7a4efd2",
+    "parameter-5.f32": "af3cd41039803b9feee287b4639b8398a941868ec8a688a986655601c8521ddc",
+    "parameter-6.f32": "a4cb6fde96d0a080bdf8f0946861787c16f148217988ad499eb7bee7eee7a8f2",
+    "parameter-7.f32": "ec41e1766ebb81891c7585e69986947f9def31b19e79de0fc3b766bd3645fd30",
+    "parameter-8.f32": "e6a89d62d27a4c18039c71e5d8bffcdfbda953b4e890472b9d40bb328e3e3df4",
+    "parameter-9.f32": "9f4f9ebeee78ef4629f0e9648916622dc5c7a6dc95cb617694a9dfc2e5b5e60c",
+    "parameter-10.f32": "4de32ffe0077202aaaf38c2c129e510af8872d66d809df01a3341e8076432fab",
+    "parameter-11.f32": "3ab82ad30ad7cda79fcc93f595d1c266298215925b5f9a08d2f49d8a8986cc1b",
+    "parameter-12.f32": "1cec10b62308a2802dd535897b615c8f3c739035d689e02fd5d98d916f6be12a",
+    "parameter-13.f32": "dbef64d9e14e895809efe297f3e9f2206b1d6392ebf60c989bfea93d297df87e",
+    "parameter-14.f32": "6fd9253cd6073e82b316d49469f4602c2128c02f2f79ef04cc96f531e04d1bdb",
+    "parameter-15.f32": "1c9483d64dd53db25ccd445364ab35052a154260e11e0649da676d24a156cd24",
+    "parameter-16.f32": "bd54174e3e634899a9e9424ee4639dca454b01c44e7faa1277273906fb99324c",
+    "parameter-17.f32": "00b7260204af2283101e1d383081dbec98062ae31cedf3c1f7e8db569e2585d9",
+    "parameter-18.f32": "bacbf17debfe214a9e5ac38b4483e107c1aa4d98966a6854342a8fc6620853bc",
+    "parameter-19.f32": "247217be4f39fc59856dce6661367c1e8ae2e3bee398ef740d15bf864f167a43",
+    "parameter-20.f32": "b67c2b86578422802e42924f466dbc182dcb4abf11280b1fd096b8a210313bb5",
+    "parameter-21.f32": "ee486dd4da1fb71abddc6d7be83873b8d25a8f12df8a942fccaadd0d26c53f9e",
+    "parameter-22.f32": "1d0e06d6284d2b1a4b920a089db2a8ec5115bddee47ca4e7fff46e8cb516741b",
+    "parameter-23.f32": "13beecfbc8c0b4f045df32166a8fb82ab83b4d5cd4dc6098c15eb6c4e5523288",
+    "parameter-24.f32": "20406b9bceef12cdf89cd46e6b5efc67bd4ffc1cd3b7106d25d726de093c126f",
+    "parameter-25.f32": "0b3fabde65e3f6fb79d78da0d4ad5274e71a3157c9c80baebe50994888957cce",
+    "parameter-26.f32": "2492618fe22a0ca81984cc1874f66ee58ec82ee5c63e4440ba1f93cd02581b10",
+    "parameter-27.f32": "80b564e3c455b92e9f677b48cf70363971daf34e201b70071410db889f15a2ac",
+    "parameter-28.f32": "31dfec9a7f7adcffca5d59dab40d844770304dbd06d004e42cf88761ee430dda",
+    "parameter-29.f32": "7ffd2cfee9756c322ca0a20434e2e5c017f109babc247ca76d23e65f342b807b",
+    "parameter-30.f32": "ce10a312c5c51d688daea086b7495284d167395b39e67e64f644bd5dce052697",
+    "parameter-31.f32": "4bf9d8cedea18938691ca1203480629da7a3e27c3cfa43ecc59739dddcb34160",
+    "parameter-32.f32": "b9a54a6760b9aff83e9507a390412cd5193ae324acfa16236ee3db9924b19f3d",
+    "parameter-33.f32": "7000cdbfb25c060684401e45074a224a147cebafb06c386620933d44598d7f1f",
+    "parameter-34.f32": "0953d2294d2d11591f39965dcbabc3c839225cb11e46bbeb8f82d92c7c22d24d",
+    "parameter-35.f32": "447033ccb046fe86659ed8db3406a1913adc2e602ea18c48f313a733458f48ce",
+    "parameter-36.f32": "201068b6af34999d98332b77facf908afb2365ed23189590d1b8c3e1e0fa6193",
+    "parameter-37.f32": "298f2668eda3863db046fa72cf02e141ebb83db1ae6f43d8f7ccb223222fdcfe",
+    "parameter-38.f32": "d4d286328b0586494228582e96a690e8c74a09fd295506cf6c274dc6c5348d06",
+    "parameter-39.f32": "8c80369c0c848e6fb2184061f968d1dea81cff2950ba5a287cab4136d58030a8",
+    "parameter-40.f32": "aceaa169438429ded216a02f3c69befc7e59e6934d605d4f50d311d3b0923665",
+    "parameter-41.f32": "66f9b8bf7360f8c878358151cfe668708e2c96b78eb79b2bf9f9be0f98c5b13b",
+    "parameter-42.f32": "28c8703915220272e645a1e65053405c7ea7cd8211b29e897d18e650bc711735",
+    "parameter-43.f32": "27058f4771dc1385c3bdd0e92cab00be87abfbb735918a5c3f7f428b59a723df",
+    "parameter-44.f32": "e2169e28c83022f2b11ce30a6c763c8ede7ae6bc76c49bff627b92aafd2b1389",
+    "parameter-45.f32": "b9c6ab8f1982d5d0e1cd93a07b6db418f32dbc8383831ed008235a7a9d06a194",
+    "parameter-46.f32": "b594b641a0cee411505747eac9d2cf788843949ff9b68dbcc1ce4a94f5ffb79b",
+    "parameter-47.f32": "c941a1790b5e89f3c54bbd5e075398f8e509c65d7c857a5eedbebef285d13b2d",
+    "parameter-48.f32": "18200920be6541b0cb828217fb1408bbb28da03a8fb35946a4afcf6a9d90fc69",
+    "parameter-49.f32": "aa24e5f530c207ccd8d1d07747f532e3c34eaada824c3a33692747e3a59a1445",
+    "parameter-50.f32": "3853ce54bcf63deef2439071ed801bc69e04ed9471ecbf656c24830da5e04f22",
+    "parameter-51.f32": "3e0bfc5c40b7a97db7bf67bff195ba3ca55e110c20ecbaf7b9b6fb2f2eef12b4",
+    "parameter-52.f32": "6c2a42724ecd8dd9cc77911d835b56b9a3dcc265375ec51830218f9bbba7cc89",
+    "parameter-53.f32": "b1ba35e67668bed5fb27fa2cc3e4b387bf383dd6372a1b2b393b47341062b671",
+    "parameter-54.f32": "2da0bc7a2b67bc19e8034948707654c5bb24ff8588e1b39ff8ef0e1268bc471f",
+    "parameter-55.f32": "d7fe179611d10d2827ffb77ff49ba25fa5d5075b42e8db6db763da79927ac70f",
+    "parameter-56.f32": "4b0d880a79af0197a6a8c0e37535f314d094885136297c058d07800f02a54b10",
+    "parameter-57.f32": "3581e632c27f9e92c48349502619eca4036493df42f0be22cb9cac46e6d54a02",
+    "parameter-58.f32": "4c3bc95698d5aa937545bb26c474c5830576dff7e229562cc6c81d71898ef14e",
+    "parameter-59.f32": "c95285a4ddd80f063566f73c561a5af300744c3c5094c6ae95a6e8fd03df11ff",
+    "parameter-60.f32": "2c5bc1e2f37e5937ab4bac2da9dd49c3d208571daef90eaeff77c630a5af2271",
+    "parameter-61.f32": "c4bc84e2f91608f2d95ca2443ad90b1acfedab498e1d6d0808659035971715f9",
+    "parameter-62.f32": "374717d61ff7dea860d299fa0d7c8d90ea904c2cac54ee392ee66ca162b294a2",
+    "parameter-63.f32": "80be29d18ec64fb00dcdb67d5b4fabf099313094d9e4fe9582f0c2ea2a2f2e8b",
+    "parameter-64.f32": "50630f9cdc8d8f64abb84e5a8b576b05f32a93143d61f0175779c25504f47c65",
+    "parameter-65.f32": "73409ffa97a9cd88585f61d5da5ec14dc9eb2a25d8dd7d66c70c7887442589d3",
+    "parameter-66.f32": "9e08e297e42abda9261ec39de9383564bd642a4e2b24db1e024c3c992598e67b",
+    "parameter-67.f32": "c89d186cf757bad97968a9c9d8051da7a543a392a1a7bc9587cbd3c33061d613",
+    "parameter-68.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-69.f32": "4020092cd521bdcb3098d0127f8dd5734acd575279185b3da03e3ad7c1219765",
+    "parameter-70.f32": "8526ab7f80eff6e90dec96c344a5f7a9e06fcd2a813f2c3d3f32d589e137098c",
+    "parameter-71.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-72.f32": "a642bc90450de158a144411135712f2e3650ff393e45eb05885993c34cce2a5c",
+    "parameter-73.f32": "2a3e6394f2279f07f7e865b36266a64cbe5d28b86d46687aae1113f4fd1bd068",
+    "parameter-74.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-75.f32": "4cf74e4e07c0fdab85c89df42349be7935bb05ec2b8fa29f3ec799ba199e6cb2",
+    "parameter-76.f32": "f28b38200b58e397aa0d37203ea51cc457536cea7a9c225a2923e7f7327b83b2",
+    "parameter-77.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-78.f32": "2fe55b8f67c892b4c6170b5d38e440974af5da01bdd3d7d3cc5eb6c34de142ca",
+    "parameter-79.f32": "545a56900d447bd9ec1d7b63dc52c8877fe9673c2acd36039861327b72dbfec0",
+    "parameter-80.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-81.f32": "6b6e4a2309d99f63409b5b124c40f5174457b2e671f031f106dd2aae48ab3e45",
+    "parameter-82.f32": "40610084b523976677dcc290fdec19d8add9c1d2f0ee029b2ac91bddc9031dac",
+    "parameter-83.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-84.f32": "e18a69c460ed3a1254d2673cb8af43dcc3d20f2a87b608a08624429ec4e678ad",
+    "parameter-85.f32": "18d1a66e6d2a2e7fa185fd9a9fc65414b01066116f157d85169e6c7cd6a00187",
+    "parameter-86.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-87.f32": "343e8e8f629ab1293048f41854848a7412938e0fb870cb1bcf953d063744b376",
+    "parameter-88.f32": "9f9ea7eb94ab20b78775dc81f81dcd3961441a0abdaaca3f063a6a25d3aa004c",
+    "parameter-89.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-90.f32": "9d1df1e601ed41e2ae30ef76b1b6461e89647f3008ac2e21cbb4984c715eaa2b",
+    "parameter-91.f32": "298305803e4f1298996a07e4704c232386c27d55984f0ef9ef3db2e8862ebbdf",
+    "parameter-92.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-93.f32": "737179c30b85669324249e023e4e7cd4b542860acff85f4c05b8348f3fa5e37e",
+    "parameter-94.f32": "311d1f10df6b115c2ad0e9c04a3cfe2768c25749cbb17014cd49d85e0078664a",
+    "parameter-95.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-96.f32": "69dbc53ad9c7f746899e6d47ef5df2a00f8a7334b8bc1b5faead9c4739259059",
+    "parameter-97.f32": "37be2268723eeb089cab9d1273572885afb28c9c55763496a577f5d5da7a97c9",
+    "parameter-98.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-99.f32": "9d5095d9330b9c87544fa102a70ef90aeae6f2e632700ac181bbc0429a75ce93",
+    "parameter-100.f32": "e8ee6933dc0210be6f1f35d16d79c402e3877423b63a26992604253594190467",
+    "parameter-101.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-102.f32": "df36df51afc2aa9069e213f260d710b62a11b71b01e2b7425c07ee03986d3904",
+    "parameter-103.f32": "f850127bc3a697f234f5de8a70e3eca40fa5e732b08db3daf425ebd3c20e29f5",
+    "parameter-104.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-105.f32": "c38bb28e195dc9f788a63caf0ff96782fb3330ca4c8f55b1d9bc2ac262c91d5f",
+    "parameter-106.f32": "614438bc1617de0c8597bdb8a8533724e8006ff0ac5e84a60c04128c63175b08",
+    "parameter-107.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-108.f32": "43a8aeaa47b368e81e3d7e93989e6280bb88dcf0ecad2727620c282d95852dd5",
+    "parameter-109.f32": "630422b15fec302281aa3159f35c9208f25087095df705c7ea41f77b82873870",
+    "parameter-110.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-111.f32": "02c661c197ec608764252656010c54309c26a9afed08eb30da2d4bdcc3edc0ca",
+    "parameter-112.f32": "2b6d1ffec034c6a4e0aa7599b84d73ce6dae689cfcddfa9baccf229e9ad4665c",
+    "parameter-113.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-114.f32": "3c36c71f3e88f280b3284335fc409709a379e67d852da3a08ffb9c292385202f",
+    "parameter-115.f32": "7909c42ff886427b1acef7c20565b61e954dcc3f89fb327bc1ebb5fded703507",
+    "parameter-116.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "parameter-117.f32": "01bb6ba6bc6727952e75300f117d37712eb2b44718c38bfabfabed77e9f6a03e",
+    "parameter-118.f32": "e09ed5f87451388ca49933502be3ad4143dbdcca738dca0bff4e65f66ea02931",
+    "parameter-119.f32": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+    "feature-0.f32": "61b197a0e7cfd877891f8ea33726a8ec65a68c7aa0312fe37639ea44df367abc",
+    "feature-1.f32": "53767f21480d93a9a348d04dce6ddf782b3382eafbcff113118fa8b46637fb57",
+    "feature-2.f32": "9cfa76c3473d7a8fc2034dfd36f76ef29215888bca35b9441b5bbd924c891db7",
+    "branch-0-boxes-0.f32": "093589b07f7c8f16d593f3313aaafad8aa44e0765c42b7af1c94e30ec1975cb2",
+    "branch-0-boxes-0-gradient.f32": "40c9e141b2cff576dbd169146bc0b555841e52a004fb5256a8b19e2be363a08b",
+    "branch-0-boxes-1.f32": "39c3b9e58ac14b2fda49f1bcbf6ee689c6bb3bd9af0d9968583d63ad8957a1fd",
+    "branch-0-boxes-1-gradient.f32": "ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7",
+    "branch-0-boxes-2.f32": "9e9950b9dbad3936cbe48c67efdadf0f1b81244b7e31c99e9871633a7f59926c",
+    "branch-0-boxes-2-gradient.f32": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+    "branch-0-classes-0.f32": "0a66f2e870987ef0452ec78a78183f58ed61b414cd732f9487787cea1cc028b7",
+    "branch-0-classes-0-gradient.f32": "8221888c72c15ea07122490d5d76e789c2633836e01bba57074a35ef1e9c77b9",
+    "branch-0-classes-1.f32": "f6d97536caa3fd7ce3306cb60ceb2b78c0d94d0a74b480db9618b06c6cf02e92",
+    "branch-0-classes-1-gradient.f32": "7276ceaabc96537962d25bca8e1ae6ddebc490b349370fe703696019f30dfed9",
+    "branch-0-classes-2.f32": "adc4612afe301eb05b2645508433e8f076b9267e8af88cc87c1171d98345680f",
+    "branch-0-classes-2-gradient.f32": "104888a4a1e8358214c0184ab2b1951cd14f5af26a3fb56e4503fafce653f22c",
+    "gradient-0.f32": "46a57dbb3c65ab26fa0ba1472740b55a19ca15804adde26e4f49c077c38ecffa",
+    "after-0.f32": "99c5ddcb5704d693315286cb9672e98cdccd397f132cd092e9832bc9b9f772c0",
+    "gradient-1.f32": "6a7422e79dd76f1211311ebf0e346289a2fe998a0ebb46ee8714916309fa8556",
+    "after-1.f32": "4749fd35af10a3cbac4713733cea6ae6074e5befd44837f8b1e2035d96d79454",
+    "gradient-2.f32": "39700fba4e38b456c0b030dd2ee6a2b9627bb0493826dce286ecd2c5c5fc97a7",
+    "after-2.f32": "69feda9e987e52ab8fc4c9243e9048e0af64f6fe50112e69fac614266a2e90d2",
+    "gradient-3.f32": "c5493f1bf6cd936985c5ae3bdd5197164d4ac36a818a384c31601687769c7f03",
+    "after-3.f32": "3fe4444ef3a7167014c131084ab83b2c8f5b8389f58d0a160da6f572454a2e33",
+    "gradient-4.f32": "f9821ea0d5041fefa92a3b5747c82161b2b884cf528b2ae151fe782148b8fa5c",
+    "after-4.f32": "a4b179a6f6482f804b0594cc76b4cf5d3cbe94d9d0bd57c0c98f11fdf7a4efd2",
+    "gradient-5.f32": "0b30ec8870078ecc4b6a71efe7bc6c0389dc7c0fd1a5f365e5c0add84d0f8cc9",
+    "after-5.f32": "af3cd41039803b9feee287b4639b8398a941868ec8a688a986655601c8521ddc",
+    "gradient-6.f32": "84fcd77a745aafd7aa3fe06fe2b38c907b9f2bdb290c7521823ea8bcec14fbc1",
+    "after-6.f32": "a4cb6fde96d0a080bdf8f0946861787c16f148217988ad499eb7bee7eee7a8f2",
+    "gradient-7.f32": "37407377738263ab36f18986aa599a967cb87a324a2a625565454481d07efb46",
+    "after-7.f32": "ec41e1766ebb81891c7585e69986947f9def31b19e79de0fc3b766bd3645fd30",
+    "gradient-8.f32": "b9c048de34d844a2381155656d249036a85a52b60cb9fd06bf1600e44d7aa3ae",
+    "after-8.f32": "e6a89d62d27a4c18039c71e5d8bffcdfbda953b4e890472b9d40bb328e3e3df4",
+    "gradient-9.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-9.f32": "9f4f9ebeee78ef4629f0e9648916622dc5c7a6dc95cb617694a9dfc2e5b5e60c",
+    "gradient-10.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-10.f32": "4de32ffe0077202aaaf38c2c129e510af8872d66d809df01a3341e8076432fab",
+    "gradient-11.f32": "8123c216413f82bbaa0339c27a43d9822c2a043e20662b27c97874429b996e9a",
+    "after-11.f32": "3ab82ad30ad7cda79fcc93f595d1c266298215925b5f9a08d2f49d8a8986cc1b",
+    "gradient-12.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-12.f32": "1cec10b62308a2802dd535897b615c8f3c739035d689e02fd5d98d916f6be12a",
+    "gradient-13.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-13.f32": "dbef64d9e14e895809efe297f3e9f2206b1d6392ebf60c989bfea93d297df87e",
+    "gradient-14.f32": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+    "after-14.f32": "6fd9253cd6073e82b316d49469f4602c2128c02f2f79ef04cc96f531e04d1bdb",
+    "gradient-15.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-15.f32": "1c9483d64dd53db25ccd445364ab35052a154260e11e0649da676d24a156cd24",
+    "gradient-16.f32": "250480ecefa3655c774b6a4e5d4eb16675ee4f181c2285c25020fac6e3aaf3b5",
+    "after-16.f32": "bd54174e3e634899a9e9424ee4639dca454b01c44e7faa1277273906fb99324c",
+    "gradient-17.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-17.f32": "00b7260204af2283101e1d383081dbec98062ae31cedf3c1f7e8db569e2585d9",
+    "gradient-18.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-18.f32": "bacbf17debfe214a9e5ac38b4483e107c1aa4d98966a6854342a8fc6620853bc",
+    "gradient-19.f32": "8123c216413f82bbaa0339c27a43d9822c2a043e20662b27c97874429b996e9a",
+    "after-19.f32": "247217be4f39fc59856dce6661367c1e8ae2e3bee398ef740d15bf864f167a43",
+    "gradient-20.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-20.f32": "b67c2b86578422802e42924f466dbc182dcb4abf11280b1fd096b8a210313bb5",
+    "gradient-21.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-21.f32": "ee486dd4da1fb71abddc6d7be83873b8d25a8f12df8a942fccaadd0d26c53f9e",
+    "gradient-22.f32": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+    "after-22.f32": "1d0e06d6284d2b1a4b920a089db2a8ec5115bddee47ca4e7fff46e8cb516741b",
+    "gradient-23.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "after-23.f32": "13beecfbc8c0b4f045df32166a8fb82ab83b4d5cd4dc6098c15eb6c4e5523288",
+    "gradient-24.f32": "29332f79b82e6a2cae43e4437232c32d12a3e77a5832acf46287c8c2ecd20b9b",
+    "after-24.f32": "20406b9bceef12cdf89cd46e6b5efc67bd4ffc1cd3b7106d25d726de093c126f",
+    "gradient-25.f32": "affdb52b69431bb3845ceafe313777fd4b334e265dc8a2e25016d306dca20109",
+    "after-25.f32": "0b3fabde65e3f6fb79d78da0d4ad5274e71a3157c9c80baebe50994888957cce",
+    "gradient-26.f32": "ff743ac50078258ee63d1171d80bf6c05bfa331b3148dc9f586ed76f604abe6c",
+    "after-26.f32": "2492618fe22a0ca81984cc1874f66ee58ec82ee5c63e4440ba1f93cd02581b10",
+    "gradient-27.f32": "9c7159aa30de40eff29f63562272c9d17f1ca57f9c294d0b1061dd9d742f3ae9",
+    "after-27.f32": "80b564e3c455b92e9f677b48cf70363971daf34e201b70071410db889f15a2ac",
+    "gradient-28.f32": "e277847e52d4146e3b8358c67f7cbae310a2c5d6f7bbfdda4ea4799cfa99b412",
+    "after-28.f32": "31dfec9a7f7adcffca5d59dab40d844770304dbd06d004e42cf88761ee430dda",
+    "gradient-29.f32": "3fef17057508604d08dc1b32aadca224ff4b928827e507d8111b954b5c2bfe7c",
+    "after-29.f32": "7ffd2cfee9756c322ca0a20434e2e5c017f109babc247ca76d23e65f342b807b",
+    "gradient-30.f32": "b98e2edac3a4ebc1ffe7309c8745d969f2a79777ec179e85a43ad9e52360260b",
+    "after-30.f32": "ce10a312c5c51d688daea086b7495284d167395b39e67e64f644bd5dce052697",
+    "gradient-31.f32": "905bde21c1d4b372efc344a661c6576597519b624b9761865440abb038208062",
+    "after-31.f32": "4bf9d8cedea18938691ca1203480629da7a3e27c3cfa43ecc59739dddcb34160",
+    "gradient-32.f32": "d8231fa60be49397e6e309fcefd0bde4a5b696d30c12ace48222f0cc39606f1e",
+    "after-32.f32": "b9a54a6760b9aff83e9507a390412cd5193ae324acfa16236ee3db9924b19f3d",
+    "gradient-33.f32": "a8b78e7200bb52b99ae12f351c144aa856d89f6df4c05ecdce4b9cced6690dbb",
+    "after-33.f32": "7000cdbfb25c060684401e45074a224a147cebafb06c386620933d44598d7f1f",
+    "gradient-34.f32": "5bcb00defcdaa0f8aa8d13431908a71b2ac94e9644d505f284495e6a7f1c3519",
+    "after-34.f32": "0953d2294d2d11591f39965dcbabc3c839225cb11e46bbeb8f82d92c7c22d24d",
+    "gradient-35.f32": "26525dd8f366c0c9165c007010b4b8e535534e9cd69b3b788359147d52ea4932",
+    "after-35.f32": "447033ccb046fe86659ed8db3406a1913adc2e602ea18c48f313a733458f48ce",
+    "gradient-36.f32": "7f4e9097a6f17c59b5c3ed3b2aa73f6e6233a5b5cf4c380d0a184b5c262a7a4a",
+    "after-36.f32": "201068b6af34999d98332b77facf908afb2365ed23189590d1b8c3e1e0fa6193",
+    "gradient-37.f32": "a4a5ddcc331f72bd8101a4617d5d1ae99e7d38db683d69223779989da4cee50b",
+    "after-37.f32": "298f2668eda3863db046fa72cf02e141ebb83db1ae6f43d8f7ccb223222fdcfe",
+    "gradient-38.f32": "fee8e61171fde877cc0605ce9ed7d59a081f6455a98825076a7b1c439f7c9e91",
+    "after-38.f32": "d4d286328b0586494228582e96a690e8c74a09fd295506cf6c274dc6c5348d06",
+    "gradient-39.f32": "68ea9687b9ed70db888cc0722b07781278aef071903f8681a1fb3bb0ca5ef018",
+    "after-39.f32": "8c80369c0c848e6fb2184061f968d1dea81cff2950ba5a287cab4136d58030a8",
+    "gradient-40.f32": "3d5f4a3fd7ef8261b230eda23ca6d549d131dd1f7a641632c27d787fcbd04dd0",
+    "after-40.f32": "aceaa169438429ded216a02f3c69befc7e59e6934d605d4f50d311d3b0923665",
+    "gradient-41.f32": "1c0acde2235cce9f778e5b11d2c6741de6b50be2263be35609d7471d7cec7487",
+    "after-41.f32": "66f9b8bf7360f8c878358151cfe668708e2c96b78eb79b2bf9f9be0f98c5b13b",
+    "gradient-42.f32": "65a380c35c1782b621d32ebbe88647c73f1617850395df93f2b2b4e71cac369c",
+    "after-42.f32": "28c8703915220272e645a1e65053405c7ea7cd8211b29e897d18e650bc711735",
+    "gradient-43.f32": "0bb50cf194710763456148d3a0728ad9a3225b311392c96060c7335087a18f8d",
+    "after-43.f32": "27058f4771dc1385c3bdd0e92cab00be87abfbb735918a5c3f7f428b59a723df",
+    "gradient-44.f32": "84baafa0b8bf02a9a3fd49b96761c4e4fe866d7a0c3991d2a6ad3ecd1ef1f240",
+    "after-44.f32": "e2169e28c83022f2b11ce30a6c763c8ede7ae6bc76c49bff627b92aafd2b1389",
+    "gradient-45.f32": "2a3eb723f539994af79a330fec9f8763a4f92fd3e28d9d5f59eed586ee4b00c3",
+    "after-45.f32": "b9c6ab8f1982d5d0e1cd93a07b6db418f32dbc8383831ed008235a7a9d06a194",
+    "gradient-46.f32": "ff35391754aae6a3fb4ea3e9b47de1f246c7c2d50160866d1655fc2fd2735101",
+    "after-46.f32": "b594b641a0cee411505747eac9d2cf788843949ff9b68dbcc1ce4a94f5ffb79b",
+    "gradient-47.f32": "34bafcf5dba6d0e8f784a9b95314946d429b434429769e12d713e6119cca2b05",
+    "after-47.f32": "c941a1790b5e89f3c54bbd5e075398f8e509c65d7c857a5eedbebef285d13b2d",
+    "gradient-48.f32": "1e4c49a0cbb7334d4c7e3f74caf3c9c50126af0a886175aefd6b4d0fddba38a9",
+    "after-48.f32": "18200920be6541b0cb828217fb1408bbb28da03a8fb35946a4afcf6a9d90fc69",
+    "gradient-49.f32": "72f386eeed7d781b19f910b1fa656105906cec180600110bc9153a9f50fe3cf1",
+    "after-49.f32": "aa24e5f530c207ccd8d1d07747f532e3c34eaada824c3a33692747e3a59a1445",
+    "gradient-50.f32": "00d0a68c148a97a83e482becb7cfd075d331dc375db767404948b19906ae71dd",
+    "after-50.f32": "3853ce54bcf63deef2439071ed801bc69e04ed9471ecbf656c24830da5e04f22",
+    "gradient-51.f32": "8df78ff29cf8261006e149d53b5d296204a6dcea166c3b62ed9c9dc1f799e777",
+    "after-51.f32": "3e0bfc5c40b7a97db7bf67bff195ba3ca55e110c20ecbaf7b9b6fb2f2eef12b4",
+    "gradient-52.f32": "96475d7eebbf62dd9301a60b939e8e034cfe7de53c76df2f9166168fb598c498",
+    "after-52.f32": "6c2a42724ecd8dd9cc77911d835b56b9a3dcc265375ec51830218f9bbba7cc89",
+    "gradient-53.f32": "e766bd9eb1437d988c205c134d494fee205a499b66a123e795769b479a934970",
+    "after-53.f32": "b1ba35e67668bed5fb27fa2cc3e4b387bf383dd6372a1b2b393b47341062b671",
+    "gradient-54.f32": "02567254518624c37393882f5173f746bb999525afc2da1c3ea9d457d1ef38f9",
+    "after-54.f32": "2da0bc7a2b67bc19e8034948707654c5bb24ff8588e1b39ff8ef0e1268bc471f",
+    "gradient-55.f32": "358f3792dc5dae74654b4c1cee1283a1218e18c90ff29d07dd34972e6eb0a3a4",
+    "after-55.f32": "d7fe179611d10d2827ffb77ff49ba25fa5d5075b42e8db6db763da79927ac70f",
+    "gradient-56.f32": "fbb817356e9b122208db2e2027f3f026d5912d2a31ab94876e60fa371bf9acc9",
+    "after-56.f32": "4b0d880a79af0197a6a8c0e37535f314d094885136297c058d07800f02a54b10",
+    "gradient-57.f32": "07a806065a17fe50d257e16b71365f43af17a7c9cbc10d309f6b38bf461696e7",
+    "after-57.f32": "3581e632c27f9e92c48349502619eca4036493df42f0be22cb9cac46e6d54a02",
+    "gradient-58.f32": "e07c1d053cc8a2b5209aaf2766ee437fa7e0847b564a2909372d7613145b147d",
+    "after-58.f32": "4c3bc95698d5aa937545bb26c474c5830576dff7e229562cc6c81d71898ef14e",
+    "gradient-59.f32": "c15217f414b3c924fe52f8c1f88b9f72c4c3ec98aa4543ee3abf0207398ff37f",
+    "after-59.f32": "c95285a4ddd80f063566f73c561a5af300744c3c5094c6ae95a6e8fd03df11ff",
+    "gradient-60.f32": "5b023c661dbcfc55c0720f071afdc5d65e42a1753910db3aecc360f029a2851b",
+    "after-60.f32": "2c5bc1e2f37e5937ab4bac2da9dd49c3d208571daef90eaeff77c630a5af2271",
+    "gradient-61.f32": "d3297ec715e490611e9ed20c2e31b43cb80374bbd878e11296687ebded33ab09",
+    "after-61.f32": "c4bc84e2f91608f2d95ca2443ad90b1acfedab498e1d6d0808659035971715f9",
+    "gradient-62.f32": "c1c6c447251dcb413d8b1cb822c9b7194b06c05336d3a8eada79191552d576b6",
+    "after-62.f32": "374717d61ff7dea860d299fa0d7c8d90ea904c2cac54ee392ee66ca162b294a2",
+    "gradient-63.f32": "1235fda47aa691b25750b09fd48443dc3a96d145d639e3ebdbbdc3342c0ada43",
+    "after-63.f32": "80be29d18ec64fb00dcdb67d5b4fabf099313094d9e4fe9582f0c2ea2a2f2e8b",
+    "gradient-64.f32": "4b871f044322b02bca502f4cc1042d8f4beed19fa8cde0c27998f13f1b6f41d4",
+    "after-64.f32": "50630f9cdc8d8f64abb84e5a8b576b05f32a93143d61f0175779c25504f47c65",
+    "gradient-65.f32": "ddd51a07a324d291adfe950e60fee1ebddedf6c8fbcc2725db6ac7201a91dfce",
+    "after-65.f32": "73409ffa97a9cd88585f61d5da5ec14dc9eb2a25d8dd7d66c70c7887442589d3",
+    "after-66.f32": "908ad75eba7462d6d2e948706c6f2ad90d3bc228cbf5a72aec970ae7b6ba111d",
+    "after-67.f32": "65da2a89e96be468f59f8dac8cdf9135b00edc617149249951200e000d1fe6b5",
+    "after-68.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-69.f32": "b627b5ffaaeb328e3b55e5b45cd828dc08b996b35b6474843ded05fe5b41a084",
+    "after-70.f32": "3d4ce21fd1559a6d500b97c8b90b9424a44d2fd9a4e0ff3490a8d1939a6ddcd7",
+    "after-71.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-72.f32": "5dfafb0b54ad0abfee35020e4ce69994a6ab58b88014fc0a6c9c13868aea0bb1",
+    "after-73.f32": "ee29cf47aa001c63eb0ea3ec8b11fffe9c99120299d6471b55546f02a5163571",
+    "after-74.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-75.f32": "302cc934aa62a1c55925657030304ba75bbe02c709d589e16d977658dd23df56",
+    "after-76.f32": "b7198d06a63616f7f746e8fe6826a401ca3466cf65737bbacfea4f007c36820e",
+    "after-77.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-78.f32": "e9d845c59b8b4ea0c5b7f739e0dd37760e7d2551338a5709ad271d4ee0bc6967",
+    "after-79.f32": "d8d3ada9948174ae43607deb9d6a6fb6b0e48c56d73e15afc1500240e1ca07d2",
+    "after-80.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-81.f32": "def06f67f2719b40f062b5dc11cf8e64543b5861fe8e2748ca87285df8cc575b",
+    "after-82.f32": "c6dab258ae4a8155fa0c2ee9d15d5638d87d522afa707e091db840fdc38e0a4e",
+    "after-83.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-84.f32": "ad2e0a964d6711582dfa9d04427f983c5482cdd8e9d81d7f0e7cac23a9f97862",
+    "after-85.f32": "8ee15c03c72db49b3985c0b84633d47adc6345f7e6d9929ad06c39d8ad199723",
+    "after-86.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-87.f32": "eea1008ef5a83dca56383926e87267479c93cfb0d8bf88b9040a181661cef0ea",
+    "after-88.f32": "52399ff2e21186360b7503af9eb4d2194871090eb5005c1e1cce44334bc3be43",
+    "after-89.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-90.f32": "63f6b29f67f842e9ffbd636c33a06825ef93457b9271f8f1e20348486b7bedc2",
+    "after-91.f32": "d201d332668a47ecb2b1f3cba6218d6c0d205f182dd1511d6bf11164b1cbace1",
+    "after-92.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-93.f32": "99ae7200d2d5e90ddd3a9f3cc89f98163c4ca4fd788a6193c14cb8afc6faa90f",
+    "after-94.f32": "711e5d17c567e76854bb363d29ce30909e94ef93dcfc614d03b3bea101477ab3",
+    "after-95.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-96.f32": "12d871f23bdbbab2bddc93f1864552ccedf8c0f4c75396b14f07b2ea209db2a8",
+    "after-97.f32": "91474d5318097eecd2f16138c994935b0b1b8d3c8810d221d3e665fa565f78a0",
+    "after-98.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-99.f32": "9ee6c2257a5448a2b1dd045af2f6e9cf5e71671f67aa58ef01a448bded453d02",
+    "after-100.f32": "795b8d922e1e00cb361c8f63d81ad3e7615c7748a0585cb93aa713ffbdbfca2f",
+    "after-101.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-102.f32": "d2c80211dfe7136fe643f1a278df97b086f5320e03ca3bd241d909d2c515ce23",
+    "after-103.f32": "33260db6a079d65dd724b5bbb46f0fa3002c352394f9672cafde824ba8ce6261",
+    "after-104.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-105.f32": "ae2538b876153f1ae478406bf6fd3f58db4683f5684bec3d92fdaa7b121718ff",
+    "after-106.f32": "f15966fbb585353e4e27b9850b2d87a95edce6221630e7ae427c7f9f78565ffe",
+    "after-107.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-108.f32": "4f5f4a267e705ed7b8b08353ac5237d6a4ae816aa286be7544ff59ba5868435a",
+    "after-109.f32": "9cc9c10cec108bd389ab18e34e86619368c837c6bab1d82c4565fd638ef62ca6",
+    "after-110.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-111.f32": "0f2c9d11d3c568426fed48eb33ae3c3ae4c3c4c79624379f9c6a07c3887b69f0",
+    "after-112.f32": "71642ebd2242b3902436234d6bf3a87ab52e19ada90ab7cfd935684f5b129392",
+    "after-113.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-114.f32": "6d7e456c8cf7a940cafdc716bae93cd34a87e5a774979bc710a0987d2be07458",
+    "after-115.f32": "8df3c7bbfb1573e54690df8109f9822977fb60c1ff15cf2513c3e106ebbe22a5",
+    "after-116.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "after-117.f32": "69c137632ce4b294cfdbe04b819be515f09e4407c607f414c6a999188c4f6519",
+    "after-118.f32": "c4b917fd6c8c4bf1a6971ab5806b6d321ece845d081fa414d95f022ce33af562",
+    "after-119.f32": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+    "sgd-parameter-0.f32": "10b0fec3687236e99fa59354e4b6aa6a7cb14388292ff65b4cb82fc1813b2840",
+    "sgd-velocity-0.f32": "298fdfd188cdb04df639aca3304b1800161844708d431caedef87566c0cd8865",
+    "sgd-parameter-1.f32": "4749fd35af10a3cbac4713733cea6ae6074e5befd44837f8b1e2035d96d79454",
+    "sgd-velocity-1.f32": "6a7422e79dd76f1211311ebf0e346289a2fe998a0ebb46ee8714916309fa8556",
+    "sgd-parameter-2.f32": "69feda9e987e52ab8fc4c9243e9048e0af64f6fe50112e69fac614266a2e90d2",
+    "sgd-velocity-2.f32": "39700fba4e38b456c0b030dd2ee6a2b9627bb0493826dce286ecd2c5c5fc97a7",
+    "sgd-parameter-3.f32": "1d57d599224573a1872f7621355c67cb6888f0b8a3f2b6a0fee0047a08ec407e",
+    "sgd-velocity-3.f32": "f28be29c4caa90f9f26e31a647980d730d18f4f8acca06ec917ec722233bb3a9",
+    "sgd-parameter-4.f32": "a4b179a6f6482f804b0594cc76b4cf5d3cbe94d9d0bd57c0c98f11fdf7a4efd2",
+    "sgd-velocity-4.f32": "f9821ea0d5041fefa92a3b5747c82161b2b884cf528b2ae151fe782148b8fa5c",
+    "sgd-parameter-5.f32": "af3cd41039803b9feee287b4639b8398a941868ec8a688a986655601c8521ddc",
+    "sgd-velocity-5.f32": "0b30ec8870078ecc4b6a71efe7bc6c0389dc7c0fd1a5f365e5c0add84d0f8cc9",
+    "sgd-parameter-6.f32": "73b4243f33a642cd393e710417cbb357ed91a3cb0ddb9e3d04f3d53c8aae1048",
+    "sgd-velocity-6.f32": "801fb8813153e415352ca1045c56842ad795794270716114e283b58456e1d7d6",
+    "sgd-parameter-7.f32": "ec41e1766ebb81891c7585e69986947f9def31b19e79de0fc3b766bd3645fd30",
+    "sgd-velocity-7.f32": "37407377738263ab36f18986aa599a967cb87a324a2a625565454481d07efb46",
+    "sgd-parameter-8.f32": "c1a3d58d3fd90a1436322668101c64aab7cc55070babd584c9d57d04164b3cda",
+    "sgd-velocity-8.f32": "b5e24d12f825142d0118bb8f2bfe728399d5aaa649c2d23e8ea8d83bc6889fc1",
+    "sgd-parameter-9.f32": "9f4f9ebeee78ef4629f0e9648916622dc5c7a6dc95cb617694a9dfc2e5b5e60c",
+    "sgd-velocity-9.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-10.f32": "4de32ffe0077202aaaf38c2c129e510af8872d66d809df01a3341e8076432fab",
+    "sgd-velocity-10.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-11.f32": "fa897de5f7f6a549f05a3f4c7aca2e2b80216140d4ab252d200709cc7f8ec9e1",
+    "sgd-velocity-11.f32": "68011414c717dd8d2c0a936124419f36582a3d8d2ce980ac3d6229732eef191d",
+    "sgd-parameter-12.f32": "1cec10b62308a2802dd535897b615c8f3c739035d689e02fd5d98d916f6be12a",
+    "sgd-velocity-12.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-13.f32": "dbef64d9e14e895809efe297f3e9f2206b1d6392ebf60c989bfea93d297df87e",
+    "sgd-velocity-13.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-14.f32": "310c2af5da3fe0949f6c4ebfce122f17cbb360fc0fddab8c106d16f946fb87a3",
+    "sgd-velocity-14.f32": "ccf342eabaa1ed9c5ee77b29e3c82f5fde38dac0999a2af3645b95b38afdc053",
+    "sgd-parameter-15.f32": "1c9483d64dd53db25ccd445364ab35052a154260e11e0649da676d24a156cd24",
+    "sgd-velocity-15.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-16.f32": "83b3a5f7276b48768f0bb1c6ff743229dcf5126d84149a856b603ff05d307d2d",
+    "sgd-velocity-16.f32": "3c7a79c7ec3527163e0a1133a8fbeb5aa35526a67b66fc15b63f128cd379ef05",
+    "sgd-parameter-17.f32": "00b7260204af2283101e1d383081dbec98062ae31cedf3c1f7e8db569e2585d9",
+    "sgd-velocity-17.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-18.f32": "bacbf17debfe214a9e5ac38b4483e107c1aa4d98966a6854342a8fc6620853bc",
+    "sgd-velocity-18.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-19.f32": "33e4eed53b48b545351eae1d9dcd78fec3ffdf4f4687263431ca740716898729",
+    "sgd-velocity-19.f32": "dc1ceac275a5f51e3c10f1d352a5d6bde82c9c07555ad1a0ac52b7cef1b4e395",
+    "sgd-parameter-20.f32": "b67c2b86578422802e42924f466dbc182dcb4abf11280b1fd096b8a210313bb5",
+    "sgd-velocity-20.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-21.f32": "ee486dd4da1fb71abddc6d7be83873b8d25a8f12df8a942fccaadd0d26c53f9e",
+    "sgd-velocity-21.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-22.f32": "d476a2ed63242bdc61baed32afff79dd11e36842cea78cbea94859f2ef6d0a89",
+    "sgd-velocity-22.f32": "7666286c0ff2537c4d378877d7afbdd9ad9fb6571628014919fac601f7fed37d",
+    "sgd-parameter-23.f32": "13beecfbc8c0b4f045df32166a8fb82ab83b4d5cd4dc6098c15eb6c4e5523288",
+    "sgd-velocity-23.f32": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+    "sgd-parameter-24.f32": "14772e0a574ca981725b4c177151dcd61d98554a07a1b662076e7afce7b777e3",
+    "sgd-velocity-24.f32": "9d91d8b729927861a8c1a42e48a1956c6ecfc8736ba68d107d27426705f0e72b",
+    "sgd-parameter-25.f32": "604263475dab5326c64bbbaa8fab9f955664f0d8fcda64f768d69dec9906a611",
+    "sgd-velocity-25.f32": "affdb52b69431bb3845ceafe313777fd4b334e265dc8a2e25016d306dca20109",
+    "sgd-parameter-26.f32": "1d674f3213105b86add664d60a589175d1fdee6abbc84076a7b3e5e2ae6b3984",
+    "sgd-velocity-26.f32": "ff743ac50078258ee63d1171d80bf6c05bfa331b3148dc9f586ed76f604abe6c",
+    "sgd-parameter-27.f32": "345b220c4836ebad0669cfda7016bfbf51ce7c03106012c38422fb0e58a83d1f",
+    "sgd-velocity-27.f32": "d6bdfe22818f56bdcccf7295bae2ee3c1d12a84fda02e6651ab767020bdd68fe",
+    "sgd-parameter-28.f32": "5c22cf80eb492d58d5e401b4cabe7ce9c676eaf65f48d216c457941d66c77f42",
+    "sgd-velocity-28.f32": "e277847e52d4146e3b8358c67f7cbae310a2c5d6f7bbfdda4ea4799cfa99b412",
+    "sgd-parameter-29.f32": "34aee38c670bd8e5916b416ef512b805a70dcab959904dc86d61128daa0d7be7",
+    "sgd-velocity-29.f32": "3fef17057508604d08dc1b32aadca224ff4b928827e507d8111b954b5c2bfe7c",
+    "sgd-parameter-30.f32": "47d3fa4f23c8d92d7d0f0fe121ae34673dd9a569f4214326aac138c6b69b9349",
+    "sgd-velocity-30.f32": "f7d81e533ce71aa10d4ea4992879a0633f7df799d5da0364dc6c99099bdf14e7",
+    "sgd-parameter-31.f32": "f62f82f938351077974b4e315404436837aa35f2ee404cd496c2c82f5535aa36",
+    "sgd-velocity-31.f32": "905bde21c1d4b372efc344a661c6576597519b624b9761865440abb038208062",
+    "sgd-parameter-32.f32": "d0fb0732b89fc04e6057d0daeb179748ff6e221361760e47b22a562d07afb3e5",
+    "sgd-velocity-32.f32": "d8231fa60be49397e6e309fcefd0bde4a5b696d30c12ace48222f0cc39606f1e",
+    "sgd-parameter-33.f32": "885334bf34c2063a97de9eb8a34e3433c2f2d471d9bb1d8935bb4200c78a412a",
+    "sgd-velocity-33.f32": "42f1a7a9af026783e3b76b9fc527169c576e8718b5c4435944b4caffab64eae2",
+    "sgd-parameter-34.f32": "ad8d01b2fb3e11e519e1922f35bde8a3a7a5ca49367c622f771596842bc4dfd2",
+    "sgd-velocity-34.f32": "5bcb00defcdaa0f8aa8d13431908a71b2ac94e9644d505f284495e6a7f1c3519",
+    "sgd-parameter-35.f32": "67fd55e4d47d92e95f205a21f9b3d3b26bf68ed383063797e3c024aa39aa3855",
+    "sgd-velocity-35.f32": "26525dd8f366c0c9165c007010b4b8e535534e9cd69b3b788359147d52ea4932",
+    "sgd-parameter-36.f32": "44b6dab285ffc73df33ef1561f3c9b967acae529dcbad829a4307316ec3160af",
+    "sgd-velocity-36.f32": "105a3947eb838052e8540d4146b4c0c3c4839da2a2d7a9a320c0e95b85bb939c",
+    "sgd-parameter-37.f32": "a0f0c1d7293cae3b6f28ae4fbe5fcd192f23ffc6ae89e5976d515ef2ab233e0c",
+    "sgd-velocity-37.f32": "a4a5ddcc331f72bd8101a4617d5d1ae99e7d38db683d69223779989da4cee50b",
+    "sgd-parameter-38.f32": "ec84e5a33fa86dda49624503437304e4f7caab6ad0bed7a098c179f5045355b6",
+    "sgd-velocity-38.f32": "8569b05d8c37470fae7f1c70855a71d49fe67ad8ae34138553f357249afd074c",
+    "sgd-parameter-39.f32": "0ad18a78171ad429270355f22842742fcd528e7074de30569fccc9366f0caf6c",
+    "sgd-velocity-39.f32": "68ea9687b9ed70db888cc0722b07781278aef071903f8681a1fb3bb0ca5ef018",
+    "sgd-parameter-40.f32": "3fb56a6efe0f927b5a1169ac48c408dd60229d35ea2fbd4ee2b3edd09ed321bc",
+    "sgd-velocity-40.f32": "3d5f4a3fd7ef8261b230eda23ca6d549d131dd1f7a641632c27d787fcbd04dd0",
+    "sgd-parameter-41.f32": "4ebc6c4d738e57caf604704f3b1b6467b82d10ffc2737f454061adaf4173c9ee",
+    "sgd-velocity-41.f32": "33298359a01dda99bb84f14b21cc8b6c0627cf2d3329e2610a5159c480113ee3",
+    "sgd-parameter-42.f32": "5c696cab777913875add6e9faa20345adddd82a5c662872b5d18ac30af50b28e",
+    "sgd-velocity-42.f32": "65a380c35c1782b621d32ebbe88647c73f1617850395df93f2b2b4e71cac369c",
+    "sgd-parameter-43.f32": "090fd83816485d855038a49698214219f07936343cf7d889b631ee5c75e4a6ce",
+    "sgd-velocity-43.f32": "0bb50cf194710763456148d3a0728ad9a3225b311392c96060c7335087a18f8d",
+    "sgd-parameter-44.f32": "b7fe94c0da130fb0bf5d607cf32aa0e9fbe6e900e0d948367aa149a1a61b4069",
+    "sgd-velocity-44.f32": "038ffd0d10b9177288ccd65bb7fa79d44fbfaf605bb1271a6421ea807a837a46",
+    "sgd-parameter-45.f32": "af544a8946f8a6bfdb6bd801663ff31183a5d115c7f5987341023bdc193675b8",
+    "sgd-velocity-45.f32": "2a3eb723f539994af79a330fec9f8763a4f92fd3e28d9d5f59eed586ee4b00c3",
+    "sgd-parameter-46.f32": "e22078ff893ae1273137e14da2554ffe3ca398499433e470e1d3cb85ff912ebd",
+    "sgd-velocity-46.f32": "ff35391754aae6a3fb4ea3e9b47de1f246c7c2d50160866d1655fc2fd2735101",
+    "sgd-parameter-47.f32": "f6857a0ac7579d52b2aed001cc7f65b46e2114b4e4bbd6a0be4a5f08e439bf8f",
+    "sgd-velocity-47.f32": "eb943294b1a4a4993dd5df5107f7ec4642b4578ce74a6727008d9169671b8719",
+    "sgd-parameter-48.f32": "c035656f78dd0a3f45e0e4ae8cbe55fe9449ccdd95758a58c461ee27ba3735df",
+    "sgd-velocity-48.f32": "1e4c49a0cbb7334d4c7e3f74caf3c9c50126af0a886175aefd6b4d0fddba38a9",
+    "sgd-parameter-49.f32": "bd63fdf438fc3df3e7606805dfd98ffaf5f27d16aa10855e86eb96afd8775373",
+    "sgd-velocity-49.f32": "72f386eeed7d781b19f910b1fa656105906cec180600110bc9153a9f50fe3cf1",
+    "sgd-parameter-50.f32": "eb3aaf6675c63e08e81f2cc55e3adb892313cb8cfd10bca7de84a39dcf60d8a4",
+    "sgd-velocity-50.f32": "74c7539376f7669875d4826df97346c36ee821f7f3010c2c30149c2324b42e86",
+    "sgd-parameter-51.f32": "1b5f6e2502a891711663422103f2b266c481ba1639bb5f946c5042b61668bd6f",
+    "sgd-velocity-51.f32": "8df78ff29cf8261006e149d53b5d296204a6dcea166c3b62ed9c9dc1f799e777",
+    "sgd-parameter-52.f32": "594f7b109f372a5778bda6119397dd8e97b0d28e72c4c3529b714ec123f83e2b",
+    "sgd-velocity-52.f32": "73fcea795bde1f6a2dcaffd2ed7f80d1989642cb1893c225d0fce8036e56e476",
+    "sgd-parameter-53.f32": "fbd9bf1580c7544132c8cbf1f5c7be27a7ce2bee6c52d6e2db65928b3a54eec6",
+    "sgd-velocity-53.f32": "e766bd9eb1437d988c205c134d494fee205a499b66a123e795769b479a934970",
+    "sgd-parameter-54.f32": "8747b2d768c1bbbbacc07feeeab070b29426fd15e162038f845685aa4bad2a8e",
+    "sgd-velocity-54.f32": "02567254518624c37393882f5173f746bb999525afc2da1c3ea9d457d1ef38f9",
+    "sgd-parameter-55.f32": "6191e89b4952062ab1c45c63cd5756a23436ed3f7cb5a5124d078dd025e54088",
+    "sgd-velocity-55.f32": "6c3a82afc4708656b89a84f70aa7c1caf25593bfc8cec2eecbf6d704b494ca62",
+    "sgd-parameter-56.f32": "d48b533ecebc3208521b26ffa2a3a638ee5c34868fda252913ef5534692f4f3e",
+    "sgd-velocity-56.f32": "fbb817356e9b122208db2e2027f3f026d5912d2a31ab94876e60fa371bf9acc9",
+    "sgd-parameter-57.f32": "5656a0582197e517dda3e4f5ed26a4cf0bc6fae4856265f064f26344339f653c",
+    "sgd-velocity-57.f32": "07a806065a17fe50d257e16b71365f43af17a7c9cbc10d309f6b38bf461696e7",
+    "sgd-parameter-58.f32": "bafea2d0e795bc1e0c4ca4a3ee33f3b238fbd0fb698dab0d10fd3ce673316b9f",
+    "sgd-velocity-58.f32": "9b8b08b392b0830d04170091d0238f5e4ea3d9bd89e42f344f13614ef8e725d5",
+    "sgd-parameter-59.f32": "cf80200d4a2527595e9a6ef573bb7cd08a35bdc7e633ebf4e26721507ca668af",
+    "sgd-velocity-59.f32": "c15217f414b3c924fe52f8c1f88b9f72c4c3ec98aa4543ee3abf0207398ff37f",
+    "sgd-parameter-60.f32": "eb1bd51787fe0791756ebd177e75f1e0db69e9dcfa9c0bf178d87f54eb2a723b",
+    "sgd-velocity-60.f32": "5b023c661dbcfc55c0720f071afdc5d65e42a1753910db3aecc360f029a2851b",
+    "sgd-parameter-61.f32": "51a48b836a1bc1400c63158d2ee318f9955e2db89fd962f494ea3c16e2e93bc4",
+    "sgd-velocity-61.f32": "393870fbff833e525fd6449d8b3ea87183a790e6c4e984bd14c99a3363e6a229",
+    "sgd-parameter-62.f32": "555b2a15879cd25462c82551d79a0a59555c35039581073341794c8a6e0f4a72",
+    "sgd-velocity-62.f32": "c1c6c447251dcb413d8b1cb822c9b7194b06c05336d3a8eada79191552d576b6",
+    "sgd-parameter-63.f32": "7bef0f914fe72b6a5d7ebb8d05612f4c56b1034f9581f17343f0e78c00a0abfa",
+    "sgd-velocity-63.f32": "1235fda47aa691b25750b09fd48443dc3a96d145d639e3ebdbbdc3342c0ada43",
+    "sgd-parameter-64.f32": "a6cef0e98eacc38d6f4189412410674cf757dfcdb6f60876f12381cd96c00771",
+    "sgd-velocity-64.f32": "f6f31b436bfe50f1c520afbb4963bc04cd5c3294c2caa0e3d58f03b2c2e99282",
+    "sgd-parameter-65.f32": "e57a8ef74fb4ac8a7f16f43fd6cf7c6f8ce2b5f48137a6574bdb4eeec1cccd9b",
+    "sgd-velocity-65.f32": "ddd51a07a324d291adfe950e60fee1ebddedf6c8fbcc2725db6ac7201a91dfce"
+  }
+}

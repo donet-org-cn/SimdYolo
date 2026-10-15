@@ -4,7 +4,7 @@ import {spawn} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const {values}=parseArgs({options:{url:{type:'string',default:'http://127.0.0.1:5188'},image:{type:'string'},output:{type:'string',default:'artifacts/validation/0.9.0'},browser:{type:'string',default:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'}}});
+const {values}=parseArgs({options:{url:{type:'string',default:'http://127.0.0.1:5188'},image:{type:'string'},output:{type:'string',default:'artifacts/validation/0.10.0'},'training-model':{type:'string',default:'yolov8n.pt'},browser:{type:'string',default:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'}}});
 if(!values.image)throw new Error('--image 必须指定一张真实目标照片，例如官方 bus.jpg');
 const base=values.url.replace(/\/$/,''), root=process.cwd(), destination=path.resolve(values.output);
 const profile=path.join(root,'.cache/training-validation/edge-profile-'+Date.now());
@@ -33,6 +33,10 @@ try{
   await waitFor(()=>evaluate("document.querySelector('#inference-model')?.options.length>20 && document.querySelector('#connection-text')?.textContent.includes('连接')"),'Actual API populated models');
   const info=await fetch(base+'/api/info').then(r=>r.json());
   const model=info.models.find(m=>m.name==='yolov8n.pt');
+  const trainingModel=info.models.find(m=>m.name===values['training-model']);
+  if(!trainingModel?.trainable)throw new Error('Requested training model unavailable');
+  for(const name of ['yolov8n.pt','yolov9t.pt','yolov10n.pt','yolo11n.pt','yolo26n.pt'])if(!info.models.some(m=>m.name===name&&m.trainable))throw new Error('Missing training family '+name);
+  checks.push('All five training families exposed');
   await evaluate(`document.querySelector('#inference-model').value=${JSON.stringify(model.id)};document.querySelector('#inference-model').dispatchEvent(new Event('change',{bubbles:true}));`);
   await setFiles('#image-file',[values.image]);
   await waitFor(()=>evaluate("!document.querySelector('#run-inference').disabled"),'Real JPEG decoded in browser');
@@ -44,7 +48,7 @@ try{
   checks.push('Portrait image fully fits preview');
   await screenshot('web-inference.png');
   await evaluate("document.querySelector('[data-view=training]').click()");
-  await evaluate(`document.querySelector('#training-model').value=${JSON.stringify(model.id)};document.querySelector('#training-model').dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('#training-dataset').value='demo-squares';document.querySelector('#training-dataset').dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('#training-epochs').value='2';document.querySelector('#training-size').value='128';document.querySelector('#training-lr').value='.003';document.querySelector('#start-training').click();`);
+  await evaluate(`document.querySelector('#training-model').value=${JSON.stringify(trainingModel.id)};document.querySelector('#training-model').dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('#training-dataset').value='demo-squares';document.querySelector('#training-dataset').dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('#training-epochs').value='2';document.querySelector('#training-size').value='128';document.querySelector('#training-lr').value='.003';document.querySelector('#start-training').click();`);
   await waitFor(()=>evaluate("document.querySelector('#training-status').textContent.includes('已完成') && document.querySelector('#chart-step-label').textContent.includes('16')"),'UI started and completed 16 real training steps',90000);
   await waitFor(()=>evaluate("!document.querySelector('#download-checkpoint').classList.contains('disabled')"),'Checkpoint download available');
   await pause(6500);await screenshot('web-training.png');
@@ -59,7 +63,7 @@ try{
   const mobile=await evaluate("({viewport:innerWidth,width:document.documentElement.scrollWidth})");
   if(mobile.width>mobile.viewport+1)throw new Error('Mobile overflow '+JSON.stringify(mobile));
   checks.push('Mobile layout has no horizontal overflow');
-  const result={status:'passed',browser:'Microsoft Edge headless',checks,errors,mobile};
+  const result={status:'passed',browser:'Microsoft Edge headless',trainingModel:trainingModel.name,checks,errors,mobile};
   if(errors.length)throw new Error('Browser errors: '+errors.join('\n'));
   fs.writeFileSync(path.join(destination,'web-browser.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));
 }finally{

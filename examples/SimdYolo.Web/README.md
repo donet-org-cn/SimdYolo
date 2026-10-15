@@ -13,9 +13,9 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 打开 **http://127.0.0.1:5188**。需要 .NET 10 SDK；Vulkan 需要显卡驱动支持。CPU 路径不需要 GPU、CUDA 或 Python。
 
-![推理页面](../../artifacts/validation/0.9.0/web-inference.png)
+![0.10.0 推理页面](../../artifacts/validation/0.10.0/web-browser/web-inference.png)
 
-![训练页面](../../artifacts/validation/0.9.0/web-training.png)
+![0.10.0 YOLO26 实际训练页面](../../artifacts/validation/0.10.0/web-browser/web-training.png)
 
 ## 推理
 
@@ -45,7 +45,7 @@ my-data/
 
 创建任务后显示实际 step、轮数和 Total/Box/Cls/DFL 损失。取消保留最近完整轮次；继续训练填写新的**总轮数**，从该检查点恢复。下载得到自包含 `.sytrain`，可重新上传、用 `YoloDetector` 推理，或继续微调。
 
-当前训练冻结骨干和 FPN，只更新 YOLOv8 检测头；梯度累加不等于联合批次 BN。Vulkan 是 GEMM 加速的混合路径；YOLO26、分割、姿态及 Metal 暂仅用于推理。详细 API 与限制见[训练说明](../../docs/training.md)。
+0.10.0 源码支持 YOLOv8/v9/v10/YOLO11/YOLO26 检测头训练，训练下拉列表按真实 PT 结构识别能力，重命名文件不影响判断。v10、YOLO26 同时更新 one2many/one2one；骨干和 FPN 冻结。梯度累加不等于联合批次 BN，Vulkan 是普通卷积 GEMM 加速的混合路径；分割、姿态暂仅用于推理，Metal 不支持训练。0.9.0 发布包仍只支持 v8。详细 API、支持矩阵与评测见[训练说明](../../docs/training.md)。
 
 ## 数据、任务与配置
 

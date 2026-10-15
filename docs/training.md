@@ -1,30 +1,24 @@
-# 纯 C# 训练：YOLOv8 检测头微调
+# 纯 C# 五代 YOLO 检测头训练
 
-0.9.0 实现可实际更新权重、保存、恢复和推理的第一阶段训练。训练模块单独位于 `SimdYolo.Training`，仅引用 `SimdYolo` 和 .NET 标准库，应用运行无需 Python、PyTorch、TorchSharp、ORT 或原生数学库。GPU 通过现有 Vulkan API 调用；网页使用 ASP.NET Core 和浏览器原生 JavaScript。
+0.10.0 源码支持 **YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26 的检测头微调**，CPU 使用 C# SIMD，Vulkan 加速冻结网络和普通卷积的前后向 GEMM。无需 Python、PyTorch、TorchSharp、ONNX Runtime、BLAS 或 CUDA 运行依赖。
 
-## 本阶段支持范围
+| 系列 | 仓库实际训练权重 | 回归与分类头 | 训练目标 |
+| --- | --- | --- | --- |
+| YOLOv8 | `yolov8n.pt` | 普通 Conv-BN-SiLU | TAL top10 + BCE + CIoU + DFL |
+| Ultralytics YOLOv9 | `yolov9t.pt` | 普通 Conv-BN-SiLU | TAL top10 + BCE + CIoU + DFL |
+| YOLOv10 | `yolov10n.pt` | 含深度卷积，one2many/one2one 两套参数 | 两头相加，TAL top10 / top1，DFL |
+| YOLO11 | `yolo11n.pt` | 分类分支含深度可分离卷积 | TAL top10 + BCE + CIoU + DFL |
+| YOLO26 | `yolo26n.pt` | 深度可分离分类、双头，`reg_max=1` | TAL top10 / top7→1，渐进双头权重，CIoU + 归一化距离 L1 |
 
-| 能力 | 当前实现 |
-| --- | --- |
-| 初始化 | 标准 YOLOv8 检测 `.pt`；已实测仓库内 `yolov8n.pt` |
-| 更新范围 | 三尺度 Detect 的 `cv2`、`cv3` 分支，包含卷积、BN 参数和运行统计 |
-| 冻结范围 | 骨干网络、颈部/FPN；可缓存其特征，默认上限 512 MiB |
-| 标签 | YOLO 检测格式 `class cx cy w h`，支持自定义类别和空标签背景图 |
-| 损失 | TAL 分配、BCE、CIoU、DFL，分配目标停止梯度 |
-| 优化器 | SGD + momentum；卷积权重衰减；每轮确定性洗牌 |
-| CPU | 复用纯 C# SIMD GEMM 与冻结网络执行器 |
-| Vulkan | 冻结网络及训练头前向/反向 GEMM 在 GPU；BN、损失、SGD、im2col 和数据搬运在 CPU |
-| 检查点 | 自包含 `.sytrain`，保留原 PT、完整头参数/BN、SGD 动量、类别及数据集摘要 |
-| 推理 | `YoloDetector` 直接加载 `.sytrain`；输入尺寸使用保存时的训练尺寸 |
-| 网页 | 图片推理、导入数据、启动训练、真实损失曲线、取消、恢复、下载及重新加载 |
+本次覆盖表中的五份权重。其他 n/s/m/l/x 尺度按受支持模块结构解析，但未逐份验证；YOLOv9 原仓库的 DualDDetect/TripleDDetect、只有推理分支的融合 PT 不在此训练支持表内。不能据系列名称推断所有衍生模型都兼容。
 
-**本阶段是检测头微调。** 全参数训练、YOLOv9/10/11/26 训练、分割/姿态训练、Metal 训练，以及 AdamW、学习率调度、EMA、数据增强和 mAP 验证尚未实现。普通推理 ONNX 不含本训练器需要的原始训练结构，只能用于推理。`.sytrain` 为本项目的归档格式，不能重命名为 `.pt` 交给 PyTorch，也尚不提供 ONNX 导出。
+范围保持为**冻结骨干和 FPN、仅更新完整检测头**。分割/姿态训练、全参数训练、Metal 训练、AdamW/MuSGD、EMA、数据增强和业务数据集 mAP 评测尚未实现。YOLO26 的损失与固定参考对应，优化器仍为 SGD，不声称复刻官方完整训练配方。普通 ONNX 只支持推理，不能作为本训练器的初始化结构。
 
-`BatchSize` 表示**梯度累加的图像数**：每图独立执行 BN，累加梯度按图像数平均，然后更新一次参数。这与多图联合 BatchNorm 不同。Vulkan 当前需要各次 GEMM 的上传/回读，是混合训练路径，尚未测量与 PyTorch 的训练性能对比。
+Vulkan 是混合训练：普通卷积 GEMM 在 GPU；头部深度/分组卷积、im2col、BN、激活、标签分配、损失和 SGD 在 CPU，存在上传/回读。请参考[实际训练性能](../artifacts/training-evaluation-0.10.0.md)，不要以推理速度推断训练速度。
 
-## 运行网页
+## 启动网页或 C# API
 
-需要 .NET 10 SDK；使用 Vulkan 时还需要显卡驱动提供 Vulkan。无需 CUDA。
+需要 .NET 10 SDK；Vulkan 需要兼容驱动及系统 loader。0.9.0 已发布包仍只支持 v8，本功能请构建 0.10.0 源码：
 
 ```powershell
 git clone https://github.com/hnlyf168/SimdYolo.git
@@ -33,49 +27,52 @@ git lfs pull
 dotnet run --project examples/SimdYolo.Web -c Release
 ```
 
-打开 **http://127.0.0.1:5188**。页面包含推理、训练和任务记录三个入口，详见 [网页示例说明](../examples/SimdYolo.Web/README.md)。
+打开 **http://127.0.0.1:5188**，导入每行 `class cx cy w h` 的归一化 YOLO 检测标注，选择五份模型之一。支持真实损失曲线、取消、恢复、检查点下载/重新上传及推理。网页说明与数据限制见[示例文档](../examples/SimdYolo.Web/README.md)。
 
-![真实图片推理页面](../artifacts/validation/0.9.0/web-inference.png)
+![0.10.0 网页中实际完成 YOLO26 检测头微调](../artifacts/validation/0.10.0/web-browser/web-training.png)
 
-![实际训练和损失曲线](../artifacts/validation/0.9.0/web-training.png)
-
-## 在 C# 中训练
-
-项目引用 `src/SimdYolo.Training/SimdYolo.Training.csproj`，或使用本仓库 `artifacts` 下的 0.9.0 NuGet 包。可先运行不需要外部数据的方块示例：
+引用 `src/SimdYolo.Training/SimdYolo.Training.csproj`：
 
 ```csharp
 using SimdYolo;
 using SimdYolo.Training;
 
 var dataset = TrainingDataset.CreateDemo(count: 8, seed: 26);
-using var trainer = new YoloTrainer("models/pt/yolov8n.pt", dataset, new()
+string path = "models/pt/yolo26n.pt"; // 也可以是 v8n、v9t、v10n、11n
+Console.WriteLine(YoloTrainer.CanTrain(path)); // 按实际结构探测，不看文件名
+using var trainer = new YoloTrainer(path, dataset, new()
 {
-    Device = ComputeDevice.Cpu, // 也可显式选 Vulkan
+    Device = ComputeDevice.Cpu, // 可显式选择 Vulkan
     ImageSize = 128,
     Epochs = 20,
     BatchSize = 1,
     LearningRate = .003f,
     CpuThreads = 4
 });
-trainer.Train(".cache/my-training", progress =>
-    Console.WriteLine($"epoch={progress.Epoch}, step={progress.Step}, loss={progress.TotalLoss:F5}"));
+float before = trainer.EvaluateLoss();
+trainer.Train(".cache/my-training", p =>
+    Console.WriteLine($"epoch={p.Epoch}, step={p.Step}, loss={p.TotalLoss:F5}"));
+float after = trainer.EvaluateLoss();
 ```
 
-训练输出 `last.sytrain` 和逐步 `history.jsonl`。同步 `Train` 可以在自己的后台线程执行，回调在训练线程调用；同一会话不允许并发训练、评估、保存或释放。输出目录失败后会释放运行标志，调用方可以修正路径后重试。
-
-自定义数据由调用方提供 RGB24 字节和 YOLO 标注，图像字节顺序为 R、G、B，不含行填充。浏览器示例负责解码 JPEG/PNG；训练库不引入图片编解码依赖。
+`Train` 为同步方法，可以放入自己的后台线程；同一会话禁止并发训练、评估、保存或释放。自定义数据由调用方提供连续 RGB24 字节，不引入图片编解码依赖：
 
 ```csharp
-// rgb24 为 width * height * 3 字节的已解码图像。
 var dataset = new TrainingDataset(
     ["person", "helmet"],
     [new TrainingImage("001.jpg", rgb24, width, height,
         "0 0.50 0.50 0.40 0.60\n1 0.50 0.25 0.20 0.15")]);
 ```
 
-类别编号从 0 开始，坐标相对于原图归一化，框须位于原图范围内。预处理保持比例并填边，与推理的 letterbox 一致。类别数变化时重建末层分类通道，同名类别尝试复用原权重，其余通道按种子初始化。
+类别从 0 开始，框须位于原图内；letterbox 保持比例。自定义类别按名称复用原分类通道，否则按种子初始化。双头分别重建输出通道，训练与推理使用正确的分支。
 
-## 恢复、取消和直接推理
+`BatchSize` 是**梯度累加的图像数**，每图 BN 独立统计，再按图像数平均梯度；不等同联合批次 BN。全背景图像只训练分类头；与原版一样，框参数梯度未连接时跳过 SGD/衰减，有正样本时各尺度的显式零梯度仍参与 SGD/衰减。
+
+## 损失和恢复语义
+
+固定独立参考为 Ultralytics **8.4.0**。v10 使用保留的官方 `E2EDetectLoss` 兼容目标；YOLO26 使用 `E2ELoss`。前者两头直接相加，后者 one2many 从 0.8 按轮衰减至 0.1，one2one 为其补值。YOLO26 的 TAL 先 top7、处理目标冲突，再 top1，不能简单替换成首次 top1。
+
+YOLO26 的第三损失分量是按输入宽高归一化的距离 L1，**没有 DFL softmax**。为保持客户端兼容，`TrainingProgress.DflLoss` 和网页 DFL 历史字段保留名称；对 YOLO26 表示该 L1 分量。`TotalLoss` 返回本次实际优化的加权目标。`EvaluateLoss()` 使用 BN 运行统计，且固定初始 0.8/0.2 权重，保证训练前后评估口径一致；它仍是训练数据损失，不是 mAP。
 
 ```csharp
 using var resumed = YoloTrainer.Resume(
@@ -84,27 +81,28 @@ using var resumed = YoloTrainer.Resume(
 resumed.Train(".cache/my-training");
 
 using var detector = new YoloDetector(".cache/my-training/last.sytrain");
-var results = detector.Predict(rgb24, width, height);
+var instances = detector.Predict(rgb24, width, height);
 var metadata = ModelInfo.Read(".cache/my-training/last.sytrain");
 ```
 
-`totalEpochs` 是恢复后的总轮数，必须大于检查点轮数。恢复校验类别和数据集 SHA256，包括图像次序、尺寸、RGB、标注；修改数据后需要重新开始。学习率、动量、衰减、种子、梯度累加和输入尺寸来自检查点，可以切换 CPU/Vulkan 和线程数。
+`totalEpochs` 是恢复后的总轮数，必须大于已完成轮数。恢复严格校验数据集 SHA256（类别、顺序、RGB 和标注）、参数形状及动量。学习率、种子、累加配置和图像尺寸来自检查点，可以切换 CPU/Vulkan 和线程数。**YOLO26 的损失调度总轮数在首次创建时固定并保存**；恢复时延长训练不会重置调度，超过原定轮数继续使用 0.1/0.9。
 
-取消通过 `CancellationToken`，会抛出 `OperationCanceledException`。每个完整轮次原子替换检查点；取消时丢弃未完成轮次的参数、BN 和动量，当前会话也回退到该边界。中途取消且尚未完成首轮时保留初始化检查点。`history.jsonl` 可以保留被取消轮次的过程记录，恢复以检查点的 epoch/step 为准。
+每个完整轮次原子保存 `last.sytrain`，另写 `history.jsonl`。取消抛出 `OperationCanceledException` 并回退到最近完整轮次，包括权重、BN、梯度连接状态、动量和计数；过程历史可保留未完成轮次的记录。
 
-官方仓库权重按原始 SHA256 识别，生成归档包含 `LICENSE-AGPL-3.0.txt` 和 `source-provenance.json`。未知自定义权重写入来源待确认说明，使用者仍须保留其供应方许可证；未给项目源码新增许可证。
+新归档为 `SimdYolo.Training/2`，包含原始 PT、全部单/双头参数、BN、动量、类别和损失调度；继续读取 0.9.0 的 `/1` v8 归档。`ModelInfo.EndToEnd` 对 v10/26 训练模型返回正确模式。`.sytrain` 不能重命名成 PyTorch `.pt`，尚不导出 ONNX。
 
-## 当前验证结果
+官方权重按原始 SHA256 识别并保留 AGPL-3.0 及来源。自定义权重保留供应方许可要求；项目源码未新增许可证。
 
-| 验证 | 实际结果 |
-| --- | --- |
-| 训练单元和集成测试 | 12 项通过：差分梯度、SGD、空标签、恢复、取消、并发拒绝、坏快照、Vulkan 训练及快照推理 |
-| 原版独立数值对照 | 固定 Ultralytics 8.4.0 + PyTorch 2.11.0 CPU，四组共 640/640 检查通过 |
-| 对照场景 | CPU、Vulkan 头矩阵运算、小目标、空标签；覆盖前向、损失、logits 梯度、参数梯度和 BN 统计 |
-| 小样本真实更新 | 固定单图、64×64、100 轮，推理模式损失 4.365893 → 1.162812 |
-| 原推理回归 | CPU/Vulkan 117 项通过 |
-| 网页 API / 浏览器 | 推理、训练、恢复、取消、下载、上传检查点、会话复用、Vulkan 训练和移动布局通过 |
+## 测试与评测
 
-单图损失下降仅证明真实反向传播和更新可工作，**不是独立验证集的精度或 mAP 结论**。未完成全数据集收敛、训练速度或显存占用对比，不能据此宣称训练性能超越 PyTorch。
+[完整评测与图表](../artifacts/training-evaluation-0.10.0.md)包含 CPU/Vulkan × 五模型数值对照、小目标/空标签、SGD/动量、真实损失下降、取消恢复、检查点推理、网页和训练速度。原始证据及复现命令见[本版验证目录](../artifacts/validation/0.10.0/README.md)。
 
-[验证与复现](../artifacts/validation/0.9.0/README.md)保留原始结果、固定参考版本和实际程序集摘要。历史 0.8.1 速度表属于历史冻结 DLL，未用来表示 0.9.0 的速度。
+```powershell
+dotnet run --project tests/SimdYolo.Training.Tests -c Release -- --integration --vulkan
+python tools/run-training-matrix.py
+dotnet run --project tests/SimdYolo.Training.Tests -c Release -- test-matrix .cache/training-010/cpu --epochs 100
+dotnet run --project tests/SimdYolo.Training.Tests -c Release -- test-matrix .cache/training-010/vulkan --epochs 100 --vulkan
+python tools/benchmark-training.py
+```
+
+Python/PyTorch、Pillow、Node 仅用于开发验证，不进入库或网页运行依赖。参考源码需要放置在 `.cache/yolo26-release-reference`，对照不自动下载或执行任意远端权重。普通 ONNX Runtime 不是本轮训练基线，没有把推理延迟当作训练耗时。

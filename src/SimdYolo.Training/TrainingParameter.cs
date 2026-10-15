@@ -13,12 +13,15 @@ internal sealed class TrainingParameter(string name, float[] values, int[] shape
     internal float[] Gradient { get; } = new float[values.Length];
     internal float[] Velocity { get; } = new float[values.Length];
     internal bool Decay { get; } = decay;
+    internal bool HasGradient { get; set; }
 
     /// <summary>按有效微批次图像数量平均梯度，检查有限性后执行带动量的 SGD。</summary>
     /// <param name="options">学习率、动量和衰减配置。</param><param name="images">本次累加的实际图像数量。</param>
     /// <exception cref="ArithmeticException">更新后的权重或动量出现非有限值。</exception>
     internal void Update(TrainingOptions options, int images)
     {
+        // 与 PyTorch grad=None 一致：未连接到损失的分支不更新动量，也不施加权重衰减。
+        if (!HasGradient) return;
         float inverse = 1f / images, decay = Decay ? options.WeightDecay : 0;
         var inv = new Vector<float>(inverse); var wd = new Vector<float>(decay);
         var momentum = new Vector<float>(options.Momentum); var learningRate = new Vector<float>(options.LearningRate);
@@ -32,6 +35,7 @@ internal sealed class TrainingParameter(string name, float[] values, int[] shape
         for (; i < Values.Length; i++) { Velocity[i] = options.Momentum * Velocity[i] + Gradient[i] * inverse + Values[i] * decay; Values[i] -= options.LearningRate * Velocity[i]; }
         if (Values.Any(v => !float.IsFinite(v)) || Velocity.Any(v => !float.IsFinite(v))) throw new ArithmeticException("训练发生非有限参数，请降低学习率。");
         Array.Clear(Gradient);
+        HasGradient = false;
     }
 }
 
@@ -43,6 +47,8 @@ internal sealed class GradientValue(Tensor value, bool requiresGradient = true)
     internal bool RequiresGradient { get; } = requiresGradient;
     private float[]? gradient;
     internal float[] Gradient => gradient ??= new float[Value.Length];
+    internal bool HasGradient => gradient is not null;
+    internal float[] GradientOrZero => gradient ?? new float[Value.Length];
 }
 
 /// <summary>为检测头保存显式的反向拓扑，不增加推理张量的梯度开销。</summary>

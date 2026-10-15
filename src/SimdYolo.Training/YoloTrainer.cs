@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace SimdYolo.Training;
 
-/// <summary>以纯 C# 微调 YOLOv8 检测头；冻结骨干，使用真实反向传播和带动量 SGD。</summary>
+/// <summary>以纯 C# 微调 YOLOv8/v9/v10/YOLO11/YOLO26 检测头；冻结骨干与 FPN，使用真实反向传播和带动量 SGD。</summary>
 public sealed class YoloTrainer : IDisposable
 {
     private readonly TrainingDataset dataset;
@@ -15,6 +15,7 @@ public sealed class YoloTrainer : IDisposable
     private readonly FrozenFeatureExtractor extractor;
     private readonly DetectionHead head;
     private readonly HeadOperations operations;
+    private readonly int lossScheduleEpochs;
     private readonly Dictionary<int, Tensor[]> featureCache = [];
     private readonly object gate = new();
     private long cachedBytes;
@@ -22,14 +23,37 @@ public sealed class YoloTrainer : IDisposable
     private int completedEpochs, completedSteps;
 
     /// <summary>当前冻结骨干及矩阵后端的实际名称。</summary><value>Vulkan 表示混合训练，BN、损失和 SGD 仍在 CPU。</value>
-    public string BackendName => options.Device == ComputeDevice.Vulkan ? "Vulkan GEMM + CPU BN/loss/SGD" : extractor.Backend.Name;
+    public string BackendName => options.Device == ComputeDevice.Vulkan ? "Vulkan GEMM + CPU depthwise/BN/loss/SGD" : extractor.Backend.Name;
     /// <summary>已经完整保存的训练轮数。</summary><value>取消恢复以最近完成轮次为边界。</value>
     public int CompletedEpochs => Volatile.Read(ref completedEpochs);
     /// <summary>已经完成的 SGD 更新次数。</summary><value>按微批次梯度累加后计数。</value>
     public int CompletedSteps => Volatile.Read(ref completedSteps);
 
+    /// <summary>按 PT 的真实模块结构探测检测头微调能力，不依赖文件名、不加载权重或创建设备。</summary>
+    /// <param name="modelPath">PT/PTH 或本项目训练归档路径；普通 ONNX 返回 false。</param>
+    /// <returns>含完整受支持训练分支时返回 true；不支持的任务或头结构返回 false。</returns>
+    /// <exception cref="IOException">文件无法读取或被截断。</exception><exception cref="InvalidDataException">ZIP 或元数据损坏、超限。</exception>
+    /// <exception cref="ArgumentException">路径无效。</exception>
+    public static bool CanTrain(string modelPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modelPath);
+        string extension = Path.GetExtension(modelPath).ToLowerInvariant();
+        if (extension is not (".pt" or ".pth" or ".sytrain")) return false;
+        using var file = File.OpenRead(modelPath); using var zip = new ZipArchive(file, ZipArchiveMode.Read);
+        if (extension == ".sytrain") { TrainingModelState.ReadManifest(zip); return true; }
+        var entry = zip.Entries.SingleOrDefault(e => e.FullName.EndsWith("/data.pkl", StringComparison.Ordinal));
+        if (entry is null) return false;
+        if (entry.Length > 64 * 1024 * 1024) throw new InvalidDataException("PT 元数据超过64 MiB。");
+        byte[] bytes = new byte[(int)entry.Length]; using (var stream = entry.Open()) stream.ReadExactly(bytes);
+        object? root = new PickleReader(zip, entry.FullName[..^"data.pkl".Length], false).Load(bytes);
+        if (root is Dictionary<object, object?> checkpoint) root = checkpoint.GetValueOrDefault("ema") ?? checkpoint.GetValueOrDefault("model");
+        if (root is not PyObject model || !model.Has("model") || model.Child("model").Children.LastOrDefault() is not { } head) return false;
+        try { TrainingHeadSchema.Read(head); return true; }
+        catch (NotSupportedException) { return false; }
+    }
+
     /// <summary>从原 PT 或自包含训练快照初始化检测头；自定义类别按名称复用已有分类通道。</summary>
-    /// <param name="modelPath">标准 YOLOv8 检测 PT 或 .sytrain 文件。</param><param name="dataset">检测数据集。</param><param name="options">训练选项。</param>
+    /// <param name="modelPath">五代支持的检测 PT 或 .sytrain 文件。</param><param name="dataset">检测数据集。</param><param name="options">训练选项。</param>
     /// <exception cref="ArgumentException">配置无效。</exception><exception cref="NotSupportedException">模型或设备不属于首期支持范围。</exception><exception cref="InvalidDataException">模型或快照不完整。</exception><exception cref="IOException">无法读取模型文件。</exception>
     public YoloTrainer(string modelPath, TrainingDataset dataset, TrainingOptions? options = null)
     {
@@ -41,15 +65,18 @@ public sealed class YoloTrainer : IDisposable
             if (new FileInfo(modelPath).Length > 256L * 1024 * 1024) throw new InvalidDataException("首期训练入口的 PT 文件不能超过 256 MiB。");
             source = File.ReadAllBytes(modelPath);
         }
-        else throw new NotSupportedException("训练入口仅支持标准 YOLOv8 PT 或 .sytrain，不能从普通推理 ONNX 恢复训练结构。");
+        else throw new NotSupportedException("训练入口支持五代检测 PT 或 .sytrain，不能从普通推理 ONNX 恢复训练结构。");
         extractor = new(source, this.options);
         try
         {
             head = new(extractor.Model.DetectionHead, dataset.ClassNames.ToArray(), extractor.Model.Names, this.options.Seed);
+            lossScheduleEpochs = state?.Manifest.LossScheduleEpochs is > 0 ? state.Manifest.LossScheduleEpochs : this.options.Epochs;
             operations = new(extractor.Backend);
             if (state is not null)
             {
                 if (!state.Manifest.ClassNames.SequenceEqual(dataset.ClassNames)) throw new InvalidDataException("训练模型类别与数据集不同。");
+                if (state.Manifest.Format == "SimdYolo.Training/1" && head.Schema.EndToEnd) throw new InvalidDataException("旧版训练归档不能声明双检测头。");
+                if (state.Manifest.Format == "SimdYolo.Training/2" && (state.Manifest.HeadKind != head.Schema.Kind || state.Manifest.RegMax != head.Schema.RegMax || state.Manifest.EndToEnd != head.Schema.EndToEnd)) throw new InvalidDataException("快照的检测头类型与原始模型不同。");
                 head.Restore(state.Parameters);
             }
         }
@@ -108,8 +135,8 @@ public sealed class YoloTrainer : IDisposable
                     foreach (int index in batch)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        var (features, truth) = Features(index); var tape = new GradientTape(); var values = head.Forward(features, operations, tape, true);
-                        var loss = DetectionLoss.Compute(values.Boxes, values.Classes, head.Strides, truth, head.ClassCount);
+                        var (features, truth) = Features(index); var tape = new GradientTape();
+                        var loss = head.Loss(features, operations, tape, truth, true, epoch, lossScheduleEpochs);
                         if (!float.IsFinite(loss.Total)) throw new ArithmeticException("检测损失出现非有限值。");
                         tape.Backward(); box += loss.Box; cls += loss.Classification; dfl += loss.Dfl;
                     }
@@ -131,7 +158,7 @@ public sealed class YoloTrainer : IDisposable
         finally { lock (gate) running = false; }
     }
 
-    /// <summary>使用 BN 运行统计计算数据集平均损失，不执行参数更新或修改统计。</summary>
+    /// <summary>使用 BN 运行统计计算数据集平均损失；YOLO26 固定初始双头权重，使训练前后可比。</summary>
     /// <returns>各图像的加权总损失平均值。</returns>
     /// <exception cref="InvalidOperationException">训练仍在运行。</exception><exception cref="ObjectDisposedException">会话已释放。</exception>
     public float EvaluateLoss()
@@ -140,7 +167,7 @@ public sealed class YoloTrainer : IDisposable
         {
         ObjectDisposedException.ThrowIf(disposed, this); if (running) throw new InvalidOperationException("训练过程中不能重入验证。");
         float sum = 0;
-        for (int i = 0; i < dataset.Images.Count; i++) { var (features, truth) = Features(i); var tape = new GradientTape(); var values = head.Forward(features, operations, tape, false); sum += DetectionLoss.Compute(values.Boxes, values.Classes, head.Strides, truth, head.ClassCount, false).Total; }
+        for (int i = 0; i < dataset.Images.Count; i++) { var (features, truth) = Features(i); sum += head.Loss(features, operations, new(), truth, false, 0, lossScheduleEpochs).Total; }
         return sum / dataset.Images.Count;
         }
     }
@@ -165,7 +192,8 @@ public sealed class YoloTrainer : IDisposable
     private void SaveCheckpointCore(string path)
     {
         var snapshot = head.Snapshot(); var entries = snapshot.Select(p => new TrainingTensorEntry(p.Key, p.Value.Shape)).ToList();
-        var manifest = new TrainingManifest { ClassNames = dataset.ClassNames.ToArray(), SourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source)), Parameters = entries, Epoch = completedEpochs, Step = completedSteps,
+        var manifest = new TrainingManifest { Format = "SimdYolo.Training/2", HeadKind = head.Schema.Kind, RegMax = head.Schema.RegMax, EndToEnd = head.Schema.EndToEnd, LossScheduleEpochs = lossScheduleEpochs,
+            ClassNames = dataset.ClassNames.ToArray(), SourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source)), Parameters = entries, Epoch = completedEpochs, Step = completedSteps,
             Seed = options.Seed, ImageSize = options.ImageSize, BatchSize = options.BatchSize, LearningRate = options.LearningRate, Momentum = options.Momentum, WeightDecay = options.WeightDecay, DatasetSha256 = dataset.Sha256 };
         string full = Path.GetFullPath(path); Directory.CreateDirectory(Path.GetDirectoryName(full)!); string temporary = full + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try

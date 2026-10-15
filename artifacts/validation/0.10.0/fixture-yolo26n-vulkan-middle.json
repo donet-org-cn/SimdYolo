@@ -1,0 +1,4035 @@
+{
+  "sourceModel": "F:\\simdyolo\\models\\pt\\yolo26n.pt",
+  "classNames": [
+    "object-a",
+    "object-b"
+  ],
+  "strides": [
+    8,
+    16,
+    32
+  ],
+  "regMax": 1,
+  "headKind": "ProgressiveEndToEnd",
+  "epoch": 2,
+  "scheduleEpochs": 5,
+  "device": "Vulkan",
+  "truth": [
+    {
+      "classId": 0,
+      "x1": 10,
+      "y1": 9,
+      "x2": 43,
+      "y2": 46
+    },
+    {
+      "classId": 1,
+      "x1": 25,
+      "y1": 22,
+      "x2": 58,
+      "y2": 59
+    }
+  ],
+  "sgdParameters": [
+    {
+      "name": "cv2.0.0.conv.weight",
+      "shape": [
+        16,
+        64,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-0.f32",
+      "velocityPath": "sgd-velocity-0.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.0.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-1.f32",
+      "velocityPath": "sgd-velocity-1.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.0.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-2.f32",
+      "velocityPath": "sgd-velocity-2.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.0.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-3.f32",
+      "velocityPath": "sgd-velocity-3.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.0.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-4.f32",
+      "velocityPath": "sgd-velocity-4.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.0.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-5.f32",
+      "velocityPath": "sgd-velocity-5.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.0.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-6.f32",
+      "velocityPath": "sgd-velocity-6.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.0.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "sgd-parameter-7.f32",
+      "velocityPath": "sgd-velocity-7.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.1.0.conv.weight",
+      "shape": [
+        16,
+        128,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-8.f32",
+      "velocityPath": "sgd-velocity-8.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.1.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-9.f32",
+      "velocityPath": "sgd-velocity-9.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.1.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-10.f32",
+      "velocityPath": "sgd-velocity-10.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.1.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-11.f32",
+      "velocityPath": "sgd-velocity-11.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.1.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-12.f32",
+      "velocityPath": "sgd-velocity-12.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.1.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-13.f32",
+      "velocityPath": "sgd-velocity-13.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.1.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-14.f32",
+      "velocityPath": "sgd-velocity-14.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.1.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "sgd-parameter-15.f32",
+      "velocityPath": "sgd-velocity-15.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.2.0.conv.weight",
+      "shape": [
+        16,
+        256,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-16.f32",
+      "velocityPath": "sgd-velocity-16.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.2.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-17.f32",
+      "velocityPath": "sgd-velocity-17.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.2.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-18.f32",
+      "velocityPath": "sgd-velocity-18.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.2.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-19.f32",
+      "velocityPath": "sgd-velocity-19.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.2.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-20.f32",
+      "velocityPath": "sgd-velocity-20.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.2.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-21.f32",
+      "velocityPath": "sgd-velocity-21.f32",
+      "decay": false
+    },
+    {
+      "name": "cv2.2.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-22.f32",
+      "velocityPath": "sgd-velocity-22.f32",
+      "decay": true
+    },
+    {
+      "name": "cv2.2.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "sgd-parameter-23.f32",
+      "velocityPath": "sgd-velocity-23.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-24.f32",
+      "velocityPath": "sgd-velocity-24.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "sgd-parameter-25.f32",
+      "velocityPath": "sgd-velocity-25.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "sgd-parameter-26.f32",
+      "velocityPath": "sgd-velocity-26.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-27.f32",
+      "velocityPath": "sgd-velocity-27.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-28.f32",
+      "velocityPath": "sgd-velocity-28.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-29.f32",
+      "velocityPath": "sgd-velocity-29.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-30.f32",
+      "velocityPath": "sgd-velocity-30.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-31.f32",
+      "velocityPath": "sgd-velocity-31.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-32.f32",
+      "velocityPath": "sgd-velocity-32.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-33.f32",
+      "velocityPath": "sgd-velocity-33.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-34.f32",
+      "velocityPath": "sgd-velocity-34.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-35.f32",
+      "velocityPath": "sgd-velocity-35.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.0.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-36.f32",
+      "velocityPath": "sgd-velocity-36.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.0.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "sgd-parameter-37.f32",
+      "velocityPath": "sgd-velocity-37.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-38.f32",
+      "velocityPath": "sgd-velocity-38.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight",
+      "shape": [
+        128
+      ],
+      "path": "sgd-parameter-39.f32",
+      "velocityPath": "sgd-velocity-39.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias",
+      "shape": [
+        128
+      ],
+      "path": "sgd-parameter-40.f32",
+      "velocityPath": "sgd-velocity-40.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-41.f32",
+      "velocityPath": "sgd-velocity-41.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-42.f32",
+      "velocityPath": "sgd-velocity-42.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-43.f32",
+      "velocityPath": "sgd-velocity-43.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-44.f32",
+      "velocityPath": "sgd-velocity-44.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-45.f32",
+      "velocityPath": "sgd-velocity-45.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-46.f32",
+      "velocityPath": "sgd-velocity-46.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-47.f32",
+      "velocityPath": "sgd-velocity-47.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-48.f32",
+      "velocityPath": "sgd-velocity-48.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-49.f32",
+      "velocityPath": "sgd-velocity-49.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.1.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-50.f32",
+      "velocityPath": "sgd-velocity-50.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.1.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "sgd-parameter-51.f32",
+      "velocityPath": "sgd-velocity-51.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-52.f32",
+      "velocityPath": "sgd-velocity-52.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight",
+      "shape": [
+        256
+      ],
+      "path": "sgd-parameter-53.f32",
+      "velocityPath": "sgd-velocity-53.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias",
+      "shape": [
+        256
+      ],
+      "path": "sgd-parameter-54.f32",
+      "velocityPath": "sgd-velocity-54.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-55.f32",
+      "velocityPath": "sgd-velocity-55.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-56.f32",
+      "velocityPath": "sgd-velocity-56.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-57.f32",
+      "velocityPath": "sgd-velocity-57.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-58.f32",
+      "velocityPath": "sgd-velocity-58.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-59.f32",
+      "velocityPath": "sgd-velocity-59.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-60.f32",
+      "velocityPath": "sgd-velocity-60.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-61.f32",
+      "velocityPath": "sgd-velocity-61.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-62.f32",
+      "velocityPath": "sgd-velocity-62.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-63.f32",
+      "velocityPath": "sgd-velocity-63.f32",
+      "decay": false
+    },
+    {
+      "name": "cv3.2.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-64.f32",
+      "velocityPath": "sgd-velocity-64.f32",
+      "decay": true
+    },
+    {
+      "name": "cv3.2.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "sgd-parameter-65.f32",
+      "velocityPath": "sgd-velocity-65.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.0.0.conv.weight",
+      "shape": [
+        16,
+        64,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-66.f32",
+      "velocityPath": "sgd-velocity-66.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-67.f32",
+      "velocityPath": "sgd-velocity-67.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-68.f32",
+      "velocityPath": "sgd-velocity-68.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.0.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-69.f32",
+      "velocityPath": "sgd-velocity-69.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-70.f32",
+      "velocityPath": "sgd-velocity-70.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-71.f32",
+      "velocityPath": "sgd-velocity-71.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.0.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-72.f32",
+      "velocityPath": "sgd-velocity-72.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.0.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "sgd-parameter-73.f32",
+      "velocityPath": "sgd-velocity-73.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.1.0.conv.weight",
+      "shape": [
+        16,
+        128,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-74.f32",
+      "velocityPath": "sgd-velocity-74.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-75.f32",
+      "velocityPath": "sgd-velocity-75.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-76.f32",
+      "velocityPath": "sgd-velocity-76.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.1.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-77.f32",
+      "velocityPath": "sgd-velocity-77.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-78.f32",
+      "velocityPath": "sgd-velocity-78.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-79.f32",
+      "velocityPath": "sgd-velocity-79.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.1.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-80.f32",
+      "velocityPath": "sgd-velocity-80.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.1.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "sgd-parameter-81.f32",
+      "velocityPath": "sgd-velocity-81.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.2.0.conv.weight",
+      "shape": [
+        16,
+        256,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-82.f32",
+      "velocityPath": "sgd-velocity-82.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-83.f32",
+      "velocityPath": "sgd-velocity-83.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-84.f32",
+      "velocityPath": "sgd-velocity-84.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.2.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-85.f32",
+      "velocityPath": "sgd-velocity-85.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-86.f32",
+      "velocityPath": "sgd-velocity-86.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "sgd-parameter-87.f32",
+      "velocityPath": "sgd-velocity-87.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv2.2.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-88.f32",
+      "velocityPath": "sgd-velocity-88.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv2.2.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "sgd-parameter-89.f32",
+      "velocityPath": "sgd-velocity-89.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.0.0.conv.weight",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-90.f32",
+      "velocityPath": "sgd-velocity-90.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "sgd-parameter-91.f32",
+      "velocityPath": "sgd-velocity-91.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "sgd-parameter-92.f32",
+      "velocityPath": "sgd-velocity-92.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.0.1.conv.weight",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-93.f32",
+      "velocityPath": "sgd-velocity-93.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-94.f32",
+      "velocityPath": "sgd-velocity-94.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-95.f32",
+      "velocityPath": "sgd-velocity-95.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-96.f32",
+      "velocityPath": "sgd-velocity-96.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-97.f32",
+      "velocityPath": "sgd-velocity-97.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-98.f32",
+      "velocityPath": "sgd-velocity-98.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-99.f32",
+      "velocityPath": "sgd-velocity-99.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-100.f32",
+      "velocityPath": "sgd-velocity-100.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-101.f32",
+      "velocityPath": "sgd-velocity-101.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.0.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-102.f32",
+      "velocityPath": "sgd-velocity-102.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.0.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "sgd-parameter-103.f32",
+      "velocityPath": "sgd-velocity-103.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.0.0.conv.weight",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-104.f32",
+      "velocityPath": "sgd-velocity-104.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.weight",
+      "shape": [
+        128
+      ],
+      "path": "sgd-parameter-105.f32",
+      "velocityPath": "sgd-velocity-105.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.bias",
+      "shape": [
+        128
+      ],
+      "path": "sgd-parameter-106.f32",
+      "velocityPath": "sgd-velocity-106.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.0.1.conv.weight",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-107.f32",
+      "velocityPath": "sgd-velocity-107.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-108.f32",
+      "velocityPath": "sgd-velocity-108.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-109.f32",
+      "velocityPath": "sgd-velocity-109.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-110.f32",
+      "velocityPath": "sgd-velocity-110.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-111.f32",
+      "velocityPath": "sgd-velocity-111.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-112.f32",
+      "velocityPath": "sgd-velocity-112.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-113.f32",
+      "velocityPath": "sgd-velocity-113.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-114.f32",
+      "velocityPath": "sgd-velocity-114.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-115.f32",
+      "velocityPath": "sgd-velocity-115.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.1.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-116.f32",
+      "velocityPath": "sgd-velocity-116.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.1.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "sgd-parameter-117.f32",
+      "velocityPath": "sgd-velocity-117.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.0.0.conv.weight",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-118.f32",
+      "velocityPath": "sgd-velocity-118.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.weight",
+      "shape": [
+        256
+      ],
+      "path": "sgd-parameter-119.f32",
+      "velocityPath": "sgd-velocity-119.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.bias",
+      "shape": [
+        256
+      ],
+      "path": "sgd-parameter-120.f32",
+      "velocityPath": "sgd-velocity-120.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.0.1.conv.weight",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-121.f32",
+      "velocityPath": "sgd-velocity-121.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-122.f32",
+      "velocityPath": "sgd-velocity-122.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-123.f32",
+      "velocityPath": "sgd-velocity-123.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "sgd-parameter-124.f32",
+      "velocityPath": "sgd-velocity-124.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-125.f32",
+      "velocityPath": "sgd-velocity-125.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-126.f32",
+      "velocityPath": "sgd-velocity-126.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-127.f32",
+      "velocityPath": "sgd-velocity-127.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-128.f32",
+      "velocityPath": "sgd-velocity-128.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "sgd-parameter-129.f32",
+      "velocityPath": "sgd-velocity-129.f32",
+      "decay": false
+    },
+    {
+      "name": "one2one_cv3.2.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "sgd-parameter-130.f32",
+      "velocityPath": "sgd-velocity-130.f32",
+      "decay": true
+    },
+    {
+      "name": "one2one_cv3.2.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "sgd-parameter-131.f32",
+      "velocityPath": "sgd-velocity-131.f32",
+      "decay": false
+    }
+  ],
+  "optimizer": {
+    "learningRate": 0.003,
+    "momentum": 0.9,
+    "weightDecay": 0.0005
+  },
+  "features": [
+    {
+      "path": "feature-0.f32",
+      "shape": [
+        1,
+        64,
+        8,
+        8
+      ]
+    },
+    {
+      "path": "feature-1.f32",
+      "shape": [
+        1,
+        128,
+        4,
+        4
+      ]
+    },
+    {
+      "path": "feature-2.f32",
+      "shape": [
+        1,
+        256,
+        2,
+        2
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "cv2.0.0.conv.weight",
+      "shape": [
+        16,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-0.f32",
+      "connected": true,
+      "gradientPath": "gradient-0.f32",
+      "afterPath": "after-0.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-1.f32",
+      "connected": true,
+      "gradientPath": "gradient-1.f32",
+      "afterPath": "after-1.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-2.f32",
+      "connected": true,
+      "gradientPath": "gradient-2.f32",
+      "afterPath": "after-2.f32"
+    },
+    {
+      "name": "cv2.0.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "parameter-3.f32",
+      "connected": true,
+      "gradientPath": "gradient-3.f32",
+      "afterPath": "after-3.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-4.f32",
+      "connected": true,
+      "gradientPath": "gradient-4.f32",
+      "afterPath": "after-4.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-5.f32",
+      "connected": true,
+      "gradientPath": "gradient-5.f32",
+      "afterPath": "after-5.f32"
+    },
+    {
+      "name": "cv2.0.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "parameter-6.f32",
+      "connected": true,
+      "gradientPath": "gradient-6.f32",
+      "afterPath": "after-6.f32"
+    },
+    {
+      "name": "cv2.0.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "parameter-7.f32",
+      "connected": true,
+      "gradientPath": "gradient-7.f32",
+      "afterPath": "after-7.f32"
+    },
+    {
+      "name": "cv2.1.0.conv.weight",
+      "shape": [
+        16,
+        128,
+        3,
+        3
+      ],
+      "path": "parameter-8.f32",
+      "connected": true,
+      "gradientPath": "gradient-8.f32",
+      "afterPath": "after-8.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-9.f32",
+      "connected": true,
+      "gradientPath": "gradient-9.f32",
+      "afterPath": "after-9.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-10.f32",
+      "connected": true,
+      "gradientPath": "gradient-10.f32",
+      "afterPath": "after-10.f32"
+    },
+    {
+      "name": "cv2.1.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "parameter-11.f32",
+      "connected": true,
+      "gradientPath": "gradient-11.f32",
+      "afterPath": "after-11.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-12.f32",
+      "connected": true,
+      "gradientPath": "gradient-12.f32",
+      "afterPath": "after-12.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-13.f32",
+      "connected": true,
+      "gradientPath": "gradient-13.f32",
+      "afterPath": "after-13.f32"
+    },
+    {
+      "name": "cv2.1.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "parameter-14.f32",
+      "connected": true,
+      "gradientPath": "gradient-14.f32",
+      "afterPath": "after-14.f32"
+    },
+    {
+      "name": "cv2.1.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "parameter-15.f32",
+      "connected": true,
+      "gradientPath": "gradient-15.f32",
+      "afterPath": "after-15.f32"
+    },
+    {
+      "name": "cv2.2.0.conv.weight",
+      "shape": [
+        16,
+        256,
+        3,
+        3
+      ],
+      "path": "parameter-16.f32",
+      "connected": true,
+      "gradientPath": "gradient-16.f32",
+      "afterPath": "after-16.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-17.f32",
+      "connected": true,
+      "gradientPath": "gradient-17.f32",
+      "afterPath": "after-17.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-18.f32",
+      "connected": true,
+      "gradientPath": "gradient-18.f32",
+      "afterPath": "after-18.f32"
+    },
+    {
+      "name": "cv2.2.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "parameter-19.f32",
+      "connected": true,
+      "gradientPath": "gradient-19.f32",
+      "afterPath": "after-19.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-20.f32",
+      "connected": true,
+      "gradientPath": "gradient-20.f32",
+      "afterPath": "after-20.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-21.f32",
+      "connected": true,
+      "gradientPath": "gradient-21.f32",
+      "afterPath": "after-21.f32"
+    },
+    {
+      "name": "cv2.2.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "parameter-22.f32",
+      "connected": true,
+      "gradientPath": "gradient-22.f32",
+      "afterPath": "after-22.f32"
+    },
+    {
+      "name": "cv2.2.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "parameter-23.f32",
+      "connected": true,
+      "gradientPath": "gradient-23.f32",
+      "afterPath": "after-23.f32"
+    },
+    {
+      "name": "cv3.0.0.0.conv.weight",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-24.f32",
+      "connected": true,
+      "gradientPath": "gradient-24.f32",
+      "afterPath": "after-24.f32"
+    },
+    {
+      "name": "cv3.0.0.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-25.f32",
+      "connected": true,
+      "gradientPath": "gradient-25.f32",
+      "afterPath": "after-25.f32"
+    },
+    {
+      "name": "cv3.0.0.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-26.f32",
+      "connected": true,
+      "gradientPath": "gradient-26.f32",
+      "afterPath": "after-26.f32"
+    },
+    {
+      "name": "cv3.0.0.1.conv.weight",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "path": "parameter-27.f32",
+      "connected": true,
+      "gradientPath": "gradient-27.f32",
+      "afterPath": "after-27.f32"
+    },
+    {
+      "name": "cv3.0.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-28.f32",
+      "connected": true,
+      "gradientPath": "gradient-28.f32",
+      "afterPath": "after-28.f32"
+    },
+    {
+      "name": "cv3.0.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-29.f32",
+      "connected": true,
+      "gradientPath": "gradient-29.f32",
+      "afterPath": "after-29.f32"
+    },
+    {
+      "name": "cv3.0.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-30.f32",
+      "connected": true,
+      "gradientPath": "gradient-30.f32",
+      "afterPath": "after-30.f32"
+    },
+    {
+      "name": "cv3.0.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-31.f32",
+      "connected": true,
+      "gradientPath": "gradient-31.f32",
+      "afterPath": "after-31.f32"
+    },
+    {
+      "name": "cv3.0.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-32.f32",
+      "connected": true,
+      "gradientPath": "gradient-32.f32",
+      "afterPath": "after-32.f32"
+    },
+    {
+      "name": "cv3.0.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-33.f32",
+      "connected": true,
+      "gradientPath": "gradient-33.f32",
+      "afterPath": "after-33.f32"
+    },
+    {
+      "name": "cv3.0.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-34.f32",
+      "connected": true,
+      "gradientPath": "gradient-34.f32",
+      "afterPath": "after-34.f32"
+    },
+    {
+      "name": "cv3.0.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-35.f32",
+      "connected": true,
+      "gradientPath": "gradient-35.f32",
+      "afterPath": "after-35.f32"
+    },
+    {
+      "name": "cv3.0.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-36.f32",
+      "connected": true,
+      "gradientPath": "gradient-36.f32",
+      "afterPath": "after-36.f32"
+    },
+    {
+      "name": "cv3.0.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-37.f32",
+      "connected": true,
+      "gradientPath": "gradient-37.f32",
+      "afterPath": "after-37.f32"
+    },
+    {
+      "name": "cv3.1.0.0.conv.weight",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-38.f32",
+      "connected": true,
+      "gradientPath": "gradient-38.f32",
+      "afterPath": "after-38.f32"
+    },
+    {
+      "name": "cv3.1.0.0.bn.weight",
+      "shape": [
+        128
+      ],
+      "path": "parameter-39.f32",
+      "connected": true,
+      "gradientPath": "gradient-39.f32",
+      "afterPath": "after-39.f32"
+    },
+    {
+      "name": "cv3.1.0.0.bn.bias",
+      "shape": [
+        128
+      ],
+      "path": "parameter-40.f32",
+      "connected": true,
+      "gradientPath": "gradient-40.f32",
+      "afterPath": "after-40.f32"
+    },
+    {
+      "name": "cv3.1.0.1.conv.weight",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "path": "parameter-41.f32",
+      "connected": true,
+      "gradientPath": "gradient-41.f32",
+      "afterPath": "after-41.f32"
+    },
+    {
+      "name": "cv3.1.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-42.f32",
+      "connected": true,
+      "gradientPath": "gradient-42.f32",
+      "afterPath": "after-42.f32"
+    },
+    {
+      "name": "cv3.1.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-43.f32",
+      "connected": true,
+      "gradientPath": "gradient-43.f32",
+      "afterPath": "after-43.f32"
+    },
+    {
+      "name": "cv3.1.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-44.f32",
+      "connected": true,
+      "gradientPath": "gradient-44.f32",
+      "afterPath": "after-44.f32"
+    },
+    {
+      "name": "cv3.1.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-45.f32",
+      "connected": true,
+      "gradientPath": "gradient-45.f32",
+      "afterPath": "after-45.f32"
+    },
+    {
+      "name": "cv3.1.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-46.f32",
+      "connected": true,
+      "gradientPath": "gradient-46.f32",
+      "afterPath": "after-46.f32"
+    },
+    {
+      "name": "cv3.1.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-47.f32",
+      "connected": true,
+      "gradientPath": "gradient-47.f32",
+      "afterPath": "after-47.f32"
+    },
+    {
+      "name": "cv3.1.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-48.f32",
+      "connected": true,
+      "gradientPath": "gradient-48.f32",
+      "afterPath": "after-48.f32"
+    },
+    {
+      "name": "cv3.1.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-49.f32",
+      "connected": true,
+      "gradientPath": "gradient-49.f32",
+      "afterPath": "after-49.f32"
+    },
+    {
+      "name": "cv3.1.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-50.f32",
+      "connected": true,
+      "gradientPath": "gradient-50.f32",
+      "afterPath": "after-50.f32"
+    },
+    {
+      "name": "cv3.1.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-51.f32",
+      "connected": true,
+      "gradientPath": "gradient-51.f32",
+      "afterPath": "after-51.f32"
+    },
+    {
+      "name": "cv3.2.0.0.conv.weight",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-52.f32",
+      "connected": true,
+      "gradientPath": "gradient-52.f32",
+      "afterPath": "after-52.f32"
+    },
+    {
+      "name": "cv3.2.0.0.bn.weight",
+      "shape": [
+        256
+      ],
+      "path": "parameter-53.f32",
+      "connected": true,
+      "gradientPath": "gradient-53.f32",
+      "afterPath": "after-53.f32"
+    },
+    {
+      "name": "cv3.2.0.0.bn.bias",
+      "shape": [
+        256
+      ],
+      "path": "parameter-54.f32",
+      "connected": true,
+      "gradientPath": "gradient-54.f32",
+      "afterPath": "after-54.f32"
+    },
+    {
+      "name": "cv3.2.0.1.conv.weight",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "path": "parameter-55.f32",
+      "connected": true,
+      "gradientPath": "gradient-55.f32",
+      "afterPath": "after-55.f32"
+    },
+    {
+      "name": "cv3.2.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-56.f32",
+      "connected": true,
+      "gradientPath": "gradient-56.f32",
+      "afterPath": "after-56.f32"
+    },
+    {
+      "name": "cv3.2.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-57.f32",
+      "connected": true,
+      "gradientPath": "gradient-57.f32",
+      "afterPath": "after-57.f32"
+    },
+    {
+      "name": "cv3.2.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-58.f32",
+      "connected": true,
+      "gradientPath": "gradient-58.f32",
+      "afterPath": "after-58.f32"
+    },
+    {
+      "name": "cv3.2.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-59.f32",
+      "connected": true,
+      "gradientPath": "gradient-59.f32",
+      "afterPath": "after-59.f32"
+    },
+    {
+      "name": "cv3.2.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-60.f32",
+      "connected": true,
+      "gradientPath": "gradient-60.f32",
+      "afterPath": "after-60.f32"
+    },
+    {
+      "name": "cv3.2.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-61.f32",
+      "connected": true,
+      "gradientPath": "gradient-61.f32",
+      "afterPath": "after-61.f32"
+    },
+    {
+      "name": "cv3.2.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-62.f32",
+      "connected": true,
+      "gradientPath": "gradient-62.f32",
+      "afterPath": "after-62.f32"
+    },
+    {
+      "name": "cv3.2.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-63.f32",
+      "connected": true,
+      "gradientPath": "gradient-63.f32",
+      "afterPath": "after-63.f32"
+    },
+    {
+      "name": "cv3.2.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-64.f32",
+      "connected": true,
+      "gradientPath": "gradient-64.f32",
+      "afterPath": "after-64.f32"
+    },
+    {
+      "name": "cv3.2.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-65.f32",
+      "connected": true,
+      "gradientPath": "gradient-65.f32",
+      "afterPath": "after-65.f32"
+    },
+    {
+      "name": "one2one_cv2.0.0.conv.weight",
+      "shape": [
+        16,
+        64,
+        3,
+        3
+      ],
+      "path": "parameter-66.f32",
+      "connected": true,
+      "gradientPath": "gradient-66.f32",
+      "afterPath": "after-66.f32"
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-67.f32",
+      "connected": true,
+      "gradientPath": "gradient-67.f32",
+      "afterPath": "after-67.f32"
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-68.f32",
+      "connected": true,
+      "gradientPath": "gradient-68.f32",
+      "afterPath": "after-68.f32"
+    },
+    {
+      "name": "one2one_cv2.0.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "parameter-69.f32",
+      "connected": true,
+      "gradientPath": "gradient-69.f32",
+      "afterPath": "after-69.f32"
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-70.f32",
+      "connected": true,
+      "gradientPath": "gradient-70.f32",
+      "afterPath": "after-70.f32"
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-71.f32",
+      "connected": true,
+      "gradientPath": "gradient-71.f32",
+      "afterPath": "after-71.f32"
+    },
+    {
+      "name": "one2one_cv2.0.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "parameter-72.f32",
+      "connected": true,
+      "gradientPath": "gradient-72.f32",
+      "afterPath": "after-72.f32"
+    },
+    {
+      "name": "one2one_cv2.0.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "parameter-73.f32",
+      "connected": true,
+      "gradientPath": "gradient-73.f32",
+      "afterPath": "after-73.f32"
+    },
+    {
+      "name": "one2one_cv2.1.0.conv.weight",
+      "shape": [
+        16,
+        128,
+        3,
+        3
+      ],
+      "path": "parameter-74.f32",
+      "connected": true,
+      "gradientPath": "gradient-74.f32",
+      "afterPath": "after-74.f32"
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-75.f32",
+      "connected": true,
+      "gradientPath": "gradient-75.f32",
+      "afterPath": "after-75.f32"
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-76.f32",
+      "connected": true,
+      "gradientPath": "gradient-76.f32",
+      "afterPath": "after-76.f32"
+    },
+    {
+      "name": "one2one_cv2.1.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "parameter-77.f32",
+      "connected": true,
+      "gradientPath": "gradient-77.f32",
+      "afterPath": "after-77.f32"
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-78.f32",
+      "connected": true,
+      "gradientPath": "gradient-78.f32",
+      "afterPath": "after-78.f32"
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-79.f32",
+      "connected": true,
+      "gradientPath": "gradient-79.f32",
+      "afterPath": "after-79.f32"
+    },
+    {
+      "name": "one2one_cv2.1.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "parameter-80.f32",
+      "connected": true,
+      "gradientPath": "gradient-80.f32",
+      "afterPath": "after-80.f32"
+    },
+    {
+      "name": "one2one_cv2.1.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "parameter-81.f32",
+      "connected": true,
+      "gradientPath": "gradient-81.f32",
+      "afterPath": "after-81.f32"
+    },
+    {
+      "name": "one2one_cv2.2.0.conv.weight",
+      "shape": [
+        16,
+        256,
+        3,
+        3
+      ],
+      "path": "parameter-82.f32",
+      "connected": true,
+      "gradientPath": "gradient-82.f32",
+      "afterPath": "after-82.f32"
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-83.f32",
+      "connected": true,
+      "gradientPath": "gradient-83.f32",
+      "afterPath": "after-83.f32"
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-84.f32",
+      "connected": true,
+      "gradientPath": "gradient-84.f32",
+      "afterPath": "after-84.f32"
+    },
+    {
+      "name": "one2one_cv2.2.1.conv.weight",
+      "shape": [
+        16,
+        16,
+        3,
+        3
+      ],
+      "path": "parameter-85.f32",
+      "connected": true,
+      "gradientPath": "gradient-85.f32",
+      "afterPath": "after-85.f32"
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.weight",
+      "shape": [
+        16
+      ],
+      "path": "parameter-86.f32",
+      "connected": true,
+      "gradientPath": "gradient-86.f32",
+      "afterPath": "after-86.f32"
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.bias",
+      "shape": [
+        16
+      ],
+      "path": "parameter-87.f32",
+      "connected": true,
+      "gradientPath": "gradient-87.f32",
+      "afterPath": "after-87.f32"
+    },
+    {
+      "name": "one2one_cv2.2.2.weight",
+      "shape": [
+        4,
+        16,
+        1,
+        1
+      ],
+      "path": "parameter-88.f32",
+      "connected": true,
+      "gradientPath": "gradient-88.f32",
+      "afterPath": "after-88.f32"
+    },
+    {
+      "name": "one2one_cv2.2.2.bias",
+      "shape": [
+        4
+      ],
+      "path": "parameter-89.f32",
+      "connected": true,
+      "gradientPath": "gradient-89.f32",
+      "afterPath": "after-89.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.0.conv.weight",
+      "shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-90.f32",
+      "connected": true,
+      "gradientPath": "gradient-90.f32",
+      "afterPath": "after-90.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.weight",
+      "shape": [
+        64
+      ],
+      "path": "parameter-91.f32",
+      "connected": true,
+      "gradientPath": "gradient-91.f32",
+      "afterPath": "after-91.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.bias",
+      "shape": [
+        64
+      ],
+      "path": "parameter-92.f32",
+      "connected": true,
+      "gradientPath": "gradient-92.f32",
+      "afterPath": "after-92.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.1.conv.weight",
+      "shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "path": "parameter-93.f32",
+      "connected": true,
+      "gradientPath": "gradient-93.f32",
+      "afterPath": "after-93.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-94.f32",
+      "connected": true,
+      "gradientPath": "gradient-94.f32",
+      "afterPath": "after-94.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-95.f32",
+      "connected": true,
+      "gradientPath": "gradient-95.f32",
+      "afterPath": "after-95.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-96.f32",
+      "connected": true,
+      "gradientPath": "gradient-96.f32",
+      "afterPath": "after-96.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-97.f32",
+      "connected": true,
+      "gradientPath": "gradient-97.f32",
+      "afterPath": "after-97.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-98.f32",
+      "connected": true,
+      "gradientPath": "gradient-98.f32",
+      "afterPath": "after-98.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-99.f32",
+      "connected": true,
+      "gradientPath": "gradient-99.f32",
+      "afterPath": "after-99.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-100.f32",
+      "connected": true,
+      "gradientPath": "gradient-100.f32",
+      "afterPath": "after-100.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-101.f32",
+      "connected": true,
+      "gradientPath": "gradient-101.f32",
+      "afterPath": "after-101.f32"
+    },
+    {
+      "name": "one2one_cv3.0.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-102.f32",
+      "connected": true,
+      "gradientPath": "gradient-102.f32",
+      "afterPath": "after-102.f32"
+    },
+    {
+      "name": "one2one_cv3.0.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-103.f32",
+      "connected": true,
+      "gradientPath": "gradient-103.f32",
+      "afterPath": "after-103.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.0.conv.weight",
+      "shape": [
+        128,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-104.f32",
+      "connected": true,
+      "gradientPath": "gradient-104.f32",
+      "afterPath": "after-104.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.weight",
+      "shape": [
+        128
+      ],
+      "path": "parameter-105.f32",
+      "connected": true,
+      "gradientPath": "gradient-105.f32",
+      "afterPath": "after-105.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.bias",
+      "shape": [
+        128
+      ],
+      "path": "parameter-106.f32",
+      "connected": true,
+      "gradientPath": "gradient-106.f32",
+      "afterPath": "after-106.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.1.conv.weight",
+      "shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "path": "parameter-107.f32",
+      "connected": true,
+      "gradientPath": "gradient-107.f32",
+      "afterPath": "after-107.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-108.f32",
+      "connected": true,
+      "gradientPath": "gradient-108.f32",
+      "afterPath": "after-108.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-109.f32",
+      "connected": true,
+      "gradientPath": "gradient-109.f32",
+      "afterPath": "after-109.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-110.f32",
+      "connected": true,
+      "gradientPath": "gradient-110.f32",
+      "afterPath": "after-110.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-111.f32",
+      "connected": true,
+      "gradientPath": "gradient-111.f32",
+      "afterPath": "after-111.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-112.f32",
+      "connected": true,
+      "gradientPath": "gradient-112.f32",
+      "afterPath": "after-112.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-113.f32",
+      "connected": true,
+      "gradientPath": "gradient-113.f32",
+      "afterPath": "after-113.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-114.f32",
+      "connected": true,
+      "gradientPath": "gradient-114.f32",
+      "afterPath": "after-114.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-115.f32",
+      "connected": true,
+      "gradientPath": "gradient-115.f32",
+      "afterPath": "after-115.f32"
+    },
+    {
+      "name": "one2one_cv3.1.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-116.f32",
+      "connected": true,
+      "gradientPath": "gradient-116.f32",
+      "afterPath": "after-116.f32"
+    },
+    {
+      "name": "one2one_cv3.1.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-117.f32",
+      "connected": true,
+      "gradientPath": "gradient-117.f32",
+      "afterPath": "after-117.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.0.conv.weight",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-118.f32",
+      "connected": true,
+      "gradientPath": "gradient-118.f32",
+      "afterPath": "after-118.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.weight",
+      "shape": [
+        256
+      ],
+      "path": "parameter-119.f32",
+      "connected": true,
+      "gradientPath": "gradient-119.f32",
+      "afterPath": "after-119.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.bias",
+      "shape": [
+        256
+      ],
+      "path": "parameter-120.f32",
+      "connected": true,
+      "gradientPath": "gradient-120.f32",
+      "afterPath": "after-120.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.1.conv.weight",
+      "shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "path": "parameter-121.f32",
+      "connected": true,
+      "gradientPath": "gradient-121.f32",
+      "afterPath": "after-121.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-122.f32",
+      "connected": true,
+      "gradientPath": "gradient-122.f32",
+      "afterPath": "after-122.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-123.f32",
+      "connected": true,
+      "gradientPath": "gradient-123.f32",
+      "afterPath": "after-123.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.0.conv.weight",
+      "shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "path": "parameter-124.f32",
+      "connected": true,
+      "gradientPath": "gradient-124.f32",
+      "afterPath": "after-124.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-125.f32",
+      "connected": true,
+      "gradientPath": "gradient-125.f32",
+      "afterPath": "after-125.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-126.f32",
+      "connected": true,
+      "gradientPath": "gradient-126.f32",
+      "afterPath": "after-126.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.1.conv.weight",
+      "shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-127.f32",
+      "connected": true,
+      "gradientPath": "gradient-127.f32",
+      "afterPath": "after-127.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.weight",
+      "shape": [
+        80
+      ],
+      "path": "parameter-128.f32",
+      "connected": true,
+      "gradientPath": "gradient-128.f32",
+      "afterPath": "after-128.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.bias",
+      "shape": [
+        80
+      ],
+      "path": "parameter-129.f32",
+      "connected": true,
+      "gradientPath": "gradient-129.f32",
+      "afterPath": "after-129.f32"
+    },
+    {
+      "name": "one2one_cv3.2.2.weight",
+      "shape": [
+        2,
+        80,
+        1,
+        1
+      ],
+      "path": "parameter-130.f32",
+      "connected": true,
+      "gradientPath": "gradient-130.f32",
+      "afterPath": "after-130.f32"
+    },
+    {
+      "name": "one2one_cv3.2.2.bias",
+      "shape": [
+        2
+      ],
+      "path": "parameter-131.f32",
+      "connected": true,
+      "gradientPath": "gradient-131.f32",
+      "afterPath": "after-131.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-132.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-132.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-133.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-133.f32"
+    },
+    {
+      "name": "cv2.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-134.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-134.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-135.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-135.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-136.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-136.f32"
+    },
+    {
+      "name": "cv2.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-137.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-137.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-138.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-138.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-139.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-139.f32"
+    },
+    {
+      "name": "cv2.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-140.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-140.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-141.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-141.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-142.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-142.f32"
+    },
+    {
+      "name": "cv2.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-143.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-143.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-144.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-144.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-145.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-145.f32"
+    },
+    {
+      "name": "cv2.2.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-146.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-146.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-147.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-147.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-148.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-148.f32"
+    },
+    {
+      "name": "cv2.2.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-149.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-149.f32"
+    },
+    {
+      "name": "cv3.0.0.0.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-150.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-150.f32"
+    },
+    {
+      "name": "cv3.0.0.0.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-151.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-151.f32"
+    },
+    {
+      "name": "cv3.0.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-152.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-152.f32"
+    },
+    {
+      "name": "cv3.0.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-153.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-153.f32"
+    },
+    {
+      "name": "cv3.0.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-154.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-154.f32"
+    },
+    {
+      "name": "cv3.0.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-155.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-155.f32"
+    },
+    {
+      "name": "cv3.0.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-156.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-156.f32"
+    },
+    {
+      "name": "cv3.0.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-157.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-157.f32"
+    },
+    {
+      "name": "cv3.0.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-158.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-158.f32"
+    },
+    {
+      "name": "cv3.0.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-159.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-159.f32"
+    },
+    {
+      "name": "cv3.0.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-160.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-160.f32"
+    },
+    {
+      "name": "cv3.0.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-161.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-161.f32"
+    },
+    {
+      "name": "cv3.1.0.0.bn.running_mean",
+      "shape": [
+        128
+      ],
+      "path": "parameter-162.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-162.f32"
+    },
+    {
+      "name": "cv3.1.0.0.bn.running_var",
+      "shape": [
+        128
+      ],
+      "path": "parameter-163.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-163.f32"
+    },
+    {
+      "name": "cv3.1.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-164.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-164.f32"
+    },
+    {
+      "name": "cv3.1.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-165.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-165.f32"
+    },
+    {
+      "name": "cv3.1.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-166.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-166.f32"
+    },
+    {
+      "name": "cv3.1.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-167.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-167.f32"
+    },
+    {
+      "name": "cv3.1.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-168.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-168.f32"
+    },
+    {
+      "name": "cv3.1.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-169.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-169.f32"
+    },
+    {
+      "name": "cv3.1.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-170.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-170.f32"
+    },
+    {
+      "name": "cv3.1.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-171.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-171.f32"
+    },
+    {
+      "name": "cv3.1.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-172.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-172.f32"
+    },
+    {
+      "name": "cv3.1.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-173.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-173.f32"
+    },
+    {
+      "name": "cv3.2.0.0.bn.running_mean",
+      "shape": [
+        256
+      ],
+      "path": "parameter-174.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-174.f32"
+    },
+    {
+      "name": "cv3.2.0.0.bn.running_var",
+      "shape": [
+        256
+      ],
+      "path": "parameter-175.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-175.f32"
+    },
+    {
+      "name": "cv3.2.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-176.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-176.f32"
+    },
+    {
+      "name": "cv3.2.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-177.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-177.f32"
+    },
+    {
+      "name": "cv3.2.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-178.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-178.f32"
+    },
+    {
+      "name": "cv3.2.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-179.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-179.f32"
+    },
+    {
+      "name": "cv3.2.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-180.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-180.f32"
+    },
+    {
+      "name": "cv3.2.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-181.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-181.f32"
+    },
+    {
+      "name": "cv3.2.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-182.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-182.f32"
+    },
+    {
+      "name": "cv3.2.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-183.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-183.f32"
+    },
+    {
+      "name": "cv3.2.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-184.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-184.f32"
+    },
+    {
+      "name": "cv3.2.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-185.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-185.f32"
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-186.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-186.f32"
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-187.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-187.f32"
+    },
+    {
+      "name": "one2one_cv2.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-188.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-188.f32"
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-189.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-189.f32"
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-190.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-190.f32"
+    },
+    {
+      "name": "one2one_cv2.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-191.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-191.f32"
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-192.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-192.f32"
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-193.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-193.f32"
+    },
+    {
+      "name": "one2one_cv2.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-194.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-194.f32"
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-195.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-195.f32"
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-196.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-196.f32"
+    },
+    {
+      "name": "one2one_cv2.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-197.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-197.f32"
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-198.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-198.f32"
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-199.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-199.f32"
+    },
+    {
+      "name": "one2one_cv2.2.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-200.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-200.f32"
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.running_mean",
+      "shape": [
+        16
+      ],
+      "path": "parameter-201.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-201.f32"
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.running_var",
+      "shape": [
+        16
+      ],
+      "path": "parameter-202.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-202.f32"
+    },
+    {
+      "name": "one2one_cv2.2.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-203.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-203.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.running_mean",
+      "shape": [
+        64
+      ],
+      "path": "parameter-204.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-204.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.running_var",
+      "shape": [
+        64
+      ],
+      "path": "parameter-205.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-205.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-206.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-206.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-207.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-207.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-208.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-208.f32"
+    },
+    {
+      "name": "one2one_cv3.0.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-209.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-209.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-210.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-210.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-211.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-211.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-212.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-212.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-213.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-213.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-214.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-214.f32"
+    },
+    {
+      "name": "one2one_cv3.0.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-215.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-215.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.running_mean",
+      "shape": [
+        128
+      ],
+      "path": "parameter-216.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-216.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.running_var",
+      "shape": [
+        128
+      ],
+      "path": "parameter-217.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-217.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-218.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-218.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-219.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-219.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-220.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-220.f32"
+    },
+    {
+      "name": "one2one_cv3.1.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-221.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-221.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-222.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-222.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-223.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-223.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-224.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-224.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-225.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-225.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-226.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-226.f32"
+    },
+    {
+      "name": "one2one_cv3.1.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-227.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-227.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.running_mean",
+      "shape": [
+        256
+      ],
+      "path": "parameter-228.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-228.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.running_var",
+      "shape": [
+        256
+      ],
+      "path": "parameter-229.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-229.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-230.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-230.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-231.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-231.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-232.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-232.f32"
+    },
+    {
+      "name": "one2one_cv3.2.0.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-233.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-233.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-234.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-234.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-235.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-235.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.0.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-236.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-236.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.running_mean",
+      "shape": [
+        80
+      ],
+      "path": "parameter-237.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-237.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.running_var",
+      "shape": [
+        80
+      ],
+      "path": "parameter-238.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-238.f32"
+    },
+    {
+      "name": "one2one_cv3.2.1.1.bn.num_batches_tracked",
+      "shape": [],
+      "path": "parameter-239.f32",
+      "connected": null,
+      "gradientPath": null,
+      "afterPath": "after-239.f32"
+    }
+  ],
+  "branches": [
+    {
+      "name": "one2many",
+      "prefix": "",
+      "weight": 0.45,
+      "topk": 10,
+      "topk2": 10,
+      "boxes": [
+        {
+          "path": "branch-0-boxes-0.f32",
+          "shape": [
+            1,
+            4,
+            8,
+            8
+          ],
+          "gradientPath": "branch-0-boxes-0-gradient.f32"
+        },
+        {
+          "path": "branch-0-boxes-1.f32",
+          "shape": [
+            1,
+            4,
+            4,
+            4
+          ],
+          "gradientPath": "branch-0-boxes-1-gradient.f32"
+        },
+        {
+          "path": "branch-0-boxes-2.f32",
+          "shape": [
+            1,
+            4,
+            2,
+            2
+          ],
+          "gradientPath": "branch-0-boxes-2-gradient.f32"
+        }
+      ],
+      "classes": [
+        {
+          "path": "branch-0-classes-0.f32",
+          "shape": [
+            1,
+            2,
+            8,
+            8
+          ],
+          "gradientPath": "branch-0-classes-0-gradient.f32"
+        },
+        {
+          "path": "branch-0-classes-1.f32",
+          "shape": [
+            1,
+            2,
+            4,
+            4
+          ],
+          "gradientPath": "branch-0-classes-1-gradient.f32"
+        },
+        {
+          "path": "branch-0-classes-2.f32",
+          "shape": [
+            1,
+            2,
+            2,
+            2
+          ],
+          "gradientPath": "branch-0-classes-2-gradient.f32"
+        }
+      ],
+      "loss": {
+        "box": 4.6936245,
+        "classification": 3.8497133,
+        "dfl": 0.2541777,
+        "total": 8.797516,
+        "positives": 17
+      }
+    },
+    {
+      "name": "one2one",
+      "prefix": "one2one_",
+      "weight": 0.55,
+      "topk": 7,
+      "topk2": 1,
+      "boxes": [
+        {
+          "path": "branch-1-boxes-0.f32",
+          "shape": [
+            1,
+            4,
+            8,
+            8
+          ],
+          "gradientPath": "branch-1-boxes-0-gradient.f32"
+        },
+        {
+          "path": "branch-1-boxes-1.f32",
+          "shape": [
+            1,
+            4,
+            4,
+            4
+          ],
+          "gradientPath": "branch-1-boxes-1-gradient.f32"
+        },
+        {
+          "path": "branch-1-boxes-2.f32",
+          "shape": [
+            1,
+            4,
+            2,
+            2
+          ],
+          "gradientPath": "branch-1-boxes-2-gradient.f32"
+        }
+      ],
+      "classes": [
+        {
+          "path": "branch-1-classes-0.f32",
+          "shape": [
+            1,
+            2,
+            8,
+            8
+          ],
+          "gradientPath": "branch-1-classes-0-gradient.f32"
+        },
+        {
+          "path": "branch-1-classes-1.f32",
+          "shape": [
+            1,
+            2,
+            4,
+            4
+          ],
+          "gradientPath": "branch-1-classes-1-gradient.f32"
+        },
+        {
+          "path": "branch-1-classes-2.f32",
+          "shape": [
+            1,
+            2,
+            2,
+            2
+          ],
+          "gradientPath": "branch-1-classes-2-gradient.f32"
+        }
+      ],
+      "loss": {
+        "box": 3.6618853,
+        "classification": 3.1085124,
+        "dfl": 0.16932638,
+        "total": 6.939724,
+        "positives": 2
+      }
+    }
+  ],
+  "coreAssemblySha256": "30970ba0592dabd32bd848521fb9c8a6218165cd5960238f395abc84fbd82d18",
+  "trainingAssemblySha256": "e5971a8d0671a5b97ae72ee02146860391194e2102b3b63414e92e4ebb143232"
+}

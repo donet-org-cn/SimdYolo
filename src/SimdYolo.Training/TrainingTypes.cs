@@ -2,7 +2,7 @@ using SimdYolo;
 
 namespace SimdYolo.Training;
 
-/// <summary>配置 YOLOv8 检测头微调；骨干和特征金字塔保持冻结。</summary>
+/// <summary>配置 YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调；骨干和特征金字塔保持冻结。</summary>
 public sealed record TrainingOptions
 {
     /// <summary>输入图像的正方形边长，必须为 32 的倍数。</summary><value>默认 128。</value>
@@ -47,5 +47,5 @@ public readonly record struct TrainingBox(int ClassId, float X1, float Y1, float
 public sealed record TrainingImage(string Name, byte[] Pixels, int Width, int Height, string Labels);
 
 /// <summary>记录一次真实优化步骤的损失与累计耗时。</summary>
-/// <param name="Step">从一开始的已完成优化步数。</param><param name="Epoch">当前轮次，从一开始。</param><param name="TotalLoss">三个加权损失之和。</param><param name="BoxLoss">加权 CIoU 损失。</param><param name="ClassLoss">加权 BCE 分类损失。</param><param name="DflLoss">加权分布焦点损失。</param><param name="ElapsedMs">本次运行累计毫秒数。</param>
+/// <param name="Step">已完成的优化步数。</param><param name="Epoch">当前轮次，从一开始。</param><param name="TotalLoss">三个加权损失之和。</param><param name="BoxLoss">加权 CIoU 损失。</param><param name="ClassLoss">加权 BCE 损失。</param><param name="DflLoss">加权 DFL；YOLO26 为归一化距离 L1。</param><param name="ElapsedMs">本次运行累计毫秒数。</param>
 public sealed record TrainingProgress(int Step, int Epoch, float TotalLoss, float BoxLoss, float ClassLoss, float DflLoss, double ElapsedMs);

@@ -322,5 +322,5 @@ internal sealed class PickleReader(ZipArchive zip, string prefix, bool readTenso
     }
     /// <summary>元数据模式中替代实际张量的形状描述，不读取 ZIP 权重条目。</summary>
     /// <param name="Shape">检查点记录的张量维度。</param>
-    private sealed record TensorDescription(int[] Shape);
+    internal sealed record TensorDescription(int[] Shape);
 }

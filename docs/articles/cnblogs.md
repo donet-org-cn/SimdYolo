@@ -1,5 +1,9 @@
 # SimdYolo 0.9.0：纯 C# YOLO 推理、检测头微调与 CPU/GPU 实测
 
+> 0.10.0 源码更新：已扩展五代检测头微调，覆盖仓库 v8n、v9t、v10n、11n、26n。新增的双头梯度、SGD/动量、断点恢复及 CPU/Vulkan/PyTorch 训练比较见[训练评测](../../artifacts/training-evaluation-0.10.0.md)。下文保留 0.9.0 推理测量与当时的能力表；不能把旧发布包当作新训练实现。
+
+![0.10.0 冻结特征后的检测头CPU训练速度，含损失、反向和SGD](../../artifacts/training-performance-0.10.0-cpu.png)
+
 ![SimdYolo 0.9.0 技术文章封面](assets/0.9.0/02-cnblogs-cover.png)
 
 **仓库：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo) · **下载：** [0.9.0 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) · [全部33个模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-models-v0.9.0.zip)

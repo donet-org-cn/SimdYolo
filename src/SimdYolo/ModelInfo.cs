@@ -77,7 +77,7 @@ public sealed class ModelInfo
     {
         using var stream = File.OpenRead(path); using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
         var manifest = TrainingModelState.ReadManifest(zip);
-        return new("SYTRAIN", manifest.ClassNames.Select((name, index) => (name, index)).ToDictionary(p => p.index, p => p.name), manifest.ClassNames.Length, YoloTask.Detection, false, [1, 3, manifest.ImageSize, manifest.ImageSize], [17, 3]);
+        return new("SYTRAIN", manifest.ClassNames.Select((name, index) => (name, index)).ToDictionary(p => p.index, p => p.name), manifest.ClassNames.Length, YoloTask.Detection, manifest.EndToEnd, [1, 3, manifest.ImageSize, manifest.ImageSize], [17, 3]);
     }
 
     /// <summary>读取 PT 的符号对象及标签，使用不读取张量存储的 Pickle 模式。</summary>

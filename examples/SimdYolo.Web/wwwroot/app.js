@@ -697,7 +697,7 @@
     }
     context.restore();
     const last = points[points.length - 1];
-    canvas.setAttribute("aria-label", `${history.length} 个训练 step 的实际损失曲线。最近总损失 ${numberText(last?.totalLoss, 4)}，框损失 ${numberText(last?.boxLoss, 4)}，分类损失 ${numberText(last?.classLoss, 4)}，DFL 损失 ${numberText(last?.dflLoss, 4)}。`);
+    canvas.setAttribute("aria-label", `${history.length} 个训练 step 的实际损失曲线。最近总损失 ${numberText(last?.totalLoss, 4)}，框损失 ${numberText(last?.boxLoss, 4)}，分类损失 ${numberText(last?.classLoss, 4)}，DFL 或 L1 损失 ${numberText(last?.dflLoss, 4)}。`);
   }
 
   $("choose-image").addEventListener("click", () => $("image-file").click());

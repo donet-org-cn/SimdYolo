@@ -26,9 +26,9 @@ bool vulkan = false; string? vulkanError = null;
 try { using var backend = new VulkanBackend(); vulkan = true; }
 catch (Exception error) when (error is DllNotFoundException or EntryPointNotFoundException or PlatformNotSupportedException or InvalidOperationException) { vulkanError = error.Message; }
 object ModelView(WebModel model) => new { model.Id, model.Name, model.Format, model.Task, model.Trainable };
-app.MapGet("/api/info", () => Results.Ok(new { version = "0.9.0", models = workspace.Models.Values.OrderBy(m => m.Name).Select(ModelView),
+app.MapGet("/api/info", () => Results.Ok(new { version = "0.10.0", models = workspace.Models.Values.OrderBy(m => m.Name).Select(ModelView),
     backends = new[] { new { id = "Cpu", name = "CPU SIMD", inference = true, training = true }, new { id = "Vulkan", name = "Vulkan GPU", inference = vulkan, training = vulkan }, new { id = "Metal", name = "Metal（训练尚未支持）", inference = OperatingSystem.IsMacOS(), training = false } },
-    trainingScope = "YOLOv8 检测头微调，骨干与特征金字塔冻结。梯度累加按图像平均；Vulkan 仅加速矩阵运算，BN、损失和 SGD 在 CPU。", vulkanError }));
+    trainingScope = "YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调，骨干与 FPN 冻结。梯度累加按图像平均；Vulkan 加速普通卷积 GEMM，深度卷积、BN、损失和 SGD 在 CPU。", vulkanError }));
 
 app.MapGet("/api/sample", () =>
 {

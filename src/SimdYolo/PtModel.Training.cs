@@ -13,8 +13,7 @@ internal sealed partial class PtModel
     /// <exception cref="NotSupportedException">模型不是三尺度标准 Detect 头。</exception>
     internal Tensor[] ExtractDetectionFeatures(Tensor input)
     {
-        if (DetectionHead.Type.Name != "Detect" || DetectionHead.Has("one2one_cv2") || DetectionHead.Int("reg_max", 16) != 16)
-            throw new NotSupportedException("首期训练仅支持 YOLOv8 标准 DFL Detect 头。");
+        TrainingHeadSchema.Read(DetectionHead);
         extractingFeatures = true;
         try { return Run(input); }
         finally { extractingFeatures = false; }

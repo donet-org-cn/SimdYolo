@@ -1,0 +1,21 @@
+{
+  "engine": "PyTorch",
+  "model": "yolov9t.pt",
+  "sourceSha256": "410e3caca789aa8fec19971c05577616cbb963a416bcd0228171b2dff7f718f7",
+  "device": "cuda",
+  "size": 128,
+  "threads": 4,
+  "warmup": 10,
+  "steps": 512,
+  "medianMs": 26.702400005888194,
+  "meanMs": 28.12509179693734,
+  "p95Ms": 35.7271000102628,
+  "cpuPercentOfMachine": 8.047282914970856,
+  "workingSetMiB": 1378.71875,
+  "fixtureSha256": "ce076c8b5b99948e7113194567e34f4492f3d90fef3b4e89f8a5d42e7fdf04df",
+  "torchVersion": "2.11.0+cu126",
+  "ultralyticsVersion": "8.4.0",
+  "cuda": "12.6",
+  "scope": "cached frozen features; head forward+loss+backward+SGD; excludes backbone, preprocessing, checkpoint IO",
+  "passed": true
+}

@@ -5,6 +5,7 @@ using SimdYolo;
 using SimdYolo.Training;
 
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true };
+if (args.FirstOrDefault() is "emit-matrix" or "test-matrix" or "bench-head") { TrainingMatrix.Run(args); return; }
 if (args.FirstOrDefault() == "emit-oracle")
 {
     string directory = Path.GetFullPath(args[1]); Directory.CreateDirectory(directory);
@@ -47,6 +48,27 @@ Run("卷积权重和输入梯度的独立有限差分", () =>
     foreach (int index in new[] { 0, 17, 39 })
     { float saved = input.Value.Data[index]; const float e = .002f; input.Value.Data[index] = saved + e; float a = Objective(); input.Value.Data[index] = saved - e; float b = Objective(); input.Value.Data[index] = saved; Near(input.Gradient[index], (a - b) / (2 * e), .002f); }
 });
+Run("分组及深度卷积的权重、偏置和输入独立有限差分", () =>
+{
+    using var backend = new CpuBackend(2); var ops = new HeadOperations(backend);
+    foreach (var config in new[] { (Ic: 4, Oc: 6, Groups: 2), (Ic: 3, Oc: 3, Groups: 3), (Ic: 2, Oc: 4, Groups: 2) })
+    {
+        var input = new GradientValue(new Tensor(Enumerable.Range(0, config.Ic * 45).Select(i => MathF.Sin(i * .31f)).ToArray(), 1, config.Ic, 5, 9));
+        int count = config.Oc * (config.Ic / config.Groups) * 9;
+        var weight = new TrainingParameter("w", Enumerable.Range(0, count).Select(i => MathF.Cos(i * .23f) * .1f).ToArray(), [config.Oc, config.Ic / config.Groups, 3, 3], true);
+        var bias = new TrainingParameter("b", new float[config.Oc], [config.Oc], false); var tape = new GradientTape();
+        var output = ops.Conv(tape, input, weight, bias, 1, config.Groups); float[] upstream = Enumerable.Range(0, config.Oc * 45).Select(i => MathF.Sin(i * .17f)).ToArray(); upstream.CopyTo(output.Gradient, 0); tape.Backward();
+        float Objective() => ops.Conv(new(), new(input.Value), weight, bias, 1, config.Groups).Value.Data.Select((v, i) => v * upstream[i]).Sum();
+        void Check(float[] values, float[] gradient, int[] indices)
+        { foreach (int index in indices) { float saved = values[index]; values[index] = saved + .002f; float a = Objective(); values[index] = saved - .002f; float b = Objective(); values[index] = saved; Near(gradient[index], (a - b) / .004f, .002f); } }
+        Check(weight.Values, weight.Gradient, [0, count / 2, count - 1]); Check(input.Value.Data, input.Gradient, [0, 44, input.Value.Length - 1]); Check(bias.Values, bias.Gradient, [0, config.Oc - 1]);
+    }
+});
+Run("YOLO26 损失调度首轮、中间轮、末轮和延长训练边界", () =>
+{
+    Near(DetectionHead.ProgressiveWeight(0, 5), .8f, 1e-7f); Near(DetectionHead.ProgressiveWeight(2, 5), .45f, 1e-7f);
+    Near(DetectionHead.ProgressiveWeight(4, 5), .1f, 1e-7f); Near(DetectionHead.ProgressiveWeight(9, 5), .1f, 1e-7f);
+});
 Run("SiLU 极值和有限差分", () =>
 {
     float[] data = [-30, -2, -.3f, 0, .7f, 5, 30]; var x = new GradientValue(new Tensor(data, 1, 1, 1, data.Length)); var tape = new GradientTape(); var y = HeadOperations.Silu(tape, x, true); Array.Fill(y.Gradient, 1); tape.Backward();
@@ -67,8 +89,9 @@ Run("BatchNorm 参数和输入反向、运行方差", () =>
 Run("SGD 动量和权重衰减", () =>
 {
     var parameter = new TrainingParameter("weight", [2], [1], true); var options = new TrainingOptions { LearningRate = .1f, Momentum = .9f, WeightDecay = .01f };
-    parameter.Gradient[0] = 4; parameter.Update(options, 2); Near(parameter.Values[0], 1.798f, 1e-6f); Near(parameter.Velocity[0], 2.02f, 1e-6f);
-    parameter.Gradient[0] = 2; parameter.Update(options, 1); Near(parameter.Values[0], 1.414402f, 1e-6f);
+    parameter.HasGradient = true; parameter.Gradient[0] = 4; parameter.Update(options, 2); Near(parameter.Values[0], 1.798f, 1e-6f); Near(parameter.Velocity[0], 2.02f, 1e-6f);
+    parameter.HasGradient = true; parameter.Gradient[0] = 2; parameter.Update(options, 1); Near(parameter.Values[0], 1.414402f, 1e-6f);
+    float value = parameter.Values[0], velocity = parameter.Velocity[0]; parameter.Update(options, 1); Near(parameter.Values[0], value, 0); Near(parameter.Velocity[0], velocity, 0);
 });
 Run("空标签背景样本仍产生分类梯度", () =>
 {
@@ -86,6 +109,14 @@ Run("数据集拒绝坏标签和配置", () =>
 if (args.Contains("--integration"))
 {
     string output = ".cache/training-validation/integration"; Directory.CreateDirectory(output); var dataset = TrainingDataset.CreateDemo(1, 26);
+    Run("五代训练能力按真实结构识别、拒绝其他任务和ONNX", () =>
+    {
+        foreach (string model in new[] { "yolov8n", "yolov9t", "yolov10n", "yolo11n", "yolo26n" })
+            if (!YoloTrainer.CanTrain($"models/pt/{model}.pt")) throw new Exception("Missing training family " + model);
+        string renamed = Path.Combine(output, "renamed.pt"); File.Copy("models/pt/yolo26n.pt", renamed, true);
+        if (!YoloTrainer.CanTrain(renamed) || YoloTrainer.CanTrain("models/pt/yolo26n-seg.pt") || YoloTrainer.CanTrain("models/onnx/yolo26n.onnx")) throw new Exception("Capability probe uses a name or wrong task.");
+        MustThrow<NotSupportedException>(() => new YoloTrainer("models/pt/yolo26n-pose.pt", dataset));
+    });
     float before, after; var history = new List<TrainingProgress>();
     Run("真实 YOLOv8 微调损失下降与快照推理", () =>
     {
@@ -138,6 +169,26 @@ if (args.Contains("--integration"))
         string corrupt = Path.Combine(output, "missing-parameter.sytrain"); File.Copy(checkpoint, corrupt, true);
         using (var archive = ZipFile.Open(corrupt, ZipArchiveMode.Update)) archive.GetEntry("parameters/0.f32")!.Delete();
         MustThrow<InvalidDataException>(() => new YoloDetector(corrupt));
+    });
+    Run("归档向后读取及双头损坏检测", () =>
+    {
+        string legacy = output + "/legacy-v1.sytrain"; File.Copy(output + "/last.sytrain", legacy, true);
+        Rewrite(legacy, manifest => { manifest.Format = "SimdYolo.Training/1"; manifest.HeadKind = null; manifest.LossScheduleEpochs = 0; });
+        using (var model = new YoloDetector(legacy)) if (model.ClassNames[0] != "square") throw new Exception("Legacy checkpoint labels changed.");
+        using (var resumed = YoloTrainer.Resume(legacy, dataset, 101, cpuThreads: 2)) if (resumed.CompletedEpochs != 100) throw new Exception("Legacy counters not restored.");
+        using var trainer = new YoloTrainer("models/pt/yolo26n.pt", dataset, new() { ImageSize = 64, Epochs = 3, CpuThreads = 2 });
+        string native = output + "/double-head.sytrain"; trainer.SaveCheckpoint(native);
+        foreach (string kind in new[] { "missing", "mode", "schedule", "type" })
+        {
+            string broken = output + "/double-head-" + kind + ".sytrain"; File.Copy(native, broken, true);
+            if (kind == "missing")
+            { using var archive = ZipFile.Open(broken, ZipArchiveMode.Update); var manifest = TrainingModelState.ReadManifest(archive); int index = manifest.Parameters.FindIndex(p => p.Name.StartsWith("one2one_cv2.", StringComparison.Ordinal)); archive.GetEntry($"parameters/{index}.f32")!.Delete(); }
+            else Rewrite(broken, manifest => { if (kind == "mode") manifest.EndToEnd = false; else if (kind == "type") { manifest.HeadKind = "Dfl"; manifest.RegMax = 16; manifest.EndToEnd = false; } else manifest.LossScheduleEpochs = 0; });
+            MustThrow<InvalidDataException>(() => new YoloDetector(broken));
+            MustThrow<InvalidDataException>(() => new YoloTrainer(broken, dataset, new() { ImageSize = 64 }));
+        }
+        void Rewrite(string path, Action<TrainingManifest> change)
+        { using var archive = ZipFile.Open(path, ZipArchiveMode.Update); var manifest = TrainingModelState.ReadManifest(archive); change(manifest); archive.GetEntry("manifest.json")!.Delete(); using var stream = archive.CreateEntry("manifest.json").Open(); JsonSerializer.Serialize(stream, manifest); }
     });
     if (args.Contains("--vulkan")) Run("Vulkan 真实训练更新及原生快照 CPU/GPU 推理一致", () =>
     {

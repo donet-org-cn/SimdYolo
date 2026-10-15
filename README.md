@@ -6,21 +6,23 @@
 
 ## 当前版本能力
 
-| 能力 | 0.9.0 实现 |
+| 能力 | 0.10.0 源码实现 |
 | --- | --- |
 | 推理任务 | 目标检测、实例分割、姿态估计 |
 | 已验证模型 | YOLOv8n、Ultralytics YOLOv9t、YOLOv10n、YOLO11n、YOLO26n；v8/11/26 包含分割、姿态 |
 | 模型格式 | 完整 `.pt`/`.pth`、ONNX，本项目训练生成的 `.sytrain` |
 | CPU | C# FP32、SIMD/intrinsics、分块 GEMM、Winograd、张量池、专用执行器 |
 | GPU | Vulkan/Metal 与包内着色器；本轮 Windows / GTX 1050 Ti / Vulkan 实测，Metal 未实机验证 |
-| 训练 | YOLOv8 检测头微调，冻结骨干/FPN；自定义类别、真实反向、SGD 动量、取消/恢复 |
-| 训练设备 | CPU SIMD；Vulkan 加速冻结网络和前后向 GEMM，BN/损失/SGD 等在 CPU |
+| 训练 | YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调，冻结骨干/FPN；双头、深度卷积、自定义类别、SGD、取消/恢复 |
+| 训练设备 | CPU SIMD；Vulkan 加速冻结网络和普通卷积前后向 GEMM，深度卷积/BN/损失/SGD 在 CPU |
 | 网页 | 图片推理、数据导入、训练曲线、任务记录、取消/恢复、模型上传/下载 |
 | 标签 | `ModelInfo.Read(path).ClassNames` 读取 PT/ONNX/SYTRAIN 类别，不初始化 GPU |
 
 主库和训练核心为纯托管 C#，无 Python、PyTorch、TorchSharp、ORT、BLAS/MKL/OpenBLAS 运行依赖。GPU 通过 P/Invoke 调用系统图形 API。Vulkan 不需要 CUDA Toolkit、cuDNN、cuBLAS，也无需安装 Vulkan SDK 才能运行；需要兼容驱动和 Vulkan loader，修改着色器后才需重新编译。
 
-训练当前限于 **YOLOv8 检测头微调**，尚无全参数、YOLO26、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`，暂不导出 ONNX。梯度累加按图像平均，每图 BN 独立统计。
+训练支持表、实际权重和评测见[五代检测头训练](docs/training.md)及[训练评测](artifacts/training-evaluation-0.10.0.md)。当前仍为**冻结骨干/FPN 的检测头微调**，没有全参数、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`，暂不导出 ONNX。梯度累加按图像平均，每图 BN 独立统计。
+
+本次新增能力请从源码构建 **0.10.0**；下方已发布的 **0.9.0 下载包仍只支持 v8 检测头训练**，旧包不会自动具备新功能。
 
 ## 下载与启动
 
@@ -46,7 +48,7 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 [查看实际推理截图](artifacts/validation/0.9.0/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
 
-## 当前性能：0.9.0 实测
+## 推理性能：0.9.0 冻结版本实测
 
 日期：2026-10-15 10:53:49 +0800；i7-8700K（12逻辑核心）、GTX 1050 Ti、31.93 GiB RAM。**176/176 个独立窗口、39,134 次推理、224/224 输出校验通过。**
 
@@ -138,9 +140,13 @@ trainer.Train(".cache/my-training", p => Console.WriteLine($"{p.Step}: {p.TotalL
 // last.sytrain 可由 YoloDetector 加载，或用 YoloTrainer.Resume 恢复。
 ```
 
-![网页版：真实训练曲线](artifacts/validation/0.9.0/web-training.png)
+![0.10.0 网页版：YOLO26 实际训练曲线](artifacts/validation/0.10.0/web-browser/web-training.png)
 
-内置方块用于流程验证，不代表业务精度。训练测试12项、推理回归117项、固定原版数值对照640项通过；单图损失下降不代表验证集 mAP，训练性能及大数据集收敛尚未测量。[训练说明](docs/training.md) · [训练/网页验证](artifacts/validation/0.9.0/README.md)
+内置方块用于流程验证，不代表业务精度。0.10.0 新增五代检测头的 CPU/Vulkan 梯度、SGD、真实微调与恢复验证，训练速度另与原版 PyTorch 比较；单图损失下降不代表验证集 mAP。[训练说明](docs/training.md) · [本版训练评测](artifacts/training-evaluation-0.10.0.md) · [历史 0.9.0 验证](artifacts/validation/0.9.0/README.md)
+
+![0.10.0 检测头 CPU 训练速度](artifacts/training-performance-0.10.0-cpu.png)
+
+图中只计冻结特征后的检测头前向、损失、反向与 SGD，采用128×128、2类、4线程；[GPU训练速度与资源排名](artifacts/training-evaluation-0.10.0.md)使用同一口径，不能与上方640×640推理耗时混用。
 
 ## 兼容与验证
 
