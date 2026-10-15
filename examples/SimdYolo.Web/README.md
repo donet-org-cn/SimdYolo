@@ -2,6 +2,8 @@
 
 ASP.NET Core 后端直接调用本仓库的纯 C# 推理和训练库。前端为原生 HTML/CSS/JavaScript，不使用 CDN，也没有 npm 构建步骤。
 
+当前发布版0.10.1优化CPU SIMD与Vulkan混合训练，五代检测模型入口保持一致。[训练速度及保存模型结果对比](../../artifacts/training-optimization-0.10.1.md)区分训练内核计时和真实图片验证指标；[0.10.1运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip)已包含五代检测头训练，模型另下[33模型包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip)，按[启动说明](../../docs/releases/web-runtime.md)运行。
+
 ## 启动
 
 在仓库根目录运行：
@@ -43,9 +45,9 @@ my-data/
 
 标注格式为每行 `class cx cy w h`，类别从 0 开始，坐标归一化。支持 `images`/`labels` 对应相对路径和同名文件；缺少匹配标签的图像导入为空标签背景样本，请核对目录与页面导入数量。若同名文件存在歧义，页面会提示。分割多边形和姿态标签不能作为本阶段训练标注。
 
-创建任务后显示实际 step、轮数和 Total/Box/Cls/DFL 损失。取消保留最近完整轮次；继续训练填写新的**总轮数**，从该检查点恢复。下载得到自包含 `.sytrain`，可重新上传、用 `YoloDetector` 推理，或继续微调。
+创建任务后显示实际 step、轮数和 Total/Box/Cls/DFL或L1损失。取消保留最近完整轮次；继续训练填写新的**总轮数**，从该检查点恢复。下载得到自包含 `.sytrain`，可重新上传、用 `YoloDetector` 推理，或继续微调。
 
-0.10.0 源码支持 YOLOv8/v9/v10/YOLO11/YOLO26 检测头训练，训练下拉列表按真实 PT 结构识别能力，重命名文件不影响判断。v10、YOLO26 同时更新 one2many/one2one；骨干和 FPN 冻结。梯度累加不等于联合批次 BN，Vulkan 是普通卷积 GEMM 加速的混合路径；分割、姿态暂仅用于推理，Metal 不支持训练。0.9.0 发布包仍只支持 v8。详细 API、支持矩阵与评测见[训练说明](../../docs/training.md)。
+0.10.1 源码与发布包支持 YOLOv8/v9/v10/YOLO11/YOLO26 检测头训练，训练下拉列表按真实 PT 结构识别能力，重命名文件不影响判断。v10、YOLO26 同时更新 one2many/one2one；骨干和 FPN 冻结。梯度累加不等于联合批次 BN，Vulkan 是普通卷积 GEMM 加速的混合路径；分割、姿态暂仅用于推理，Metal 不支持训练。旧0.9.0包保持原内容，仅支持v8训练。详细 API、支持矩阵与评测见[训练说明](../../docs/training.md)。
 
 ## 数据、任务与配置
 
@@ -67,7 +69,7 @@ my-data/
 ```powershell
 dotnet run --project tests/SimdYolo.Training.Tests -c Release -- --integration --vulkan
 # 启动服务后，开发环境可用 Python + Pillow 验证 API，Node 22+ 和 Edge/Chromium 验证界面：
-python tools/validate-web.py --image .cache/bus.jpg
+python tools/validate-web.py --version 0.10.1 --output artifacts/validation/0.10.1/web-api.json --image .cache/bus.jpg
 node tools/validate-web-browser.mjs --image .cache/bus.jpg
 ```
 

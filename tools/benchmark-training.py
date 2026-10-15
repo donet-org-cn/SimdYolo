@@ -130,7 +130,7 @@ def orchestrate(args):
     args.output.mkdir(parents=True,exist_ok=True)
     runs = []
     for model in MODELS:
-        fixture = ROOT/'.cache/training-010'/f'benchmark-fixture-{model}-{args.size}'
+        fixture = args.cache/f'benchmark-fixture-{model}-{args.size}'
         subprocess.run(['dotnet',str(TEST),'emit-matrix',str(fixture),'--model',f'models/pt/{model}.pt','--size',str(args.size)],check=True)
         # 计时前对实际128尺寸夹具再次数值核验，性能比较只接受已通过的初始数据。
         subprocess.run([sys.executable,'tools/validate-training-matrix.py','--fixture',str(fixture),'--output',str(args.output/f'fixture-check-{model}.json')],check=True)
@@ -184,7 +184,8 @@ if __name__ == '__main__':
     parser.add_argument('--worker',action='store_true')
     parser.add_argument('--device',choices=['cpu','cuda'],default='cpu')
     parser.add_argument('--fixture',type=Path)
-    parser.add_argument('--output',type=Path,default=Path('artifacts/validation/0.10.0/performance'))
+    parser.add_argument('--output',type=Path,default=Path('artifacts/validation/0.10.1/performance'))
+    parser.add_argument('--cache',type=Path,default=Path('.cache/training-011/performance'))
     parser.add_argument('--size',type=int,default=128)
     parser.add_argument('--threads',type=int,default=4)
     parser.add_argument('--steps',type=int,default=512)

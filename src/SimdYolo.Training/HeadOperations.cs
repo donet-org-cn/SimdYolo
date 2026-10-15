@@ -1,9 +1,25 @@
+using System.Numerics;
+
 namespace SimdYolo.Training;
 
 /// <summary>实现检测头所需的卷积、训练 BatchNorm 和 SiLU 的前向与反向。</summary>
 /// <param name="backend">CPU SIMD 或 Vulkan 矩阵乘法后端，由外部管理生命周期。</param>
-internal sealed class HeadOperations(IComputeBackend backend)
+/// <param name="cpuThreads">Vulkan 混合路径的 CPU 线程预算，零表示使用逻辑处理器数量。</param>
+internal sealed class HeadOperations(IComputeBackend backend, int cpuThreads = 0)
 {
+    /// <summary>CPU 调度预算；Vulkan 的小矩阵使用同样受限的托管 SIMD 路径。</summary>
+    private readonly ParallelOptions parallel = backend is CpuBackend cpu ? cpu.Parallel : new() { MaxDegreeOfParallelism = cpuThreads > 0 ? cpuThreads : Environment.ProcessorCount };
+    /// <summary>每个训练会话独立拥有的有界临时矩阵池，不缓存可变权重的计算结果。</summary>
+    private readonly TrainingScratch scratch = new();
+
+    /// <summary>按计算量分派训练 GEMM，避免小矩阵的 Vulkan 提交和回读超过计算本身。</summary>
+    /// <param name="a">行主序左矩阵。</param><param name="b">行主序右矩阵。</param><param name="c">覆盖写入的目标矩阵。</param>
+    /// <param name="m">输出行数。</param><param name="n">输出列数。</param><param name="k">归约长度。</param>
+    private void MatMul(float[] a, float[] b, float[] c, int m, int n, int k)
+    {
+        if (backend is VulkanBackend && (long)m * n * k <= 4_000_000) CpuGemm.Multiply(a, b, c, m, n, k, parallel);
+        else backend.MatMul(a, b, c, m, n, k);
+    }
     /// <summary>以 im2col 和可变权重 GEMM 计算卷积，并登记 dW、db 和 dX；不使用只读权重缓存。</summary>
     /// <param name="tape">保存本次反向拓扑的记录器。</param><param name="input">单图 NCHW 激活或冻结特征。</param>
     /// <param name="weight">可更新卷积权重。</param><param name="bias">可选偏置。</param><param name="padding">每边零填充宽度。</param>
@@ -17,34 +33,49 @@ internal sealed class HeadOperations(IComputeBackend backend)
         int oc = weight.Shape[0], kh = weight.Shape[2], kw = weight.Shape[3], oh = h + 2 * padding - kh + 1, ow = w + 2 * padding - kw + 1;
         if (batch != 1 || weight.Shape[1] != ic || kh != kw || oh != h || ow != w) throw new NotSupportedException("训练头卷积要求 batch=1、方形卷积核、步长1和保尺寸填充。");
         int spatial = h * w, k = ic * kh * kw;
-        float[] columns = new float[k * spatial];
-        for (int c = 0; c < ic; c++) for (int ky = 0; ky < kh; ky++) for (int kx = 0; kx < kw; kx++)
+        // 1×1 的 NCHW 空间平面已经是 GEMM 所需布局，直接借用输入，避免复制。
+        var columnLease = kh == 1 ? null : scratch.Rent(k * spatial, clear: true);
+        float[] columns = columnLease?.Data ?? x.Data;
+        if (kh != 1) for (int c = 0; c < ic; c++) for (int ky = 0; ky < kh; ky++) for (int kx = 0; kx < kw; kx++)
         {
             int row = ((c * kh + ky) * kw + kx) * spatial;
-            for (int y = 0; y < h; y++) for (int xx = 0; xx < w; xx++)
-            { int iy = y + ky - padding, ix = xx + kx - padding; if ((uint)iy < h && (uint)ix < w) columns[row + y * w + xx] = x.Data[(c * h + iy) * w + ix]; }
+            int left = Math.Max(0, padding - kx), right = Math.Min(w, w + padding - kx);
+            for (int y = Math.Max(0, padding - ky); y < Math.Min(h, h + padding - ky); y++)
+                Array.Copy(x.Data, (c * h + y + ky - padding) * w + left + kx - padding, columns, row + y * w + left, right - left);
         }
         var output = new GradientValue(new Tensor(1, oc, h, w));
-        backend.MatMul(weight.Values, columns, output.Value.Data, oc, spatial, k);
+        MatMul(weight.Values, columns, output.Value.Data, oc, spatial, k);
         if (bias is not null) for (int c = 0; c < oc; c++) for (int p = 0; p < spatial; p++) output.Value.Data[c * spatial + p] += bias.Values[c];
         tape.Record(() =>
         {
+            using var columnsLifetime = columnLease;
             if (!output.HasGradient) return;
+            bool accumulateWeight = weight.HasGradient;
             weight.HasGradient = true; if (bias is not null) bias.HasGradient = true;
             float[] dy = output.Gradient;
-            float[] columnsT = Transpose(columns, k, spatial), dw = new float[weight.Values.Length];
-            backend.MatMul(dy, columnsT, dw, oc, k, spatial);
-            Add(weight.Gradient, dw);
+            using var dwLease = accumulateWeight ? scratch.Rent(weight.Values.Length) : null;
+            float[] dw = dwLease?.Data ?? weight.Gradient;
+            if ((backend is CpuBackend || backend is VulkanBackend && (long)oc * k * spatial <= 4_000_000) && spatial >= 64)
+                TrainingMatMul.RightTransposed(dy, columns, dw, oc, k, spatial, parallel);
+            else
+            {
+                using var transposeLease = scratch.Rent(columns.Length);
+                MatMul(dy, Transpose(columns, k, spatial, transposeLease.Data), dw, oc, k, spatial);
+            }
+            if (accumulateWeight) Add(weight.Gradient, dw);
             if (bias is not null) for (int c = 0; c < oc; c++) { float sum = 0; for (int p = 0; p < spatial; p++) sum += dy[c * spatial + p]; bias.Gradient[c] += sum; }
             if (!input.RequiresGradient) return;
-            float[] wt = Transpose(weight.Values, oc, k), dcolumns = new float[columns.Length];
-            backend.MatMul(wt, dy, dcolumns, k, spatial, oc);
+            using var wtLease = scratch.Rent(weight.Values.Length); using var dxLease = scratch.Rent(columns.Length);
+            float[] wt = Transpose(weight.Values, oc, k, wtLease.Data), dcolumns = dxLease.Data;
+            MatMul(wt, dy, dcolumns, k, spatial, oc);
             float[] dx = input.Gradient;
+            if (kh == 1) { Add(dx, dcolumns); return; }
             for (int c = 0; c < ic; c++) for (int ky = 0; ky < kh; ky++) for (int kx = 0; kx < kw; kx++)
             {
                 int row = ((c * kh + ky) * kw + kx) * spatial;
-                for (int y = 0; y < h; y++) for (int xx = 0; xx < w; xx++)
-                { int iy = y + ky - padding, ix = xx + kx - padding; if ((uint)iy < h && (uint)ix < w) dx[(c * h + iy) * w + ix] += dcolumns[row + y * w + xx]; }
+                int left = Math.Max(0, padding - kx), right = Math.Min(w, w + padding - kx);
+                for (int y = Math.Max(0, padding - ky); y < Math.Min(h, h + padding - ky); y++)
+                    Accumulate(dx, (c * h + y + ky - padding) * w + left + kx - padding, dcolumns, row + y * w + left, right - left, 1);
             }
         });
         return output;
@@ -88,7 +119,10 @@ internal sealed class HeadOperations(IComputeBackend backend)
                     {
                         int left = Math.Max(0, padding - kx), right = Math.Min(w, w + padding - kx);
                         int xi = (first + c) * spatial + (y + ky - padding) * w + left + kx - padding, yi = o * spatial + y * w + left;
-                        for (int xx = 0; xx < right - left; xx++) sum += output.Gradient[yi + xx] * x.Data[xi + xx];
+                        int xx = 0; var dot = Vector<float>.Zero;
+                        for (; xx <= right - left - Vector<float>.Count; xx += Vector<float>.Count) dot += new Vector<float>(output.Gradient, yi + xx) * new Vector<float>(x.Data, xi + xx);
+                        sum += Vector.Sum(dot);
+                        for (; xx < right - left; xx++) sum += output.Gradient[yi + xx] * x.Data[xi + xx];
                         if (input.RequiresGradient) Accumulate(input.Gradient, xi, output.Gradient, yi, right - left, weight.Values[wi]);
                     }
                     weight.Gradient[wi] += sum;
@@ -125,13 +159,19 @@ internal sealed class HeadOperations(IComputeBackend backend)
             int start = c * spatial; float mean = runningMean[c], variance = runningVariance[c];
             if (training)
             {
-                mean = 0; for (int p = 0; p < spatial; p++) mean += input.Value.Data[start + p]; mean /= spatial;
-                variance = 0; for (int p = 0; p < spatial; p++) { float delta = input.Value.Data[start + p] - mean; variance += delta * delta; } variance /= spatial;
+                mean = 0; for (int q = 0; q < spatial; q++) mean += input.Value.Data[start + q]; mean /= spatial;
+                variance = 0; for (int q = 0; q < spatial; q++) { float delta = input.Value.Data[start + q] - mean; variance += delta * delta; } variance /= spatial;
                 runningMean[c] = (1 - momentum) * runningMean[c] + momentum * mean;
                 runningVariance[c] = (1 - momentum) * runningVariance[c] + momentum * variance * (spatial > 1 ? (float)spatial / (spatial - 1) : 1);
             }
             inverse[c] = 1f / MathF.Sqrt(variance + epsilon);
-            for (int p = 0; p < spatial; p++) { float value = (input.Value.Data[start + p] - mean) * inverse[c]; normalized[start + p] = value; output.Value.Data[start + p] = value * gamma.Values[c] + beta.Values[c]; }
+            int p = 0; var meanVector = new Vector<float>(mean); var invVector = new Vector<float>(inverse[c]); var gammaVector = new Vector<float>(gamma.Values[c]); var betaVector = new Vector<float>(beta.Values[c]);
+            for (; p <= spatial - Vector<float>.Count; p += Vector<float>.Count)
+            {
+                var value = (new Vector<float>(input.Value.Data, start + p) - meanVector) * invVector;
+                value.CopyTo(normalized, start + p); (value * gammaVector + betaVector).CopyTo(output.Value.Data, start + p);
+            }
+            for (; p < spatial; p++) { float value = (input.Value.Data[start + p] - mean) * inverse[c]; normalized[start + p] = value; output.Value.Data[start + p] = value * gamma.Values[c] + beta.Values[c]; }
         }
         if (training) tape.Record(() =>
         {
@@ -140,10 +180,13 @@ internal sealed class HeadOperations(IComputeBackend backend)
             for (int c = 0; c < channels; c++)
             {
                 int start = c * spatial; float sum = 0, weighted = 0;
-                for (int p = 0; p < spatial; p++) { float dy = output.Gradient[start + p]; sum += dy; weighted += dy * normalized[start + p]; }
+                for (int q = 0; q < spatial; q++) { float dy = output.Gradient[start + q]; sum += dy; weighted += dy * normalized[start + q]; }
                 gamma.Gradient[c] += weighted; beta.Gradient[c] += sum;
                 float scale = gamma.Values[c] * inverse[c] / spatial;
-                for (int p = 0; p < spatial; p++) input.Gradient[start + p] += scale * (spatial * output.Gradient[start + p] - sum - normalized[start + p] * weighted);
+                int p = 0; var scaleVector = new Vector<float>(scale); var spatialVector = new Vector<float>(spatial); var sumVector = new Vector<float>(sum); var weightedVector = new Vector<float>(weighted); float[] dx = input.Gradient;
+                for (; p <= spatial - Vector<float>.Count; p += Vector<float>.Count)
+                    (new Vector<float>(dx, start + p) + scaleVector * (spatialVector * new Vector<float>(output.Gradient, start + p) - sumVector - new Vector<float>(normalized, start + p) * weightedVector)).CopyTo(dx, start + p);
+                for (; p < spatial; p++) dx[start + p] += scale * (spatial * output.Gradient[start + p] - sum - normalized[start + p] * weighted);
             }
         });
         return output;
@@ -155,13 +198,39 @@ internal sealed class HeadOperations(IComputeBackend backend)
     internal static GradientValue Silu(GradientTape tape, GradientValue input, bool training)
     {
         var output = new GradientValue(new Tensor(input.Value.Shape)); float[] sigmoid = new float[input.Value.Length];
-        for (int i = 0; i < sigmoid.Length; i++) { float x = input.Value.Data[i]; float s = Sigmoid(x); sigmoid[i] = s; output.Value.Data[i] = x * s; }
-        if (training) tape.Record(() => { if (!output.HasGradient) return; for (int i = 0; i < sigmoid.Length; i++) { float s = sigmoid[i]; input.Gradient[i] += output.Gradient[i] * (s + input.Value.Data[i] * s * (1 - s)); } });
+        int i = 0;
+        for (; i <= sigmoid.Length - Vector<float>.Count; i += Vector<float>.Count)
+        {
+            var x = new Vector<float>(input.Value.Data, i); var exp = CpuActivation.Exp(-Vector.Abs(x)); var denominator = Vector<float>.One + exp;
+            var s = Vector.ConditionalSelect(Vector.GreaterThanOrEqual(x, Vector<float>.Zero), Vector<float>.One / denominator, exp / denominator);
+            s.CopyTo(sigmoid, i); (x * s).CopyTo(output.Value.Data, i);
+        }
+        for (; i < sigmoid.Length; i++) { float x = input.Value.Data[i]; float s = Sigmoid(x); sigmoid[i] = s; output.Value.Data[i] = x * s; }
+        if (training) tape.Record(() =>
+        {
+            if (!output.HasGradient) return;
+            int p = 0; float[] dx = input.Gradient, dy = output.Gradient;
+            for (; p <= sigmoid.Length - Vector<float>.Count; p += Vector<float>.Count)
+            {
+                var s = new Vector<float>(sigmoid, p); var x = new Vector<float>(input.Value.Data, p);
+                (new Vector<float>(dx, p) + new Vector<float>(dy, p) * (s + x * s * (Vector<float>.One - s))).CopyTo(dx, p);
+            }
+            for (; p < sigmoid.Length; p++) { float s = sigmoid[p]; dx[p] += dy[p] * (s + input.Value.Data[p] * s * (1 - s)); }
+        });
         return output;
     }
     internal static float Sigmoid(float value) => value >= 0 ? 1f / (1 + MathF.Exp(-value)) : MathF.Exp(value) / (1 + MathF.Exp(value));
-    internal static float[] Transpose(float[] input, int rows, int columns)
-    { var output = new float[input.Length]; for (int r = 0; r < rows; r++) for (int c = 0; c < columns; c++) output[c * rows + r] = input[r * columns + c]; return output; }
+    /// <summary>按缓存块转置行主序矩阵，可写入租用的精确长度工作区。</summary>
+    /// <param name="input">待转置的矩阵。</param><param name="rows">原矩阵行数。</param><param name="columns">原矩阵列数。</param>
+    /// <param name="destination">可选目标数组，为 null 时创建新数组。</param><returns>包含转置结果的目标数组。</returns>
+    internal static float[] Transpose(float[] input, int rows, int columns, float[]? destination = null)
+    {
+        var output = destination ?? new float[input.Length];
+        // 小块转置同时照顾两侧缓存行，避免大矩阵逐列跨页写入。
+        for (int r0 = 0; r0 < rows; r0 += 32) for (int c0 = 0; c0 < columns; c0 += 32)
+            for (int r = r0; r < Math.Min(r0 + 32, rows); r++) for (int c = c0; c < Math.Min(c0 + 32, columns); c++) output[c * rows + r] = input[r * columns + c];
+        return output;
+    }
     internal static void Add(float[] destination, float[] source)
     { int i = 0; for (; i <= source.Length - System.Numerics.Vector<float>.Count; i += System.Numerics.Vector<float>.Count) (new System.Numerics.Vector<float>(destination, i) + new System.Numerics.Vector<float>(source, i)).CopyTo(destination, i); for (; i < source.Length; i++) destination[i] += source[i]; }
 }

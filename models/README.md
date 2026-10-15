@@ -1,6 +1,6 @@
 # 随仓库分发的 YOLO 模型
 
-这里包含 **11 个原始 PyTorch `.pt` 检查点和 22 个 ONNX 导出**，覆盖检测、分割和姿态。模型通过 Git LFS 保存；所有原始文件保持不变，来源、输入尺寸、opset 和 SHA256 见 [manifest.json](manifest.json)。当前 [0.9.0 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) 提供全部33个模型的 ZIP，包含 YOLO26；另有 YOLOv8 检测头微调和网页示例。
+这里包含 **11 个原始 PyTorch `.pt` 检查点和 22 个 ONNX 导出**，覆盖检测、分割和姿态。模型通过 Git LFS 保存；所有原始文件保持不变，来源、输入尺寸、opset 和 SHA256 见 [manifest.json](manifest.json)。当前 [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) 提供全部33个模型的 ZIP，包含 YOLO26；另有YOLOv8/v9/v10/YOLO11/YOLO26检测头微调和网页示例。
 
 | 模型 | 任务 | `.pt` | 640×640 ONNX / opset 17 | 动态 ONNX / opset 17 | 128×128 ONNX / opset 12 |
 | --- | --- | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ cd SimdYolo
 git lfs pull
 ```
 
-也可以从 [v0.9.0 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) 下载 [SimdYolo-models-v0.9.0.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-models-v0.9.0.zip)，解压到仓库根目录。包含全部33个模型、原许可证及摘要清单，无需 Git LFS 即可使用。历史 v0.7.1 压缩包只有当时的24个模型，未包含 YOLO26。
+也可以从 [v0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) 下载 [SimdYolo-models-v0.10.1.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip)，解压到仓库根目录。包含全部33个模型、原许可证及摘要清单，无需 Git LFS 即可使用。历史 v0.7.1 压缩包只有当时的24个模型，未包含 YOLO26。
 
 ## 使用
 

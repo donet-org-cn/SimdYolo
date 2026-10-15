@@ -18,7 +18,7 @@ def sha(path):
 
 def main():
     """只允许完整且数值检查通过的结果进入当前版本文章。"""
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--version",default="0.9.0");parser.add_argument("--source-version");args=parser.parse_args();version=args.version
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--version",default="0.9.0");parser.add_argument("--source-version");parser.add_argument("--release-version");args=parser.parse_args();version=args.version
     report_path=ROOT/f"artifacts/runtime-comparison-{version}.json";report=json.loads(report_path.read_text(encoding="utf-8"))
     assert report["Status"]=="complete"
     expected=len(report["Models"])*len(report["Engines"])*report["Repeats"]
@@ -26,6 +26,8 @@ def main():
     spec=importlib.util.spec_from_file_location("comparison",ROOT/"tools/compare-runtimes.py");module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     rankings="\n".join(module.render_speed_rankings(report));articles=[]
     names=["README.md","VALIDATION.md","models/README.md","docs/inference.md","docs/training.md","docs/articles/README.md","docs/articles/wechat.md","docs/articles/cnblogs.md","docs/releases/v0.7.1.md","docs/releases/v0.9.0.md","docs/releases/web-runtime.md","examples/SimdYolo.Web/README.md","artifacts/validation/0.9.0-release/README.md"]
+    if args.release_version and args.release_version!=version:
+        names.extend([f'docs/releases/v{args.release_version}.md',f'artifacts/validation/{args.release_version}-release/README.md',f'artifacts/training-optimization-{args.release_version}.md'])
     for name in names:
         path=ROOT/name;text=path.read_text(encoding="utf-8-sig")
         assert "\ufffd" not in text and "????" not in text,(name,"broken Unicode")
@@ -52,10 +54,17 @@ def main():
         files.append(item)
     for name in ["cpu","gpu","cpu-time","gpu-usage","vram","startup"]:
         for suffix in ["png","svg"]:assert (ROOT/f"artifacts/performance-{version}-{name}.{suffix}").is_file()
-    manifest={"SourceReportSha256":sha(report_path),"MeasuredVersion":version,"CurrentRelease":version,"AssemblySha256":report["SimdYoloDllSha256"],
+    manifest={"SourceReportSha256":sha(report_path),"MeasuredVersion":version,"CurrentRelease":args.release_version or version,"AssemblySha256":report["SimdYoloDllSha256"],
               "MeasurementWindows":len(report["Records"]),"TimedFrames":sum(r["Iterations"] for r in report["Records"]),"CorrectnessOutputs":sum(len(r["Correctness"]) for r in report["Records"]),
               "Articles":articles,"Files":files,"Checks":{"AllRankTablesMatchRawReport":True,"Utf8WithoutReplacementCharacters":True,"RelativeLinksExist":True,"PngAndSvgValidated":True}}
     manifest["CurrentSourceVersion"]=args.source_version or version
+    if args.release_version:
+        training=ROOT/f'artifacts/validation/{args.release_version}/validation-summary.json'
+        if training.exists():
+            data=json.loads(training.read_text(encoding='utf-8'));assert data['status']=='passed'
+            manifest['TrainingMeasuredVersion']=args.release_version
+            manifest['TrainingValidationSha256']=sha(training)
+            manifest['TrainingFiles']=[{'File':p.relative_to(ROOT).as_posix(),'Sha256':sha(p)} for p in sorted((ROOT/'artifacts').glob(f'*{args.release_version}*')) if p.suffix in {'.png','.svg','.md'}]
     (ROOT/"docs/articles/manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8",newline="\n")
     print(json.dumps({"status":"passed","documents":len(articles),"png":10,"svg":10,"version":version}))
 

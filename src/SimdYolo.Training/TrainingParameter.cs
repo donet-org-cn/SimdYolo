@@ -25,17 +25,32 @@ internal sealed class TrainingParameter(string name, float[] values, int[] shape
         float inverse = 1f / images, decay = Decay ? options.WeightDecay : 0;
         var inv = new Vector<float>(inverse); var wd = new Vector<float>(decay);
         var momentum = new Vector<float>(options.Momentum); var learningRate = new Vector<float>(options.LearningRate);
+        var limit = new Vector<float>(float.MaxValue); var finite = new Vector<int>(-1);
         int i = 0;
         for (; i <= Values.Length - Vector<float>.Count; i += Vector<float>.Count)
         {
             var weight = new Vector<float>(Values, i);
             var velocity = new Vector<float>(Velocity, i) * momentum + new Vector<float>(Gradient, i) * inv + weight * wd;
-            velocity.CopyTo(Velocity, i); (weight - learningRate * velocity).CopyTo(Values, i);
+            var updated = weight - learningRate * velocity;
+            finite &= Vector.LessThanOrEqual(Vector.Abs(velocity), limit) & Vector.LessThanOrEqual(Vector.Abs(updated), limit);
+            velocity.CopyTo(Velocity, i); updated.CopyTo(Values, i);
         }
-        for (; i < Values.Length; i++) { Velocity[i] = options.Momentum * Velocity[i] + Gradient[i] * inverse + Values[i] * decay; Values[i] -= options.LearningRate * Velocity[i]; }
-        if (Values.Any(v => !float.IsFinite(v)) || Velocity.Any(v => !float.IsFinite(v))) throw new ArithmeticException("训练发生非有限参数，请降低学习率。");
+        bool tailFinite = true;
+        for (; i < Values.Length; i++) { Velocity[i] = options.Momentum * Velocity[i] + Gradient[i] * inverse + Values[i] * decay; Values[i] -= options.LearningRate * Velocity[i]; tailFinite &= float.IsFinite(Values[i]) && float.IsFinite(Velocity[i]); }
+        if (!Vector.EqualsAll(finite, new Vector<int>(-1)) || !tailFinite) throw new ArithmeticException("训练发生非有限参数，请降低学习率。");
         Array.Clear(Gradient);
         HasGradient = false;
+    }
+
+    /// <summary>以 SIMD 检查整个数组的有限性，包括 NaN、正负无穷及标量尾部。</summary>
+    /// <param name="values">需要校验的参数或梯度。</param><returns>全部元素均有限时返回 true。</returns>
+    internal static bool AllFinite(float[] values)
+    {
+        int i = 0; var finite = new Vector<int>(-1); var limit = new Vector<float>(float.MaxValue);
+        for (; i <= values.Length - Vector<float>.Count; i += Vector<float>.Count) finite &= Vector.LessThanOrEqual(Vector.Abs(new Vector<float>(values, i)), limit);
+        if (!Vector.EqualsAll(finite, new Vector<int>(-1))) return false;
+        for (; i < values.Length; i++) if (!float.IsFinite(values[i])) return false;
+        return true;
     }
 }
 

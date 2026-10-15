@@ -1,43 +1,28 @@
-# SimdYolo 0.9.0 图文发布包
+# SimdYolo 0.10.1 图文发布包
 
-0.10.0 源码新增五代检测头训练，两篇文章开头补充更新说明及真实训练图。下列0.9.0推理图表、历史发布包保持原版本；新增[训练评测与资源表](../../artifacts/training-evaluation-0.10.0.md)、[CPU训练图](../../artifacts/training-performance-0.10.0-cpu.png)、[GPU训练图](../../artifacts/training-performance-0.10.0-gpu.png)和[损失曲线](../../artifacts/training-loss-0.10.0.png)单独标版本。
+公众号和博客园分别更新为0.10.1发布内容，覆盖五代检测头训练、SIMD优化、CPU/Vulkan速度与保存模型的真实图片对照。历史0.9.0推理表保留原数字，并在两篇文章中明确标注；不存在将旧推理图当作本版重测的替换。
 
-微信公众号和博客园分别写作，正文、表格、PNG/SVG与数据清单均更新为**0.9.0当前程序集实测**，不再沿用0.7.x图表。所有文字文件使用UTF-8。
-
-[0.9.0 发布与33模型下载](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) · [完整性能报告](../../artifacts/runtime-comparison-0.9.0.md) · [文档/图文ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-docs-v0.9.0.zip)
+[0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [训练报告](../../artifacts/training-optimization-0.10.1.md) · [中文文档ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
 
 | 文件 | 用途 |
 | --- | --- |
-| [wechat.md](wechat.md) | 公众号：项目动机、当前实测、部署和网页版上手 |
-| [cnblogs.md](cnblogs.md) | 博客园：模型解析、SIMD/Vulkan、完整排名、资源和训练边界 |
-| [assets/0.9.0/](assets/0.9.0/) | 当前版本10张PNG、10份SVG及独立取数清单 |
-| [manifest.json](manifest.json) | 当前文章、图片、版本、源报告SHA256及检查结果 |
+| [wechat.md](wechat.md) | 公众号：速度、模型结果、纯C#部署和网页上手 |
+| [cnblogs.md](cnblogs.md) | 博客园：SIMD/工作区/设备分派、损失、数值和模型边界 |
+| [manifest.json](manifest.json) | 当前发布/测量版本、源结果SHA256与文章/配图核验 |
 
-## 当前配图
+## 当前训练配图
 
-| 文件（均在 assets/0.9.0/） | 内容 |
+| PNG | 内容 |
 | --- | --- |
-| 01-wechat-cover.png | 公众号封面，0.9.0推理与检测头微调 |
-| 02-cnblogs-cover.png | 博客园技术文章封面 |
-| 03-architecture.png | 模型解析、推理、冻结特征、检测头训练与网页 |
-| 04-cpu-detection.png | 5个检测模型的CPU对比 |
-| 05-cpu-vision.png | 6个分割/姿态模型的CPU对比 |
-| 06-gpu-detection.png | 5个检测模型的GPU对比 |
-| 07-gpu-vision.png | 6个分割/姿态模型的GPU对比 |
-| 08-cpu-optimization.png | 当前CPU路径结构示意，不表示单项收益 |
-| 09-cpu-memory.png | 11模型进程RSS，包含宿主运行库 |
-| 10-vulkan-deployment.png | Vulkan运行环境、CUDA依赖与验证范围 |
+| [CPU训练速度](../../artifacts/training-performance-0.10.1-cpu.png) | 原版、本版与0.10.0历史结果，细线表示两窗范围 |
+| [GPU训练速度](../../artifacts/training-performance-0.10.1-gpu.png) | CUDA与Vulkan混合路径，标明计时边界 |
+| [模型结果](../../artifacts/training-results-0.10.1.png) | 保存重载后32张微调留出图的mAP |
+| [训练轨迹](../../artifacts/training-loss-parity-0.10.1.png) | 192步真实图片微调损失，保留分叉 |
 
-正文还引用当前版本的加载/首帧、CPU时间、GPU/显存图，以及真实网页截图；文档ZIP包含这些文件。SVG中文字转为轮廓，方便导出；PNG用于文章上传。
+上述图片均有同名SVG，中文转为轮廓便于导出；PNG用于上传。训练性能为128×128、2类、4线程的冻结特征后头更新；模型精度为256×256、80类、96/32拆分，各2轮。直接参数门槛9/10，指标10/10，固定CPU参数控制10/10；未通过项与精度下降照实列出。
 
-当前图表来自固定实拍图、FP32、batch=1、640×640、12线程、两轮独立窗口；每窗口预热60次，计至少4秒/40帧。窗口范围不是置信区间。额外随机输入的ORT CUDA数值超差单列诊断，正式图片基准不混入其他输入。
+## 历史图片与发布
 
-## 发布建议
+[assets/0.9.0/](assets/0.9.0/)仍保留10张PNG、10份SVG和取数清单。正文引用的0.9.0推理CPU/GPU图和0.10.0网页截图均标注采集版本；0.7.x/0.8.x资料保持历史用途。文档ZIP保留所需图片及相对目录，未包含的历史文件链接到版本化仓库。
 
-公众号标题：**纯 C# 跑 YOLO：推理、检测头微调和网页版，这次一起交付**。
-
-博客园标题：**SimdYolo 0.9.0：纯 C# YOLO 推理、检测头微调与 CPU/GPU 实测**。
-
-将Markdown导入编辑器后，上传正文引用的PNG，把相对图片链接替换为平台托管地址，并在手机预览。公众号可将仓库地址设为“阅读原文”；博客园建议标签 `C#`、`.NET`、`YOLO`、`SIMD`、`Vulkan`、`ONNX`。
-
-历史 `SimdYolo-articles-20261014.zip` 和 `SimdYolo-articles-0.8.1.zip` 保持原始内容，旧 assets 根目录图片也保留历史用途；当前正文只使用版本化目录中的新图。
+将Markdown导入平台编辑器后，上传其PNG并替换相对图链。公众号可把仓库设为阅读原文；博客园建议标签C#、.NET、YOLO、SIMD、Vulkan、ONNX。所有文字使用UTF-8，发布说明回读核验中文内容。

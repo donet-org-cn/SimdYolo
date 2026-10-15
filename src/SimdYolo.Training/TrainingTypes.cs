@@ -19,7 +19,7 @@ public sealed record TrainingOptions
     public float WeightDecay { get; init; } = .0005f;
     /// <summary>初始化和按轮洗牌的确定性随机种子。</summary><value>默认 26。</value>
     public int Seed { get; init; } = 26;
-    /// <summary>选择 CPU 或 Vulkan；Vulkan 仅加速前向和反向 GEMM，其余训练运算在 CPU。</summary><value>默认 CPU。</value>
+    /// <summary>选择 CPU 或 Vulkan；Vulkan 混合路径按计算量将 GEMM 分派到 GPU 或 CPU SIMD，其余训练运算在 CPU。</summary><value>默认 CPU。</value>
     public ComputeDevice Device { get; init; } = ComputeDevice.Cpu;
     /// <summary>CPU SIMD 后端的线程上限。</summary><value>默认 0，由后端决定。</value>
     public int CpuThreads { get; init; }

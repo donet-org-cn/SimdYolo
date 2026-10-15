@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "version": "0.10.1",
+  "models": 33,
+  "trainingSteps": 2,
+  "resumedSteps": 3,
+  "checkpointSha256": "79c5253586a5ec4d51dff6382467f5269c412d68588faffc264aef8dc7584eca",
+  "checkpointInference": true,
+  "cancelledStatus": "cancelled",
+  "predictions": [
+    {
+      "model": "yolov8n.pt",
+      "backend": "CPU SIMD (256 bits)",
+      "instances": 5,
+      "task": "Detection",
+      "passed": true
+    },
+    {
+      "model": "yolov8n-seg.pt",
+      "backend": "CPU SIMD (256 bits)",
+      "instances": 6,
+      "task": "Segmentation",
+      "passed": true
+    },
+    {
+      "model": "yolov8n-pose.pt",
+      "backend": "CPU SIMD (256 bits)",
+      "instances": 4,
+      "task": "Pose",
+      "passed": true
+    },
+    {
+      "model": "yolo26n.onnx",
+      "backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "instances": 5,
+      "task": "Detection",
+      "passed": true
+    }
+  ],
+  "invalidRgbRejected": true,
+  "reusedInferenceSession": true,
+  "uploadedCheckpoint": true,
+  "vulkanTraining": true
+}

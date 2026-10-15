@@ -22,7 +22,7 @@ internal static class TrainingMatrix
         using var extractor = new FrozenFeatureExtractor(File.ReadAllBytes(source), new() { ImageSize = size, CpuThreads = int.Parse(Option("--threads", "4")), Device = device });
         var image = new Tensor(1, 3, size, size); var random = new Random(27); for (int i = 0; i < image.Length; i++) image.Data[i] = (float)random.NextDouble();
         var features = extractor.Extract(image); var head = new DetectionHead(extractor.Model.DetectionHead, ["object-a", "object-b"], extractor.Model.Names, 26);
-        var operations = new HeadOperations(extractor.Backend);
+        var operations = new HeadOperations(extractor.Backend, int.Parse(Option("--threads", "4")));
         float ratio = size / 64f;
         TrainingBox[] truth = args.Contains("--small-boxes") ? [new(0, 21, 21, 25, 25), new(1, 28, 26, 33, 31)] : args.Contains("--empty") ? [] : [new(0, 10 * ratio, 9 * ratio, 43 * ratio, 46 * ratio), new(1, 25 * ratio, 22 * ratio, 58 * ratio, 59 * ratio)];
         if (args[0] == "bench-head")

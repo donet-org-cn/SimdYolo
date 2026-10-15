@@ -23,7 +23,7 @@ public sealed class YoloTrainer : IDisposable
     private int completedEpochs, completedSteps;
 
     /// <summary>当前冻结骨干及矩阵后端的实际名称。</summary><value>Vulkan 表示混合训练，BN、损失和 SGD 仍在 CPU。</value>
-    public string BackendName => options.Device == ComputeDevice.Vulkan ? "Vulkan GEMM + CPU depthwise/BN/loss/SGD" : extractor.Backend.Name;
+    public string BackendName => options.Device == ComputeDevice.Vulkan ? "Vulkan large GEMM + CPU SIMD small GEMM/depthwise/BN/loss/SGD" : extractor.Backend.Name;
     /// <summary>已经完整保存的训练轮数。</summary><value>取消恢复以最近完成轮次为边界。</value>
     public int CompletedEpochs => Volatile.Read(ref completedEpochs);
     /// <summary>已经完成的 SGD 更新次数。</summary><value>按微批次梯度累加后计数。</value>
@@ -71,7 +71,7 @@ public sealed class YoloTrainer : IDisposable
         {
             head = new(extractor.Model.DetectionHead, dataset.ClassNames.ToArray(), extractor.Model.Names, this.options.Seed);
             lossScheduleEpochs = state?.Manifest.LossScheduleEpochs is > 0 ? state.Manifest.LossScheduleEpochs : this.options.Epochs;
-            operations = new(extractor.Backend);
+            operations = new(extractor.Backend, this.options.CpuThreads);
             if (state is not null)
             {
                 if (!state.Manifest.ClassNames.SequenceEqual(dataset.ClassNames)) throw new InvalidDataException("训练模型类别与数据集不同。");
@@ -140,7 +140,7 @@ public sealed class YoloTrainer : IDisposable
                         if (!float.IsFinite(loss.Total)) throw new ArithmeticException("检测损失出现非有限值。");
                         tape.Backward(); box += loss.Box; cls += loss.Classification; dfl += loss.Dfl;
                     }
-                    if (head.Parameters.Any(p => p.Gradient.Any(v => !float.IsFinite(v)))) throw new ArithmeticException("检测头梯度出现非有限值。");
+                    if (head.Parameters.Any(p => !TrainingParameter.AllFinite(p.Gradient))) throw new ArithmeticException("检测头梯度出现非有限值。");
                     foreach (var parameter in head.Parameters) parameter.Update(options, batch.Length);
                     completedSteps++; var item = new TrainingProgress(completedSteps, epoch + 1, (box + cls + dfl) / batch.Length, box / batch.Length, cls / batch.Length, dfl / batch.Length, elapsed.Elapsed.TotalMilliseconds);
                     history.WriteLine(JsonSerializer.Serialize(item)); progress?.Invoke(item);

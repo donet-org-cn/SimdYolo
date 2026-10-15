@@ -1,6 +1,8 @@
 # 纯 C# 五代 YOLO 检测头训练
 
-0.10.0 源码支持 **YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26 的检测头微调**，CPU 使用 C# SIMD，Vulkan 加速冻结网络和普通卷积的前后向 GEMM。无需 Python、PyTorch、TorchSharp、ONNX Runtime、BLAS 或 CUDA 运行依赖。
+0.10.1 源码与发布包支持 **YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26 的检测头微调**，CPU 使用 C# SIMD，Vulkan 加速冻结网络和较大的前后向 GEMM。无需 Python、PyTorch、TorchSharp、ONNX Runtime、BLAS 或 CUDA 运行依赖。
+
+本轮新增SIMD激活/BN/SGD、直接点积反向、1×1零复制、有界卷积工作区与小矩阵设备选择。[训练速度、资源和训练后模型对比](../artifacts/training-optimization-0.10.1.md)同时给出原版PyTorch、优化前和当前实现，保留历史测量口径。
 
 | 系列 | 仓库实际训练权重 | 回归与分类头 | 训练目标 |
 | --- | --- | --- | --- |
@@ -14,11 +16,19 @@
 
 范围保持为**冻结骨干和 FPN、仅更新完整检测头**。分割/姿态训练、全参数训练、Metal 训练、AdamW/MuSGD、EMA、数据增强和业务数据集 mAP 评测尚未实现。YOLO26 的损失与固定参考对应，优化器仍为 SGD，不声称复刻官方完整训练配方。普通 ONNX 只支持推理，不能作为本训练器的初始化结构。
 
-Vulkan 是混合训练：普通卷积 GEMM 在 GPU；头部深度/分组卷积、im2col、BN、激活、标签分配、损失和 SGD 在 CPU，存在上传/回读。请参考[实际训练性能](../artifacts/training-evaluation-0.10.0.md)，不要以推理速度推断训练速度。
+Vulkan 是混合训练：矩阵乘加项数大于4,000,000的普通卷积 GEMM在GPU，小矩阵使用CPU SIMD以避免提交/回读开销；头部深度/分组卷积、im2col、BN、激活、标签分配、损失和SGD在CPU。CPU线程遵守`CpuThreads`。[实际训练性能](../artifacts/training-optimization-0.10.1.md)不能以推理速度推断。
+
+## 训练后模型对比
+
+0.10.1补充真实图片训练结果：COCO128按种子2611划分96张微调/32张验证，80类、256×256、相同初始状态、固定顺序和冻结特征，各192步SGD。CPU与原版CPU、Vulkan与原版CUDA分别比较参数、BN、动量与逐步损失；重新加载两边保存的模型，执行完整网络并比较P/R、mAP50及mAP50–95。
+
+原始COCO128的train=val设置未用于本次微调划分；预训练权重已见过COCO train2017，不能把这32张称为独立于预训练的泛化验证集。两边的短程微调都有验证精度下降，本轮不声称提升精度或复刻官方全参数训练配方。设置、训练前后指标、误差与复现方法见[0.10.1报告](../artifacts/training-optimization-0.10.1.md)及[验证目录](../artifacts/validation/0.10.1/README.md)。
+
+![0.10.1 保存模型效果对照](../artifacts/training-results-0.10.1.png)
 
 ## 启动网页或 C# API
 
-需要 .NET 10 SDK；Vulkan 需要兼容驱动及系统 loader。0.9.0 已发布包仍只支持 v8，本功能请构建 0.10.0 源码：
+需要 .NET 10 SDK；Vulkan 需要兼容驱动及系统 loader。可下载[0.10.1 训练库与网页运行包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)，或从源码启动：
 
 ```powershell
 git clone https://github.com/hnlyf168/SimdYolo.git

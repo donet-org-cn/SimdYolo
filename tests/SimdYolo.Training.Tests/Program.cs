@@ -4,7 +4,10 @@ using System.Text.Json;
 using SimdYolo;
 using SimdYolo.Training;
 
+Console.OutputEncoding = new System.Text.UTF8Encoding(false);
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true };
+if (args.FirstOrDefault() == "profile-head") { TrainingProfile.Run(args); return; }
+if (args.FirstOrDefault() is "outcome-emit" or "outcome-run") { TrainingOutcome.Run(args); return; }
 if (args.FirstOrDefault() is "emit-matrix" or "test-matrix" or "bench-head") { TrainingMatrix.Run(args); return; }
 if (args.FirstOrDefault() == "emit-oracle")
 {
@@ -36,6 +39,40 @@ if (args.FirstOrDefault() == "emit-oracle")
 }
 
 int passed = 0;
+Run("训练转置点积微内核覆盖奇数行、列尾和归约尾", () =>
+{
+    foreach (var (m, n, k) in new[] { (5, 9, 67), (4, 8, 64), (1, 3, 5), (7, 17, 129) })
+    {
+        float[] a = Enumerable.Range(0, m * k).Select(i => MathF.Sin(i * .13f)).ToArray(), b = Enumerable.Range(0, n * k).Select(i => MathF.Cos(i * .17f)).ToArray(), c = new float[m * n];
+        TrainingMatMul.RightTransposed(a, b, c, m, n, k, new() { MaxDegreeOfParallelism = 2 });
+        for (int row = 0; row < m; row++) for (int col = 0; col < n; col++)
+        { double sum = 0; for (int j = 0; j < k; j++) sum += (double)a[row * k + j] * b[col * k + j]; Near(c[row * n + col], (float)sum, 3e-5f); }
+    }
+});
+Run("SGD SIMD 检查拒绝各位置的 NaN 和无穷", () =>
+{
+    foreach (int length in new[] { 3, 8, 19 }) foreach (int index in new[] { 0, length - 1 }) foreach (float bad in new[] { float.NaN, float.PositiveInfinity, float.NegativeInfinity })
+    {
+        var data = Enumerable.Repeat(1f, length).ToArray(); data[index] = bad;
+        if (TrainingParameter.AllFinite(data)) throw new Exception("非有限梯度漏检。");
+        var parameter = new TrainingParameter("bad", new float[length], [length], false) { HasGradient = true }; data.CopyTo(parameter.Gradient, 0);
+        try { parameter.Update(new(), 1); throw new Exception("非有限参数未拒绝。"); } catch (ArithmeticException) { }
+    }
+});
+Run("卷积工作区复用保持梯度累加并隔离前向输出", () =>
+{
+    using var backend = new CpuBackend(2); var ops = new HeadOperations(backend);
+    var x = new Tensor(Enumerable.Range(0, 128).Select(i => MathF.Sin(i * .2f)).ToArray(), 1, 2, 8, 8);
+    var w = new TrainingParameter("w", Enumerable.Range(0, 36).Select(i => MathF.Cos(i) * .1f).ToArray(), [2, 2, 3, 3], true);
+    float[]? once = null, output = null;
+    for (int step = 0; step < 3; step++)
+    {
+        var tape = new GradientTape(); var y = ops.Conv(tape, new(x), w, null, 1); Array.Fill(y.Gradient, 1); tape.Backward();
+        if (step == 0) { once = (float[])w.Gradient.Clone(); output = (float[])y.Value.Data.Clone(); }
+        for (int i = 0; i < w.Gradient.Length; i++) Near(w.Gradient[i], once![i] * (step + 1), 2e-4f);
+        if (!y.Value.Data.SequenceEqual(output!)) throw new Exception("工作区覆盖前向输出。");
+    }
+});
 Run("卷积权重和输入梯度的独立有限差分", () =>
 {
     using var backend = new CpuBackend(2); var ops = new HeadOperations(backend); var tape = new GradientTape();
@@ -120,7 +157,8 @@ if (args.Contains("--integration"))
     float before, after; var history = new List<TrainingProgress>();
     Run("真实 YOLOv8 微调损失下降与快照推理", () =>
     {
-        using var trainer = new YoloTrainer("models/pt/yolov8n.pt", dataset, new() { ImageSize = 64, Epochs = 100, CpuThreads = 4, LearningRate = .005f });
+        // TAL 匹配离散变化使高学习率的单图第100步处于抖动区；延长实际训练，仍保留原10%下降要求。
+        using var trainer = new YoloTrainer("models/pt/yolov8n.pt", dataset, new() { ImageSize = 64, Epochs = 200, CpuThreads = 4, LearningRate = .005f });
         before = trainer.EvaluateLoss(); trainer.Train(output, item => { history.Add(item); if (item.Step % 10 == 0) Console.WriteLine($"step {item.Step}: {item.TotalLoss:F5}"); }); after = trainer.EvaluateLoss();
         Console.WriteLine($"eval loss {before:F6} -> {after:F6}"); if (!(after < before * .9f)) throw new Exception("真实微调没有达到10%损失下降。");
         using var detector = new YoloDetector(Path.Combine(output, "last.sytrain"), new() { Width = 64, Height = 64 });
@@ -175,7 +213,8 @@ if (args.Contains("--integration"))
         string legacy = output + "/legacy-v1.sytrain"; File.Copy(output + "/last.sytrain", legacy, true);
         Rewrite(legacy, manifest => { manifest.Format = "SimdYolo.Training/1"; manifest.HeadKind = null; manifest.LossScheduleEpochs = 0; });
         using (var model = new YoloDetector(legacy)) if (model.ClassNames[0] != "square") throw new Exception("Legacy checkpoint labels changed.");
-        using (var resumed = YoloTrainer.Resume(legacy, dataset, 101, cpuThreads: 2)) if (resumed.CompletedEpochs != 100) throw new Exception("Legacy counters not restored.");
+        int savedEpochs = TrainingModelState.Load(legacy).Manifest.Epoch;
+        using (var resumed = YoloTrainer.Resume(legacy, dataset, savedEpochs + 1, cpuThreads: 2)) if (resumed.CompletedEpochs != savedEpochs) throw new Exception("Legacy counters not restored.");
         using var trainer = new YoloTrainer("models/pt/yolo26n.pt", dataset, new() { ImageSize = 64, Epochs = 3, CpuThreads = 2 });
         string native = output + "/double-head.sytrain"; trainer.SaveCheckpoint(native);
         foreach (string kind in new[] { "missing", "mode", "schedule", "type" })

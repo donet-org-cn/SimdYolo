@@ -2,11 +2,11 @@
 
 **纯 C# / .NET 10 的 YOLO 推理与检测头微调。** CPU 使用 SIMD/intrinsics，GPU 使用 Vulkan/Metal；直接加载支持范围内的 `.pt` 和 ONNX。
 
-[下载 0.9.0](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
+[下载 0.10.1](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
 
 ## 当前版本能力
 
-| 能力 | 0.10.0 源码实现 |
+| 能力 | 0.10.1 发布版 |
 | --- | --- |
 | 推理任务 | 目标检测、实例分割、姿态估计 |
 | 已验证模型 | YOLOv8n、Ultralytics YOLOv9t、YOLOv10n、YOLO11n、YOLO26n；v8/11/26 包含分割、姿态 |
@@ -14,26 +14,38 @@
 | CPU | C# FP32、SIMD/intrinsics、分块 GEMM、Winograd、张量池、专用执行器 |
 | GPU | Vulkan/Metal 与包内着色器；本轮 Windows / GTX 1050 Ti / Vulkan 实测，Metal 未实机验证 |
 | 训练 | YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调，冻结骨干/FPN；双头、深度卷积、自定义类别、SGD、取消/恢复 |
-| 训练设备 | CPU SIMD；Vulkan 加速冻结网络和普通卷积前后向 GEMM，深度卷积/BN/损失/SGD 在 CPU |
+| 训练设备 | CPU SIMD；Vulkan 加速冻结网络与大 GEMM，小矩阵及深度卷积/BN/损失/SGD 使用 CPU |
 | 网页 | 图片推理、数据导入、训练曲线、任务记录、取消/恢复、模型上传/下载 |
 | 标签 | `ModelInfo.Read(path).ClassNames` 读取 PT/ONNX/SYTRAIN 类别，不初始化 GPU |
 
 主库和训练核心为纯托管 C#，无 Python、PyTorch、TorchSharp、ORT、BLAS/MKL/OpenBLAS 运行依赖。GPU 通过 P/Invoke 调用系统图形 API。Vulkan 不需要 CUDA Toolkit、cuDNN、cuBLAS，也无需安装 Vulkan SDK 才能运行；需要兼容驱动和 Vulkan loader，修改着色器后才需重新编译。
 
-训练支持表、实际权重和评测见[五代检测头训练](docs/training.md)及[训练评测](artifacts/training-evaluation-0.10.0.md)。当前仍为**冻结骨干/FPN 的检测头微调**，没有全参数、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`，暂不导出 ONNX。梯度累加按图像平均，每图 BN 独立统计。
+训练支持表、实际权重和评测见[五代检测头训练](docs/training.md)及[本版训练评测](artifacts/training-optimization-0.10.1.md)。当前仍为**冻结骨干/FPN 的检测头微调**，没有全参数、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`，暂不导出 ONNX。梯度累加按图像平均，每图 BN 独立统计。
 
-本次新增能力请从源码构建 **0.10.0**；下方已发布的 **0.9.0 下载包仍只支持 v8 检测头训练**，旧包不会自动具备新功能。
+**0.10.1 发布包已包含五代检测头训练与本轮优化**，可直接下载主库、训练库、网页版、33模型和中文图文包。[中文发布说明](docs/releases/v0.10.1.md)保留验证范围及未通过的参数比较项。
+
+0.10.1重点优化CPU SIMD、卷积反向和临时工作区，并补上五模型训练后参数及保存模型的精度对比：[训练速度、排名与结果](artifacts/training-optimization-0.10.1.md)。
+
+本轮检测头训练每步耗时（ms，越低越快；**粗体为同设备组第一**）。128×128、FP32、2类、4线程、相同冻结特征，两独立窗口；不含骨干、预处理和保存，不代表全参数训练速度。
+
+| 模型 | 原版 PyTorch CPU | 我们 CPU SIMD | 原版 PyTorch CUDA | 我们 Vulkan 混合 |
+| --- | ---: | ---: | ---: | ---: |
+| yolov8n | 11.37 | **7.17** | 27.13 | **11.43** |
+| yolov9t | 10.90 | **6.46** | 27.17 | **10.39** |
+| yolov10n | 26.56 | **15.39** | 59.08 | **22.64** |
+| yolo11n | 13.33 | **7.05** | 30.58 | **9.77** |
+| yolo26n | 26.06 | **9.29** | 64.49 | **10.61** |
 
 ## 下载与启动
 
 | 下载 | 内容 |
 | --- | --- |
-| [0.9.0 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.9.0) | 中文发布说明与所有附件 |
-| [推理主库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo.0.9.0.nupkg) | 已验证的 SimdYolo.0.9.0.nupkg、中文 XML 文档及着色器 |
-| [训练库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo.Training.0.9.0.nupkg) | 独立训练库，依赖同版本主库 |
-| [33 个模型 ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-models-v0.9.0.zip) | 11 个 PT、22 个 ONNX，包含 YOLO26、清单和原许可证 |
-| [网页版运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-Web-v0.9.0.zip) | ASP.NET Core 发布输出、页面、启动说明；模型另下 |
-| [文档与图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.9.0/SimdYolo-docs-v0.9.0.zip) | 当前 README、中文文档、两篇文章、最新图表与原始结果 |
+| [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) | 五代检测头训练、SIMD 优化、中文说明与全部附件 |
+| [推理主库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo.0.10.1.nupkg) | 已验证的 SimdYolo.0.10.1.nupkg、中文 XML 文档及着色器 |
+| [训练库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo.Training.0.10.1.nupkg) | 独立训练库，依赖同版本主库 |
+| [33 个模型 ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) | 11 个 PT、22 个 ONNX，包含 YOLO26、清单和原许可证 |
+| [网页版运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) | ASP.NET Core 发布输出、页面、启动说明；模型另下 |
+| [文档与图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip) | 当前 README、中文文档、两篇文章、最新图表与原始结果 |
 
 从源码启动需要 .NET 10 SDK 和 Git LFS：
 
@@ -46,7 +58,7 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 打开 **http://127.0.0.1:5188**。网页版运行包需要已安装的 .NET 10 / ASP.NET Core 运行时，不含模型与运行时，具体步骤见包内说明。它是本地示例，绑定回环地址，没有公网账号/鉴权配置。
 
-[查看实际推理截图](artifacts/validation/0.9.0/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
+[查看实际推理截图](artifacts/validation/0.10.0/web-browser/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
 
 ## 推理性能：0.9.0 冻结版本实测
 
@@ -144,9 +156,13 @@ trainer.Train(".cache/my-training", p => Console.WriteLine($"{p.Step}: {p.TotalL
 
 内置方块用于流程验证，不代表业务精度。0.10.0 新增五代检测头的 CPU/Vulkan 梯度、SGD、真实微调与恢复验证，训练速度另与原版 PyTorch 比较；单图损失下降不代表验证集 mAP。[训练说明](docs/training.md) · [本版训练评测](artifacts/training-evaluation-0.10.0.md) · [历史 0.9.0 验证](artifacts/validation/0.9.0/README.md)
 
-![0.10.0 检测头 CPU 训练速度](artifacts/training-performance-0.10.0-cpu.png)
+![0.10.1 检测头 CPU 训练速度](artifacts/training-performance-0.10.1-cpu.png)
 
-图中只计冻结特征后的检测头前向、损失、反向与 SGD，采用128×128、2类、4线程；[GPU训练速度与资源排名](artifacts/training-evaluation-0.10.0.md)使用同一口径，不能与上方640×640推理耗时混用。
+![两边保存后重新加载的模型精度对照](artifacts/training-results-0.10.1.png)
+
+本轮精度对照使用COCO128的96张微调图与32张微调留出图，80类、256×256、2轮。两边的 `.pt` / `.sytrain` 均重新加载并运行完整网络。该短程微调的验证精度有下降，不代表有效训练配方或未见数据泛化能力；数值、误差和边界见[本版报告](artifacts/training-optimization-0.10.1.md)，[0.10.0报告](artifacts/training-evaluation-0.10.0.md)保留为历史结果。
+
+图中只计冻结特征后的检测头前向、损失、反向与 SGD，采用128×128、2类、4线程；[GPU训练速度与资源排名](artifacts/training-optimization-0.10.1.md)使用同一口径，不能与上方640×640推理耗时混用。
 
 ## 兼容与验证
 
