@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -46,7 +47,9 @@ class GitHub:
         url = path if path.startswith("https://") else "https://api.github.com" + path
         if urllib.parse.urlparse(url).hostname not in {"api.github.com", "uploads.github.com"}:
             raise ValueError("目标不是允许的 GitHub API 域名。")
-        headers = {"Accept": "application/vnd.github+json", "User-Agent": "SimdYolo-release", "X-GitHub-Api-Version": "2022-11-28", "Authorization": self.authorization}
+        # 发布后的立即回读必须绕开中间代理缓存，避免读到创建草稿之前的列表。
+        if method == "GET": url += ("&" if "?" in url else "?") + "_release_check=" + str(time.time_ns())
+        headers = {"Accept": "application/vnd.github+json", "User-Agent": "SimdYolo-release", "X-GitHub-Api-Version": "2022-11-28", "Cache-Control": "no-cache", "Authorization": self.authorization}
         data = None if value is None else json.dumps(value, ensure_ascii=False).encode("utf-8")
         if value is not None:
             headers["Content-Type"] = "application/json; charset=utf-8"
@@ -104,8 +107,11 @@ def main():
                 parser.error("创建草稿需要 --target 提交 SHA。")
             release = github.request(f"/repos/{args.repo}/releases", "POST", {"tag_name": args.tag, "target_commitish": args.target, "name": title, "body": body, "draft": True, "prerelease": False})
         else:
-            release = github.request(f"/repos/{args.repo}/releases/{release['id']}", "PATCH", {"name": title, "body": body})
-        if github.release(args.tag)["body"] != body:
+            changes = {"name": title, "body": body}
+            if args.target and release["draft"]: changes["target_commitish"] = args.target
+            release = github.request(f"/repos/{args.repo}/releases/{release['id']}", "PATCH", changes)
+        checked = github.request(f"/repos/{args.repo}/releases/{release['id']}")
+        if checked is None or checked["body"] != body:
             raise RuntimeError("GitHub 回读的中文内容与本地 UTF-8 文件不同。")
     if release is None:
         raise RuntimeError("目标 Release 不存在。")
