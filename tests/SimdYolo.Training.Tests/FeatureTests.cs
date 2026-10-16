@@ -109,6 +109,14 @@ internal static class FeatureTests
     }
     private static void IntegerKernels()
     {
+        // 动态ONNX权重可复用同一个张量存储，低精度缓存不得把它当作只读常量。
+        foreach (var precision in new[] { InferencePrecision.Float16, InferencePrecision.Int8 })
+        {
+            using var dynamicBackend = new PrecisionCpuBackend(precision, 2, null, null); var ops = new TensorOps(dynamicBackend);
+            var input = new Tensor([2f], 1, 1, 1, 1); var weight = new Tensor([.5f], 1, 1, 1, 1);
+            Near(ops.Conv(input, weight).Data[0], 1, .00001); weight.Data[0] = 1.5f;
+            Near(ops.Conv(input, weight).Data[0], 3, .00001);
+        }
         float Scale(float[] values) => Math.Max(values.Max(MathF.Abs) / 127, 1e-30f);
         int Q(float value, float scale) => (int)Math.Clamp(MathF.Round(value / scale), -127, 127);
         foreach (var config in new[] { (Ic: 3, Oc: 5, G: 1, Kh: 3), (Ic: 4, Oc: 6, G: 2, Kh: 3), (Ic: 3, Oc: 3, G: 3, Kh: 3), (Ic: 2, Oc: 4, G: 2, Kh: 1) })

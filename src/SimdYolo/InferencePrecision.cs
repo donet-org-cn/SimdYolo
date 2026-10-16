@@ -107,18 +107,18 @@ internal sealed class PrecisionCpuBackend : IComputeBackend
         }
         if (precision == InferencePrecision.Float16)
         {
-            if (!halves.TryGetValue(w, out var weight)) { weight = HalfOperands(w); halves[w] = weight; }
+            if (!w.IsConstant || !halves.TryGetValue(w, out var weight)) { weight = HalfOperands(w); if (w.IsConstant) halves[w] = weight; }
             return new TensorOps(Cpu).Conv(HalfOperands(x), weight, bias, strides, pads, dilation, groups, silu);
         }
         float actualMaximum = Maximum(x.Data);
         float maximum = profile is null ? actualMaximum : profile.ActivationMaxima.TryGetValue(key, out float calibrated) ? calibrated : throw new InvalidDataException("校准文件缺少卷积：" + key);
         float xs = Scale(maximum); int oc = w.Shape[0], icg = w.Shape[1], kh = w.Shape[2], kw = w.Shape[3], k = icg * kh * kw;
-        if (!packed.TryGetValue(w, out var weights))
+        if (!w.IsConstant || !packed.TryGetValue(w, out var weights))
         {
             _ = Maximum(w.Data);
             var q = new sbyte[w.Length]; var scales = new float[oc];
             for (int co = 0; co < oc; co++) { float max = 0; for (int j = 0; j < k; j++) max = MathF.Max(max, MathF.Abs(w.Data[co * k + j])); scales[co] = Scale(max); for (int j = 0; j < k; j++) q[co * k + j] = Quantize(w.Data[co * k + j], scales[co]); }
-            weights = (q, scales); packed.Add(w, weights);
+            weights = (q, scales); if (w.IsConstant) packed[w] = weights;
         }
         var y = Tensor.TemporaryUninitialized(shape); int spatial = shape[2] * shape[3], blocks = (spatial + 31) / 32, cog = oc / groups;
         var wd = weights; float[] source = x.Data, destination = y.Data;

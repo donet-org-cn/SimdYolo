@@ -34,6 +34,8 @@ def main():
     assert data["package-consumer.json"]["coreAssemblySha256"] == sha(core)
     assert data["package-consumer.json"]["trainingAssemblySha256"] == sha(training)
     assert data["precision.json"]["coreAssemblySha256"] == sha(core)
+    assert data["precision.json"]["trainingAssemblySha256"] == sha(training)
+    assert data["features.json"]["coreAssemblySha256"] == sha(core) and data["features.json"]["trainingAssemblySha256"] == sha(training)
     packages = []
     for name in ["SimdYolo", "SimdYolo.Training"]:
         package = ROOT / ("artifacts/" + name + ".0.11.0.nupkg")
@@ -53,7 +55,7 @@ def main():
                   gitBaseCommit=subprocess.check_output(["git", "-c", "safe.directory=F:/simdyolo", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   coreAssemblySha256=sha(core), trainingAssemblySha256=sha(training),
                   measuredTrainingAssemblySha256=measured_training,
-                  afterMeasurement="Only three Chinese XML param descriptions in the training assembly were completed after numerical/timing tests; measured hashes remain unchanged. Final packages were consumed and validated separately.",
+                  afterMeasurement="Feature tests, precision measurements and offline package consumption bind to the final core and training assemblies. Existing FP32/Vulkan regression and browser records are retained; the final cache correction only changes mutable low-precision convolution weights and is covered by an independent mutation test.",
                   packages=packages,
                   sourceFiles={path.relative_to(ROOT).as_posix(): sha(path) for path in sorted(source_paths)},
                   evidenceFiles={name: sha(DEST / name) for name in data},

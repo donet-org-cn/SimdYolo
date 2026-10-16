@@ -1,20 +1,20 @@
 {
   "status": "passed",
-  "recordedUtc": "2026-10-16T13:27:36.715431+00:00",
-  "gitBaseCommit": "fed822e391a038d8bcd787259364f3ec9094fe26",
-  "coreAssemblySha256": "a0e1b8b8088edbaa1172db20ffe0581545fd416c4b85e94e0f5646d304b89fbf",
-  "trainingAssemblySha256": "6795079d59723c3fa53ff578cf8bd096afa2db4f15252ee75a3e4611640b3194",
-  "measuredTrainingAssemblySha256": "61f512329095a98ff366dbecaa2a6a5176b1a4af21ea61f0924b12ed98e71a31",
-  "afterMeasurement": "Only three Chinese XML param descriptions in the training assembly were completed after numerical/timing tests; measured hashes remain unchanged. Final packages were consumed and validated separately.",
+  "recordedUtc": "2026-10-16T13:32:24.943856+00:00",
+  "gitBaseCommit": "6aa148edc36368d476dbe86ff3600977c68ff0ac",
+  "coreAssemblySha256": "e43524574bbfbe0d3bdc0914d71f91dbf02a466c819a47af295aa8f275e6276f",
+  "trainingAssemblySha256": "fe1b6ab902071f01a982cef6d0018e33d1efd5df91acc816f7d04d6304bfd733",
+  "measuredTrainingAssemblySha256": "fe1b6ab902071f01a982cef6d0018e33d1efd5df91acc816f7d04d6304bfd733",
+  "afterMeasurement": "Feature tests, precision measurements and offline package consumption bind to the final core and training assemblies. Existing FP32/Vulkan regression and browser records are retained; the final cache correction only changes mutable low-precision convolution weights and is covered by an independent mutation test.",
   "packages": [
     {
       "file": "artifacts/SimdYolo.0.11.0.nupkg",
-      "sha256": "f75f5762f5a3a486aa71c585a04cbf5ceb7e974eb006f30fe434e0e4b307b2d1",
+      "sha256": "2057f22ecc24af887a1cd0fb8716e9c6f9154feed2ddfaa43cfeb13bcc48f448",
       "dependencies": []
     },
     {
       "file": "artifacts/SimdYolo.Training.0.11.0.nupkg",
-      "sha256": "6713b1a70d3ae3690036b172d25c7e3a4002f44d25a486ecd186bb6adc60a79b",
+      "sha256": "79bd194b70fe74c91f8271763dc9769c9ec1fc4fbd69262089c0ccaf34ecb0b7",
       "dependencies": [
         {
           "id": "SimdYolo",
@@ -71,7 +71,7 @@
     "src/SimdYolo/CpuWinograd424.cs": "1cd6f5039f56540a9d5f449ec0300308d9aad6a738bc9472ba4b7e58e283e25b",
     "src/SimdYolo/CpuWinogradPanels.cs": "ce4de033da2761d54a2e079a15fa7e8cd57999367428bd110548a925ccad0bd2",
     "src/SimdYolo/DeviceExecution.cs": "de8bf46f4bd70a67a4066cf0df22699252ff97a14d1f9be8e713a8d8f37004e9",
-    "src/SimdYolo/InferencePrecision.cs": "9ca3c4bab6356d423f34e056d26c2d1ad895279252c418aa68ed5af7f4a79c28",
+    "src/SimdYolo/InferencePrecision.cs": "fba0f366499dd3b2252b0f61c7311324080c32455e1d85ec038e22e716e11fbe",
     "src/SimdYolo/KernelFusion.cs": "5bc7555989978bd012972f6f980b43ef39622364b1dfeecec1cb75b7e12ff92d",
     "src/SimdYolo/MetadataLiteral.cs": "8356df1dd51cdc5bfd2b77d13c72c1580e05e8d17d761dc323b1cfa35303db7c",
     "src/SimdYolo/MetalBackend.cs": "2158e7cb6fd5f2c2ac5bbfc5da7efe115d73bd012e5fb6f6e3377b95701fecdc",
@@ -129,26 +129,26 @@
     "src/SimdYolo.Training/TrainingScratch.cs": "f12d2f5c834d0ababcf620ca179c5786e3865896119c8fd24519426c6f8de163",
     "src/SimdYolo.Training/TrainingTypes.cs": "0c3185923e7c8bda939226224ed6f6dd396a788b69e7daba42ffef848602d4ab",
     "src/SimdYolo.Training/YoloTrainer.cs": "9c9610d6a9f2006f4a85e4a804d32bfbba589e3bd60de7d84da0cb4c563a5ef0",
-    "tests/SimdYolo.Training.Tests/FeatureTests.cs": "44ee2c55937cf71e37f0e13d64c29030113cf51e546a41f8081ba9faf83ca849",
+    "tests/SimdYolo.Training.Tests/FeatureTests.cs": "6fd71b59ae43daae4bd041b2838dd37cb6bfee57d260a315a67596c880942f89",
     "tests/SimdYolo.Training.Tests/PrecisionValidation.cs": "96c5a1982330af7176f1229e87aaa633e44e561dbac1818b63262cdf48f404c5",
     "tests/SimdYolo.Training.Tests/Program.cs": "c4536a98b2d2ecf547465abf87375b1d460ca91c841380632906d34995ca8609",
     "tests/SimdYolo.Training.Tests/SimdYolo.Training.Tests.csproj": "aec96627e5708e60b5e25e2563946d2364f8ce25bbc1309c8266519ceed46b46",
     "tests/SimdYolo.Training.Tests/TrainingMatrix.cs": "e115c87082380b8c95ac7322e1f3c73d80f532b2ce2888e805fa18a7dff1e049",
     "tests/SimdYolo.Training.Tests/TrainingOutcome.cs": "f09ade954cb589aa44c432c5846e642c3f0b8db5fc9437a0f98684d942d06eb3",
     "tests/SimdYolo.Training.Tests/TrainingProfile.cs": "c3b7ae43bbaf940c36dba15381ca3c214c1a316ca76dc2c22f366f67aa602b11",
-    "tools/record-workflow-validation.py": "a3a878883628d040a9315ae90a2e026fba76c578da934683c80006a759f82a96",
+    "tools/record-workflow-validation.py": "3603279ebf4449938219ba1c20d54da44dbec37e30bae34483f215e6244b4ca1",
     "tools/render-precision-validation.mjs": "e7e6eb8e636fe92a465c191c5c62a6b6aff3ec796bec45d642faf457004a2eef",
     "tools/validate-managed-onnx.py": "b7fde304e543fcee8d86bf6b430945e507f6e2e832a447bc6a6aeb30a45c0fb8",
     "tools/validate-web-browser.mjs": "e7f260e2ac5945bfb895049e4cc4024a472fe20edb61def7550b1ca79962443e",
     "tools/validate-web-workflows.mjs": "87e30b358849c1d7c7df35dd22bda65b7be3c5999f1fd82d66353c43c679c186"
   },
   "evidenceFiles": {
-    "features.json": "73562489b5888fc199db0f0033d8202d8836ef20248846df0292a2248d4da273",
-    "onnx-export.json": "a74b121ccffe93904a8d8703614296ccddd99b08f9584d0c932eaa41a57c1869",
-    "precision.json": "44d0895a88ba080766f673f1c737b7f9f97973e97a0867c1431efb82c2e73298",
-    "package-audit.json": "2e4fd9fde6024e21516713fe883792896848deedeb95da3288f0b3eb47c87ba3",
+    "features.json": "8ddf3f6a69b15d6549a3e524297119950b63d4ffff992d9317c1bdc5eeeba153",
+    "onnx-export.json": "1dab83fe3b4009b71edfbe4366e0c7d4c53ef2c08fd302a825784e8067cd36e8",
+    "precision.json": "398555e394b64cdcdb5e4a58a2d1de0f5fde3912682b20393d7dda1a8f09373e",
+    "package-audit.json": "2e84f4d9a856e0ef1989295c360013cedd9ce74d0b39873a77bd2cd663fd32bb",
     "training-metadata.json": "58b3d8151aa6653ac6d6cf652035e434cdbc06190f244b46fb9a871121d801b0",
-    "package-consumer.json": "80eec5840add60510096eac14376c62ef1e00fcfedf0af92d41db7f3036eef9a",
+    "package-consumer.json": "e618b8091d2e43c843550d6f587c6628aef0b8c5b303c8fac90f1f9a4d93695c",
     "web-workflows/web-browser.json": "4e1ea1158d53b5d83551645af7d6a43338045f04f5fb1bb71aa646ea38e27642"
   },
   "webVersion": "0.11.0"
