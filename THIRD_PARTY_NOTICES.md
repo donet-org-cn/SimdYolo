@@ -14,6 +14,8 @@
 
 ## 运行和开发依赖
 
+网页版`wwwroot/samples/bus.jpg`人物/车辆示例照片来自Ultralytics仓库的`ultralytics/assets/bus.jpg`（与开发对照使用的官方bus.jpg相同）。来源见[Ultralytics示例图片](https://github.com/ultralytics/ultralytics/blob/v8.4.0/ultralytics/assets/bus.jpg)，同目录`NOTICE.txt`和`LICENSE-AGPL-3.0.txt`保留上游来源与许可证；原图片SHA256见该NOTICE。该照片只用于示例展示与功能验证。
+
 SimdYolo 主库使用 .NET framework 程序集和系统 Vulkan/Metal API，GPU 着色器随主库嵌入。GitHub 仓库不分发 Python/PyTorch、Ultralytics 安装环境、ONNX Runtime 原生 DLL、CUDA/cuDNN、Vulkan SDK 或 NuGet 缓存。
 
 `tools/OrtBenchmark/` 和 Python 对照脚本是可选开发工具，依赖按各上游许可证安装。它们与无外部数学运行库依赖的主库分开。

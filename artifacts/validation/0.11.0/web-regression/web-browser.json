@@ -1,0 +1,195 @@
+{
+  "status": "passed",
+  "browser": "Microsoft Edge headless",
+  "trainingModel": "yolov8n.pt",
+  "checks": [
+    "Headless Edge started",
+    "Actual API populated models",
+    "All five training families exposed",
+    "Real JPEG decoded in browser",
+    "Actual inference boxes displayed",
+    "Inference instances 5",
+    "Portrait image fully fits preview",
+    "Large image decoded 4k-detection-cpu",
+    "Large image inference 4k-detection-cpu",
+    "Large image decoded 8k-segmentation-cpu",
+    "Large image inference 8k-segmentation-cpu",
+    "Large image decoded 8k-pose-vulkan",
+    "Large image inference 8k-pose-vulkan",
+    "Original-coordinate parity for 4K detection, 8K masks and 8K Vulkan pose; bounded previews/RGB; legacy API; nine invalid requests rejected",
+    "Real vehicle/background cutouts generated",
+    "Both transparent PNG downloads completed",
+    "Person cutout updated without inference",
+    "Changing image clears stale cutout downloads",
+    "Vehicle/person cutout previews; complementary PNG downloads; class filters; mask holes; bounded buffers; no stale exports",
+    "UI started and completed 16 real training steps",
+    "Checkpoint download available",
+    "UI resumed to epoch 3",
+    "Cancellation task running",
+    "UI cancelled actual training",
+    "Mobile layout has no horizontal overflow"
+  ],
+  "largeImages": [
+    {
+      "name": "4k-detection-cpu",
+      "width": 4001,
+      "height": 5333,
+      "model": "yolov8n.pt",
+      "backend": "Cpu",
+      "originalWidth": 4001,
+      "originalHeight": 5333,
+      "uploadWidth": 1536,
+      "uploadHeight": 2048,
+      "encodedRgbBytes": 12582912,
+      "instances": 5,
+      "masks": 0,
+      "keypoints": 0,
+      "maxCoordinateError": 0.000724114583363189,
+      "maxConfidenceError": 9.20000000015353e-7,
+      "maxMaskByteError": 0,
+      "canvasDraws": {
+        "boxes": 5,
+        "points": 0,
+        "masks": 0
+      },
+      "canvasTransformsVerified": true,
+      "readbacks": [
+        {
+          "width": 1536,
+          "height": 2048
+        }
+      ],
+      "reusedSession": true,
+      "preview": {
+        "width": 1536,
+        "height": 2048
+      },
+      "passed": true
+    },
+    {
+      "name": "8k-segmentation-cpu",
+      "width": 8191,
+      "height": 5463,
+      "model": "yolov8n-seg.pt",
+      "backend": "Cpu",
+      "originalWidth": 8191,
+      "originalHeight": 5463,
+      "uploadWidth": 2048,
+      "uploadHeight": 1366,
+      "encodedRgbBytes": 11190272,
+      "instances": 5,
+      "masks": 5,
+      "keypoints": 0,
+      "maxCoordinateError": 0.0010766471450551762,
+      "maxConfidenceError": 8.599999999914232e-7,
+      "maxMaskByteError": 1,
+      "canvasDraws": {
+        "boxes": 5,
+        "points": 0,
+        "masks": 5
+      },
+      "canvasTransformsVerified": true,
+      "readbacks": [
+        {
+          "width": 1536,
+          "height": 2048
+        },
+        {
+          "width": 2048,
+          "height": 1366
+        },
+        {
+          "width": 2048,
+          "height": 1366
+        }
+      ],
+      "reusedSession": true,
+      "preview": {
+        "width": 2048,
+        "height": 1366
+      },
+      "passed": true
+    },
+    {
+      "name": "8k-pose-vulkan",
+      "width": 6143,
+      "height": 8191,
+      "model": "yolov8n-pose.pt",
+      "backend": "Vulkan",
+      "originalWidth": 6143,
+      "originalHeight": 8191,
+      "uploadWidth": 1536,
+      "uploadHeight": 2048,
+      "encodedRgbBytes": 12582912,
+      "instances": 4,
+      "masks": 0,
+      "keypoints": 68,
+      "maxCoordinateError": 0.0005705078119717655,
+      "maxConfidenceError": 0,
+      "maxMaskByteError": 0,
+      "canvasDraws": {
+        "boxes": 4,
+        "points": 55,
+        "masks": 0
+      },
+      "canvasTransformsVerified": true,
+      "readbacks": [
+        {
+          "width": 1536,
+          "height": 2048
+        },
+        {
+          "width": 2048,
+          "height": 1366
+        },
+        {
+          "width": 2048,
+          "height": 1366
+        },
+        {
+          "width": 1536,
+          "height": 2048
+        }
+      ],
+      "reusedSession": true,
+      "preview": {
+        "width": 1536,
+        "height": 2048
+      },
+      "passed": true
+    }
+  ],
+  "cutout": {
+    "status": "passed",
+    "vehicles": {
+      "width": 810,
+      "height": 1080,
+      "selectedPixels": 254477,
+      "removedBackgroundPixels": 254477,
+      "maxAlphaError": 0,
+      "status": "已分离 1 个车辆目标 · PNG 810 × 1080 · 切换类别可直接更新。"
+    },
+    "downloaded": {
+      "width": 810,
+      "height": 1080,
+      "maxAlphaError": 0,
+      "files": 2
+    },
+    "semantics": {
+      "customClassOrder": true,
+      "maskHoles": true,
+      "coordinateProjection": true,
+      "multipleInstances": true,
+      "specificClass": true,
+      "missingTarget": true,
+      "invalidMaskRejected": true
+    },
+    "peopleSelectionWithoutInference": true,
+    "clearedAfterImageChange": true
+  },
+  "errors": [],
+  "mobile": {
+    "viewport": 390,
+    "width": 390
+  }
+}

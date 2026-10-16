@@ -5,6 +5,7 @@ using SimdYolo.Web;
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 72 * 1024 * 1024);
 builder.Services.AddSingleton<Workspace>(); builder.Services.AddSingleton<InferenceService>(); builder.Services.AddSingleton<TrainingService>(); builder.Services.AddHostedService(provider => provider.GetRequiredService<TrainingService>());
+builder.Services.AddSingleton<WorkflowService>(); builder.Services.AddHostedService(provider => provider.GetRequiredService<WorkflowService>());
 var app = builder.Build(); var workspace = app.Services.GetRequiredService<Workspace>(); var training = app.Services.GetRequiredService<TrainingService>();
 // 本示例绑定回环地址。拒绝跨站变更请求，避免本地训练被其他网页触发。
 app.Use(async (context, next) =>
@@ -21,12 +22,23 @@ app.Use(async (context, next) =>
     }
 });
 app.UseDefaultFiles(); app.UseStaticFiles();
+DatasetEndpoints.Map(app, workspace, training);
+app.MapGet("/api/workflows", (WorkflowService workflows) => Results.Ok(workflows.List()));
+app.MapPost("/api/workflows", (WorkflowRequest request, WorkflowService workflows) => Results.Ok(workflows.View(workflows.Enqueue(request))));
+app.MapGet("/api/workflows/{id}", (string id, WorkflowService workflows) => Results.Ok(workflows.View(workflows.Find(id))));
+app.MapPost("/api/workflows/{id}/cancel", (string id, WorkflowService workflows) => { var job = workflows.Find(id); job.Cancellation.Cancel(); return Results.Ok(workflows.View(job)); });
+app.MapGet("/api/workflows/{id}/download", (string id, WorkflowService workflows) =>
+{
+    var job = workflows.Find(id); if (job.Status != "completed" || !File.Exists(job.Output)) return Results.NotFound(new { error = "任务尚未完成。" });
+    return Results.File(new FileStream(job.Output, FileMode.Open, FileAccess.Read, FileShare.Read), job.Request.Kind == "export" ? "application/octet-stream" : "application/json", "simdyolo-" + job.Id[..8] + (job.Request.Kind == "export" ? ".onnx" : ".json"));
+});
 
 bool vulkan = false; string? vulkanError = null;
 try { using var backend = new VulkanBackend(); vulkan = true; }
 catch (Exception error) when (error is DllNotFoundException or EntryPointNotFoundException or PlatformNotSupportedException or InvalidOperationException) { vulkanError = error.Message; }
 object ModelView(WebModel model) => new { model.Id, model.Name, model.Format, model.Task, model.Trainable };
 app.MapGet("/api/info", () => Results.Ok(new { version = typeof(YoloDetector).Assembly.GetName().Version!.ToString(3), models = workspace.Models.Values.OrderBy(m => m.Name).Select(ModelView),
+    imageLimits = new { maxUploadEdge = Workspace.MaxUploadEdge, maxOriginalEdge = Workspace.MaxOriginalEdge, maxOriginalPixels = Workspace.MaxOriginalPixels },
     backends = new[] { new { id = "Cpu", name = "CPU SIMD", inference = true, training = true }, new { id = "Vulkan", name = "Vulkan GPU", inference = vulkan, training = vulkan }, new { id = "Metal", name = "Metal（训练尚未支持）", inference = OperatingSystem.IsMacOS(), training = false } },
     trainingScope = "YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调，骨干与 FPN 冻结。梯度累加按图像平均；Vulkan 加速普通卷积 GEMM，深度卷积、BN、损失和 SGD 在 CPU。", vulkanError }));
 
@@ -68,5 +80,10 @@ app.MapGet("/api/training/{id}/checkpoint", (string id) =>
 {
     var job = training.Find(id); if (!File.Exists(job.Checkpoint)) return Results.NotFound(new { error = "尚无完整检查点。" });
     return Results.File(new FileStream(job.Checkpoint, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete), "application/octet-stream", $"simdyolo-{id[..8]}.sytrain");
+});
+app.MapGet("/api/training/{id}/best", (string id) =>
+{
+    string path = Path.Combine(training.Find(id).Directory, "best.sytrain");
+    return File.Exists(path) ? Results.File(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete), "application/octet-stream", $"simdyolo-{id[..8]}-best.sytrain") : Results.NotFound(new { error = "未启用验证或尚无最佳模型。" });
 });
 app.Run();

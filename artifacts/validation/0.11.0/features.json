@@ -1,0 +1,99 @@
+{
+  "status": "passed",
+  "coreAssemblySha256": "a0e1b8b8088edbaa1172db20ffe0581545fd416c4b85e94e0f5646d304b89fbf",
+  "trainingAssemblySha256": "61f512329095a98ff366dbecaa2a6a5176b1a4af21ea61f0924b12ed98e71a31",
+  "checks": [
+    {
+      "name": "AP101: perfect, duplicate, false positive, wrong class and no ground truth",
+      "passed": true
+    },
+    {
+      "name": "Deterministic holdout split and content leakage rejection",
+      "passed": true
+    },
+    {
+      "name": "INT8 exact dot: SIMD tails and INT32 overflow segmentation",
+      "passed": true
+    },
+    {
+      "name": "INT8 convolution grouped/depthwise/batch/asymmetric pads/dilation/SiLU and GEMM reference",
+      "passed": true
+    },
+    {
+      "name": "yolov8n full PT standard ONNX export numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolov8n trained custom-class SYTRAIN to ONNX parity",
+      "passed": true
+    },
+    {
+      "name": "yolov9t full PT standard ONNX export numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolov9t trained custom-class SYTRAIN to ONNX parity",
+      "passed": true
+    },
+    {
+      "name": "yolov10n full PT standard ONNX export numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolov10n trained custom-class SYTRAIN to ONNX parity",
+      "passed": true
+    },
+    {
+      "name": "yolo11n full PT standard ONNX export numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolo11n trained custom-class SYTRAIN to ONNX parity",
+      "passed": true
+    },
+    {
+      "name": "yolo26n full PT standard ONNX export numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolo26n trained custom-class SYTRAIN to ONNX parity",
+      "passed": true
+    },
+    {
+      "name": "yolov10n ONNX two-stage TopK with more than 300 anchors",
+      "passed": true
+    },
+    {
+      "name": "yolo26n ONNX two-stage TopK with more than 300 anchors",
+      "passed": true
+    },
+    {
+      "name": "yolov8n-seg full PT ONNX numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolov8n-pose full PT ONNX numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolo26n-seg full PT ONNX numerical parity",
+      "passed": true
+    },
+    {
+      "name": "yolo26n-pose full PT ONNX numerical parity",
+      "passed": true
+    },
+    {
+      "name": "FP16 mixed operands and INT8 actual model execution are finite",
+      "passed": true
+    },
+    {
+      "name": "Static INT8 calibration binds model and input",
+      "passed": true
+    },
+    {
+      "name": "Validation, best checkpoint, early stop and resume holdout binding",
+      "passed": true
+    }
+  ]
+}

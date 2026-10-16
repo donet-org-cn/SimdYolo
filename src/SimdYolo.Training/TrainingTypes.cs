@@ -25,13 +25,19 @@ public sealed record TrainingOptions
     public int CpuThreads { get; init; }
     /// <summary>保存每张图像的冻结特征，以加速小型微调数据集。</summary><value>默认 true；数据较大时关闭。</value>
     public bool CacheFeatures { get; init; } = true;
+    /// <summary>独立验证集；非空时每轮验证并保存最佳模型。</summary><value>默认空，保持原训练流程。</value>
+    public TrainingDataset? ValidationDataset { get; init; }
+    /// <summary>连续无改进轮数达到此值时早停；零表示不早停。</summary><value>默认零。</value>
+    public int EarlyStoppingPatience { get; init; }
+    /// <summary>mAP50:95至少提升此值才更新最佳模型。</summary><value>默认0.0001。</value>
+    public double MinimumImprovement { get; init; } = .0001;
 
     /// <summary>拒绝无效训练配置和当前尚未实现的训练设备。</summary>
     /// <exception cref="ArgumentException">尺寸、轮数、梯度累加、学习率或线程配置不合法。</exception>
     /// <exception cref="NotSupportedException">请求 Metal 或 Auto 训练。</exception>
     internal void Validate()
     {
-        if (ImageSize is < 64 or > 1280 || ImageSize % 32 != 0 || Epochs is < 1 or > 10000 || BatchSize is < 1 or > 128 || CpuThreads < 0 ||
+        if (EarlyStoppingPatience is < 0 or > 10000 || !double.IsFinite(MinimumImprovement) || MinimumImprovement is < 0 or > 1 || EarlyStoppingPatience > 0 && ValidationDataset is null || ImageSize is < 64 or > 1280 || ImageSize % 32 != 0 || Epochs is < 1 or > 10000 || BatchSize is < 1 or > 128 || CpuThreads < 0 ||
             !float.IsFinite(LearningRate) || LearningRate <= 0 || !float.IsFinite(Momentum) || Momentum is < 0 or >= 1 || !float.IsFinite(WeightDecay) || WeightDecay < 0)
             throw new ArgumentException("训练尺寸、轮数、梯度累加、SGD 参数或线程数不合法。");
         if (Device is not (ComputeDevice.Cpu or ComputeDevice.Vulkan)) throw new NotSupportedException("首期训练仅支持 CPU 或 Vulkan 矩阵运算。");

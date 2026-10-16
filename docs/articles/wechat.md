@@ -55,7 +55,7 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 ![实际YOLO26训练页面，截图采集于0.10.0](../../artifacts/validation/0.10.0/web-browser/web-training.png)
 
-训练使用YOLO检测文本`class cx cy w h`。`.sytrain`包含原始PT、全部训练参数、BN、动量与类别，可重新加载推理和恢复；它不是PyTorch`.pt`，暂不导出ONNX。模型标签可通过`ModelInfo.Read(path).ClassNames`独立读取。
+训练使用YOLO检测文本`class cx cy w h`。`.sytrain`包含原始PT、全部训练参数、BN、动量与类别，可重新加载推理和恢复；它不是PyTorch`.pt`。0.11.0源码已支持纯.NET导出标准ONNX，并增加独立验证集、早停和网页标注，详见[新增功能](../model-workflows.md)。模型标签可通过`ModelInfo.Read(path).ClassNames`独立读取。
 
 ## 推理速度保留历史版本，避免混淆
 

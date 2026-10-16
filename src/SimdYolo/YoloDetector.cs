@@ -69,6 +69,12 @@ public enum YoloTask
 /// <summary>模型会话、图像预处理与结果解码的不可变配置。</summary>
 public sealed record DetectorOptions
 {
+    /// <summary>CPU卷积和矩阵乘法精度；其他运算保留FP32。</summary><value>默认Float32。</value>
+    public InferencePrecision Precision { get; init; } = InferencePrecision.Float32;
+    /// <summary>INT8静态激活校准文件；空值使用动态激活尺度。</summary><value>默认空。</value>
+    public string? CalibrationPath { get; init; }
+    /// <summary>校准收集器，仅供纯.NET校准API使用。</summary>
+    internal CalibrationProfile? CalibrationCollector { get; init; }
     /// <summary>计算设备；Auto 优先创建平台 GPU 后端，初始化失败时允许回退 CPU。</summary>
     /// <value>计算设备；Auto 优先创建平台 GPU 后端，初始化失败时允许回退 CPU。</value>
     public ComputeDevice Device { get; init; } = ComputeDevice.Cpu;
@@ -200,8 +206,24 @@ public sealed class YoloDetector : IDisposable
     {
         this.options = options ?? new();
         if (this.options.Width <= 0 || this.options.Height <= 0 || this.options.MaxDetections <= 0 || this.options.MaxCandidates <= 0 || this.options.CpuThreads < 0 || this.options.ClassCount < 0 || this.options.KeypointCount <= 0 || this.options.KeypointDimensions is not (2 or 3) || !Enum.IsDefined(this.options.Device) || !Enum.IsDefined(this.options.Task) || !Enum.IsDefined(this.options.OutputLayout) || !float.IsFinite(this.options.Confidence) || this.options.Confidence is < 0 or > 1 || !float.IsFinite(this.options.IouThreshold) || this.options.IouThreshold is < 0 or > 1) throw new ArgumentException("Invalid detector options.");
-        backend = ComputeBackends.Create(this.options.Device, this.options.CpuThreads, out var fallback); FallbackReason = fallback;
+        if (!Enum.IsDefined(this.options.Precision)) throw new ArgumentException("推理精度无效。");
+        if (this.options.CalibrationPath is not null && this.options.Precision != InferencePrecision.Int8) throw new ArgumentException("校准文件仅用于INT8。");
+        if (this.options.Precision != InferencePrecision.Float32 || this.options.CalibrationCollector is not null)
+        {
+            if (this.options.Device != ComputeDevice.Cpu) throw new NotSupportedException("低精度当前为纯.NET CPU实现，请选择CPU；GPU继续使用FP32，不静默改变设备或冒充FP16 GPU。");
+            CalibrationProfile? profile = null;
+            if (this.options.CalibrationPath is { Length: > 0 } calibration)
+            {
+                if (this.options.Precision != InferencePrecision.Int8) throw new ArgumentException("校准文件仅用于INT8。");
+                if (new FileInfo(calibration).Length > 4 * 1024 * 1024) throw new InvalidDataException("校准文件过大。");
+                profile = System.Text.Json.JsonSerializer.Deserialize<CalibrationProfile>(File.ReadAllText(calibration)) ?? throw new InvalidDataException("校准文件为空。");
+                if (profile.Format != "SimdYolo.Calibration/1" || profile.ModelSha256 != ModelCalibration.Hash(path) || profile.Images < 1 || profile.InputShape is null || profile.InputShape.Length != 4 || profile.InputShape[0] != 1 || profile.InputShape[1] != 3 || profile.InputShape[2] is < 1 or > 16384 || profile.InputShape[3] is < 1 or > 16384 || profile.ActivationMaxima is null || profile.ActivationMaxima.Count is < 1 or > 10000 || profile.ActivationMaxima.Values.Any(v => !float.IsFinite(v) || v < 0)) throw new InvalidDataException("校准文件无效或模型摘要不同。");
+            }
+            backend = new PrecisionCpuBackend(this.options.Precision, this.options.CpuThreads, profile, this.options.CalibrationCollector);
+        }
+        else { backend = ComputeBackends.Create(this.options.Device, this.options.CpuThreads, out var fallback); FallbackReason = fallback; }
         if (backend is CpuBackend cpuBackend) tensorPool.Parallel = cpuBackend.Parallel;
+        if (backend is PrecisionCpuBackend precisionBackend) tensorPool.Parallel = precisionBackend.Cpu.Parallel;
         try
         {
             var ops = new TensorOps(backend);
@@ -240,6 +262,7 @@ public sealed class YoloDetector : IDisposable
             inferenceRunning = true;
             try
             {
+                if (backend is PrecisionCpuBackend low) low.Begin(nchw.Shape);
                 if (backend is not IDeviceBackend device)
                 {
                     var previous = CpuTensorPool.Current; var previousDevice = DeviceScope.Current;

@@ -1,11 +1,15 @@
 "use strict";
+import { renderCutouts } from "/cutout.js?v=1";
+import { createWorkflows } from "/workflows.js?v=011";
+import { createAnnotation } from "/annotation.js?v=011";
 
 // 本示例只展示服务端真实返回的数据；训练曲线不插入演示点或模拟结果。
 (() => {
   const $ = (id) => document.getElementById(id);
   const state = {
     info: null, datasets: [], jobs: [], activeJobId: null, activeJob: null,
-    image: null, imageName: "", imageVersion: 0, result: null,
+    image: null, imageName: "", originalWidth: 0, originalHeight: 0, imageVersion: 0, result: null,
+    resultModelId: null, resultBackend: null, resultConfidence: null, resultPrecision: null, cutoutReady: false,
     inferenceBusy: false, modelUploadBusy: false, trainingBusy: false,
     datasetUploadBusy: false, view: "inference", pollTimer: null, pollFailures: 0,
   };
@@ -65,6 +69,9 @@
     return api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   }
 
+  const workflows = createWorkflows({ api, post, toast, loadInfo, refreshDatasets });
+  const annotation = createAnnotation({ api, post, toast, workflows });
+
   const finite = (value) => typeof value === "number" && Number.isFinite(value);
   const numberText = (value, digits = 3) => finite(value) ? value.toLocaleString("zh-CN", { maximumFractionDigits: digits, minimumFractionDigits: digits }) : "—";
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -77,15 +84,17 @@
 
   function navigate() {
     const candidate = location.hash.slice(1);
-    state.view = ["inference", "training", "jobs"].includes(candidate) ? candidate : "inference";
-    for (const name of ["inference", "training", "jobs"]) $("view-" + name).hidden = name !== state.view;
+    state.view = ["inference", "training", "jobs", "annotation", "evaluate"].includes(candidate) ? candidate : "inference";
+    for (const name of ["inference", "training", "jobs", "annotation", "evaluate"]) $("view-" + name).hidden = name !== state.view;
     for (const link of document.querySelectorAll(".nav-link")) {
       const active = link.dataset.view === state.view;
       link.classList.toggle("active", active);
       if (active) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current");
     }
-    $("breadcrumb-current").textContent = { inference: "模型推理", training: "模型训练", jobs: "任务记录" }[state.view];
+    $("breadcrumb-current").textContent = { inference: "模型推理", training: "模型训练", jobs: "任务记录", annotation: "数据标注", evaluate: "评估与导出" }[state.view];
     document.title = `${$("breadcrumb-current").textContent} · SimdYolo`;
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (state.view === "annotation") window.requestAnimationFrame(annotation.refresh);
     if (state.view === "training") window.requestAnimationFrame(drawChart);
     if (state.view === "jobs") refreshJobs().catch((e) => toast(e.message, true));
   }
@@ -152,6 +161,11 @@
     $("choose-image").disabled = state.inferenceBusy;
     $("load-sample").disabled = state.inferenceBusy;
     $("upload-model").disabled = state.modelUploadBusy || state.inferenceBusy;
+    $("run-cutout").disabled = !state.image || state.inferenceBusy || state.modelUploadBusy || !(state.info?.models || []).some(isSegmentationModel);
+    $("run-cutout").querySelector("span").textContent = state.inferenceBusy ? "正在推理…" : "分离目标";
+    $("cutout-target").disabled = state.inferenceBusy;
+    $("load-cutout-sample").disabled = state.inferenceBusy || state.modelUploadBusy;
+    $("download-foreground").disabled = $("download-background").disabled = !state.cutoutReady || state.inferenceBusy;
     $("inference-overlay").hidden = !state.inferenceBusy;
     $("inference-form").setAttribute("aria-busy", String(state.inferenceBusy));
     $("start-training").disabled = state.trainingBusy || state.datasetUploadBusy || !$("training-model").value || !$("training-dataset").value || !selectedBackend("training");
@@ -171,6 +185,7 @@
     renderModels();
     renderBackends("inference");
     renderBackends("training");
+    workflows.updateModels(info); annotation.updateModels(info);
     updateButtons();
   }
 
@@ -199,48 +214,79 @@
     } finally { URL.revokeObjectURL(url); }
   }
 
-  function rgbPayload(image) {
+  // 原照片只用于浏览器解码；预览和RGB均限制最长边，不读取全分辨率RGBA。
+  function boundedImageSize(image) {
+    const originalWidth = image.naturalWidth || image.width, originalHeight = image.naturalHeight || image.height;
+    const limits = state.info?.imageLimits;
+    if (!Number.isInteger(originalWidth) || !Number.isInteger(originalHeight) || originalWidth < 1 || originalHeight < 1) throw new Error("图像尺寸无效，请选择 JPG 或 PNG 图像。");
+    if (originalWidth > (limits?.maxOriginalEdge || 65535) || originalHeight > (limits?.maxOriginalEdge || 65535) || originalWidth * originalHeight > (limits?.maxOriginalPixels || 268435456)) throw new Error("原图超过浏览器示例的尺寸上限：单边65535，总像素256 Mi。");
+    const ratio = Math.min(1, (limits?.maxUploadEdge || 2048) / Math.max(originalWidth, originalHeight));
+    return { width: Math.max(1, Math.round(originalWidth * ratio)), height: Math.max(1, Math.round(originalHeight * ratio)), originalWidth, originalHeight };
+  }
+
+  function imageCanvas(image, width, height) {
     const canvas = document.createElement("canvas");
-    const width = image.width || image.naturalWidth;
-    const height = image.height || image.naturalHeight;
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) throw new Error("浏览器无法创建图像缓冲区，请关闭其他大图后重试。");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
     context.fillStyle = "#fff";
     context.fillRect(0, 0, width, height);
-    context.drawImage(image, 0, 0);
-    const rgba = context.getImageData(0, 0, width, height).data;
-    const rgb = new Uint8Array(width * height * 3);
-    for (let source = 0, target = 0; source < rgba.length; source += 4) {
-      rgb[target++] = rgba[source];
-      rgb[target++] = rgba[source + 1];
-      rgb[target++] = rgba[source + 2];
-    }
-    const pixels = bytesToBase64(rgb);
-    canvas.width = canvas.height = 0;
-    return { width, height, pixels };
+    context.drawImage(image, 0, 0, width, height);
+    return canvas;
+  }
+
+  function rgbPayload(image) {
+    const { width, height } = boundedImageSize(image);
+    const canvas = imageCanvas(image, width, height);
+    try {
+      const rgba = canvas.getContext("2d").getImageData(0, 0, width, height).data;
+      const rgb = new Uint8Array(width * height * 3);
+      for (let source = 0, target = 0; source < rgba.length; source += 4) {
+        rgb[target++] = rgba[source];
+        rgb[target++] = rgba[source + 1];
+        rgb[target++] = rgba[source + 2];
+      }
+      return { width, height, pixels: bytesToBase64(rgb) };
+    } finally { canvas.width = canvas.height = 0; }
   }
 
   async function setImage(blob, name) {
     if (state.inferenceBusy) return;
-    const image = await decodeImage(blob);
-    if (!(image.width > 0 && image.height > 0)) throw new Error("图像尺寸无效，请选择 JPG 或 PNG 图像。");
-    state.image?.close?.();
-    state.image = image;
+    const version = ++state.imageVersion;
+    let image = await decodeImage(blob);
+    let dimensions;
+    try {
+      dimensions = boundedImageSize(image);
+      if (version !== state.imageVersion || state.inferenceBusy) return;
+      if (dimensions.width !== dimensions.originalWidth || dimensions.height !== dimensions.originalHeight) {
+        const preview = imageCanvas(image, dimensions.width, dimensions.height);
+        image.close?.();
+        image = preview;
+      }
+      state.image?.close?.();
+      state.image = image;
+      image = null;
+    } finally { image?.close?.(); }
+    state.originalWidth = dimensions.originalWidth;
+    state.originalHeight = dimensions.originalHeight;
     state.imageName = name;
-    state.imageVersion++;
     state.result = null;
     $("image-empty").hidden = true;
     $("inference-canvas").hidden = false;
-    $("image-details").textContent = `${name} · ${image.width} × ${image.height}`;
-    $("image-state").textContent = "图像已就绪";
+    const resized = dimensions.width !== dimensions.originalWidth || dimensions.height !== dimensions.originalHeight;
+    $("image-details").textContent = `${name} · ${state.originalWidth} × ${state.originalHeight}${resized ? ` · 预览 ${dimensions.width} × ${dimensions.height}` : ""}`;
+    $("image-state").textContent = resized ? "大图已就绪" : "图像已就绪";
     $("inference-time").textContent = "—";
     $("instance-count").textContent = "—";
     $("actual-backend").textContent = "—";
-    $("result-note").textContent = "运行后显示服务端实测数据。";
+    $("result-note").textContent = resized ? "大图自动缩放，识别结果的位置仍使用原图像素坐标。" : "运行后显示服务端实测数据。";
     showError("inference-error", null);
     renderResults();
     drawInference();
+    renderCutout();
     updateButtons();
   }
 
@@ -251,8 +297,11 @@
     canvas.height = state.image.height;
     const context = canvas.getContext("2d");
     context.drawImage(state.image, 0, 0);
+    // 服务端输出原图坐标，预览画布保持有界；统一变换可避免框和姿态点偏移。
+    context.save();
+    context.scale(canvas.width / state.originalWidth, canvas.height / state.originalHeight);
     const instances = state.result?.instances || [];
-    const scale = Math.max(1, Math.min(canvas.width, canvas.height) / 450);
+    const scale = Math.max(1, Math.min(state.originalWidth, state.originalHeight) / 450);
     if ($("show-masks").checked) {
       for (let index = 0; index < instances.length; index++) {
         const instance = instances[index];
@@ -271,7 +320,8 @@
           const offscreen = document.createElement("canvas");
           offscreen.width = mask.width; offscreen.height = mask.height;
           offscreen.getContext("2d").putImageData(image, 0, 0);
-          context.drawImage(offscreen, mask.x || 0, mask.y || 0);
+          context.drawImage(offscreen, mask.x || 0, mask.y || 0, mask.displayWidth ?? mask.width, mask.displayHeight ?? mask.height);
+          offscreen.width = offscreen.height = 0;
         } catch { /* 单个异常掩码不影响检测框及其他实例的可视化。 */ }
       }
     }
@@ -287,8 +337,8 @@
       context.font = `600 ${12 * scale}px "Segoe UI", "Microsoft YaHei", sans-serif`;
       const labelWidth = context.measureText(label).width + 12 * scale;
       const labelHeight = 23 * scale;
-      const labelX = clamp(box.x - scale, 0, Math.max(0, canvas.width - labelWidth));
-      const labelY = box.y > labelHeight ? box.y - labelHeight : clamp(box.y, 0, Math.max(0, canvas.height - labelHeight));
+      const labelX = clamp(box.x - scale, 0, Math.max(0, state.originalWidth - labelWidth));
+      const labelY = box.y > labelHeight ? box.y - labelHeight : clamp(box.y, 0, Math.max(0, state.originalHeight - labelHeight));
       context.fillStyle = color;
       context.fillRect(labelX, labelY, labelWidth, labelHeight);
       context.fillStyle = "#fff";
@@ -311,9 +361,89 @@
         context.beginPath(); context.arc(point.x, point.y, 2.8 * scale, 0, Math.PI * 2); context.fill(); context.stroke();
       }
     }
+    context.restore();
   }
 
   function hexRgb(hex) { return [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16)); }
+
+  /** 判断模型是否支持实例分割和真实轮廓输出。 */
+  function isSegmentationModel(model) { return ["segmentation", "segment"].includes(String(model.task).toLowerCase()); }
+
+  /** 刷新类别选项；类别ID来自实际结果，自定义模型不假定COCO编号。 */
+  function populateCutoutTargets() {
+    const select = $("cutout-target"), previous = select.value;
+    select.replaceChildren(new Option("车辆（汽车 / 公交车 / 卡车）", "vehicles"), new Option("人物", "people"), new Option("全部已识别目标", "all"));
+    const classes = new Map();
+    for (const instance of state.result?.instances || []) if (instance.mask) classes.set(instance.box.classId, instance.className || `类别 ${instance.box.classId}`);
+    for (const [id, name] of [...classes].sort((a, b) => a[0] - b[0])) select.add(new Option(`单独选择：${name}`, `class:${id}`));
+    if ([...select.options].some(option => option.value === previous)) select.value = previous;
+  }
+
+  /** 将选定类别的实例掩码合成目标/背景两张透明预览，未匹配时禁止下载。 */
+  function renderCutout() {
+    state.cutoutReady = false;
+    showError("cutout-error", null);
+    populateCutoutTargets();
+    const foreground = $("cutout-foreground"), background = $("cutout-background");
+    foreground.width = foreground.height = background.width = background.height = 0;
+    $("cutout-results").hidden = true;
+    $("cutout-empty").hidden = false;
+    $("cutout-empty").textContent = "使用实例分割模型提取轮廓，透明区域以棋盘格显示。";
+    $("cutout-status").textContent = !state.image ? "上传图片或使用人物 / 车辆示例，点击分离目标。" : "点击分离目标，将自动使用实例分割模型。";
+    if (state.image && state.result) {
+      if (!isSegmentationModel(state.result)) $("cutout-status").textContent = "当前结果没有分割轮廓；点击分离目标会切换到分割模型。";
+      else {
+        try {
+          const target = $("cutout-target").value;
+          const name = { people: "人物", vehicles: "车辆", all: "全部目标" }[target] || $("cutout-target").selectedOptions[0].textContent.replace(/^单独选择：/, "");
+          const result = renderCutouts(state.image, state.result.instances || [], state.originalWidth, state.originalHeight, target, foreground, background);
+          if (!result.instances || !result.pixels) {
+            foreground.width = foreground.height = background.width = background.height = 0;
+            $("cutout-status").textContent = `未找到可分离的${name}，可调整置信度后重新推理或选择其他类别。`;
+            $("cutout-empty").textContent = `当前结果没有${name}的有效掩码。`;
+          } else {
+            state.cutoutReady = true;
+            $("cutout-results").hidden = false;
+            $("cutout-empty").hidden = true;
+            $("cutout-foreground-title").textContent = `只保留${name}`;
+            $("cutout-background-title").textContent = `背景（移除${name}）`;
+            $("cutout-status").textContent = `已分离 ${result.instances} 个${name}目标 · PNG ${result.width} × ${result.height} · 切换类别可直接更新。`;
+          }
+        } catch (error) { showError("cutout-error", error); }
+      }
+    }
+    updateButtons();
+  }
+
+  /** 自动选择分割模型；相同推理结果可复用，切换类别无需重复运行模型。 */
+  async function runCutout(event) {
+    if (!state.image || state.inferenceBusy) return;
+    let model = state.info?.models?.find(item => item.id === $("inference-model").value);
+    if (!model || !isSegmentationModel(model)) {
+      model = state.info?.models?.find(item => item.name === "yolov8n-seg.pt" && isSegmentationModel(item)) || state.info?.models?.find(isSegmentationModel);
+      if (!model) { showError("cutout-error", new Error("请先加载实例分割模型，例如 yolov8n-seg.pt。")); return; }
+      $("inference-model").value = model.id;
+      updateModelDetail();
+    }
+    if (state.resultModelId !== model.id || state.resultBackend !== selectedBackend("inference") || state.resultConfidence !== Number($("confidence").value) || state.resultPrecision !== workflows.precisionKey() || !state.result) await infer(event);
+    else renderCutout();
+    if (state.cutoutReady) $("cutout-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /** 按画布实际尺寸编码透明PNG，浏览器负责文件下载，释放临时Blob地址。 */
+  async function downloadCutout(kind) {
+    if (!state.cutoutReady || state.inferenceBusy) return;
+    try {
+      const canvas = $("cutout-" + kind);
+      const stem = state.imageName.replace(/\.(jpe?g|png)$/i, "").replace(/[\\/:*?"<>|]/g, "_").slice(0, 80) || "simdyolo";
+      const target = $("cutout-target").value.replace(":", "_");
+      const blob = await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("PNG编码失败，请重试。")), "image/png"));
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = `${stem}-${target}-${kind}.png`;
+      document.body.append(link); link.click(); link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (error) { showError("cutout-error", error); }
+  }
 
   function cell(text, className) {
     const td = document.createElement("td");
@@ -351,21 +481,27 @@
     event.preventDefault();
     if (state.inferenceBusy || !state.image) return;
     state.inferenceBusy = true;
+    state.cutoutReady = false;
     showError("inference-error", null);
     updateButtons();
     try {
       const imageVersion = state.imageVersion;
       const payload = rgbPayload(state.image);
-      const result = await post("/api/infer", { modelId: $("inference-model").value, backend: selectedBackend("inference"), ...payload, confidence: Number($("confidence").value) });
+      const modelId = $("inference-model").value, backend = selectedBackend("inference"), confidence = Number($("confidence").value);
+      const precisionKey = workflows.precisionKey();
+      const result = await post("/api/infer", { modelId, backend, ...payload, originalWidth: state.originalWidth, originalHeight: state.originalHeight, confidence, ...workflows.inferenceOptions() });
       if (imageVersion !== state.imageVersion) return;
       state.result = result;
+      state.resultModelId = modelId; state.resultBackend = backend; state.resultConfidence = confidence;
+      state.resultPrecision = precisionKey;
       $("inference-time").textContent = numberText(result.elapsedMs, 2);
       $("instance-count").textContent = result.instances?.length ?? 0;
       $("actual-backend").textContent = backendName(result.backend);
       $("image-state").textContent = "推理已完成";
-      $("result-note").textContent = `${taskLabels[result.task] || result.task || "推理"} · 耗时由服务端返回，浏览器解码与上传不计入。`;
+      $("result-note").textContent = `${taskLabels[result.task] || result.task || "推理"}${result.image?.resized ? " · 已自动缩放，坐标对应原图" : ""} · 耗时由服务端返回，浏览器解码与上传不计入。`;
       renderResults();
       drawInference();
+      renderCutout();
     } catch (error) { showError("inference-error", error); }
     finally { state.inferenceBusy = false; updateButtons(); }
   }
@@ -396,6 +532,7 @@
     populateSelect($("training-dataset"), state.datasets, $("training-dataset").value, "暂无数据集，请先导入");
     updateDatasetDetail();
     updateButtons();
+    workflows.updateDatasets(state.datasets); annotation.updateDatasets(state.datasets);
   }
 
   function updateDatasetDetail() {
@@ -488,6 +625,7 @@
 
   function renderActiveJob() {
     const job = state.activeJob;
+    workflows.trainingView(job);
     const badge = statusBadge(job?.status || "idle");
     badge.id = "training-status";
     $("training-status").replaceWith(badge);
@@ -584,7 +722,7 @@
     showError("training-error", null);
     updateButtons();
     try {
-      const job = await post("/api/training", { modelId: $("training-model").value, datasetId: $("training-dataset").value, backend: selectedBackend("training"), imageSize: Number($("training-size").value), epochs: Number($("training-epochs").value), batchSize: Number($("training-batch").value), learningRate: Number($("training-lr").value), seed: Number($("training-seed").value), resumeId: null });
+      const job = await post("/api/training", { modelId: $("training-model").value, datasetId: $("training-dataset").value, backend: selectedBackend("training"), imageSize: Number($("training-size").value), epochs: Number($("training-epochs").value), batchSize: Number($("training-batch").value), learningRate: Number($("training-lr").value), seed: Number($("training-seed").value), resumeId: null, validationDatasetId: $("training-validation").value || null, earlyStoppingPatience: Number($("training-patience").value) });
       mergeJob(job);
       selectJob(job);
       toast("训练任务已创建，进度将每秒同步。");
@@ -728,6 +866,20 @@
   $("inference-model").addEventListener("change", updateModelDetail);
   $("confidence").addEventListener("input", (event) => $("confidence-value").value = Number(event.target.value).toFixed(2));
   $("show-masks").addEventListener("change", drawInference);
+  $("cutout-target").addEventListener("change", renderCutout);
+  $("run-cutout").addEventListener("click", event => runCutout(event).catch(error => showError("cutout-error", error)));
+  $("download-foreground").addEventListener("click", () => downloadCutout("foreground"));
+  $("download-background").addEventListener("click", () => downloadCutout("background"));
+  $("load-cutout-sample").addEventListener("click", async event => {
+    const button = event.currentTarget; button.disabled = true;
+    try {
+      const response = await fetch("/samples/bus.jpg", { cache: "no-store" });
+      if (!response.ok) throw new Error("人物 / 车辆示例图加载失败，请上传自己的图片。");
+      await setImage(await response.blob(), "人物与车辆示例.jpg");
+      await runCutout(event);
+    } catch (error) { showError("cutout-error", error); }
+    finally { updateButtons(); }
+  });
   $("upload-model").addEventListener("click", () => $("model-file").click());
   $("model-file").addEventListener("change", async (event) => { try { await uploadModel(event.target.files[0]); } catch (error) { toast(error.message, true); } finally { event.target.value = ""; } });
   $("training-dataset").addEventListener("change", updateDatasetDetail);

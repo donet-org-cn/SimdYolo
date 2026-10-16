@@ -21,6 +21,13 @@ public sealed class YoloTrainer : IDisposable
     private long cachedBytes;
     private bool disposed, running;
     private int completedEpochs, completedSteps;
+    private double? bestValidationMap;
+    private int bestValidationEpoch, staleValidationEpochs, lastValidatedEpoch = -1;
+    private string? resumeBestPath;
+    /// <summary>本次是否因验证指标连续无提升而正常早停。</summary><value>默认假。</value>
+    public bool StoppedEarly { get; private set; }
+    /// <summary>最近完成轮次的验证摘要。</summary><value>未启用验证时为空。</value>
+    public EpochValidation? LastValidation { get; private set; }
 
     /// <summary>当前冻结骨干及矩阵后端的实际名称。</summary><value>Vulkan 表示混合训练，BN、损失和 SGD 仍在 CPU。</value>
     public string BackendName => options.Device == ComputeDevice.Vulkan ? "Vulkan large GEMM + CPU SIMD small GEMM/depthwise/BN/loss/SGD" : extractor.Backend.Name;
@@ -58,6 +65,7 @@ public sealed class YoloTrainer : IDisposable
     public YoloTrainer(string modelPath, TrainingDataset dataset, TrainingOptions? options = null)
     {
         this.dataset = dataset ?? throw new ArgumentNullException(nameof(dataset)); this.options = options ?? new(); this.options.Validate();
+        if (this.options.ValidationDataset is { } validation) dataset.ValidateHoldout(validation);
         TrainingModelState? state = null;
         if (Path.GetExtension(modelPath).Equals(".sytrain", StringComparison.OrdinalIgnoreCase)) { state = TrainingModelState.Load(modelPath); source = state.Source; }
         else if (Path.GetExtension(modelPath).ToLowerInvariant() is ".pt" or ".pth")
@@ -87,12 +95,15 @@ public sealed class YoloTrainer : IDisposable
     /// <param name="checkpointPath">带 SGD 动量的训练快照。</param><param name="dataset">与保存时一致的数据集。</param><param name="totalEpochs">恢复后的总轮数，必须大于已完成轮数。</param><param name="device">本次计算设备，可以更换。</param><param name="cpuThreads">本次 CPU 线程预算。</param>
     /// <returns>恢复后的训练会话，调用方负责释放。</returns>
     /// <exception cref="InvalidDataException">快照、动量或数据摘要不匹配。</exception><exception cref="ArgumentException">目标总轮数不合法。</exception>
-    public static YoloTrainer Resume(string checkpointPath, TrainingDataset dataset, int totalEpochs, ComputeDevice device = ComputeDevice.Cpu, int cpuThreads = 0)
+    /// <param name="validationDataset">与检查点相同的独立验证集；无验证旧归档使用空值。</param>
+    public static YoloTrainer Resume(string checkpointPath, TrainingDataset dataset, int totalEpochs, ComputeDevice device = ComputeDevice.Cpu, int cpuThreads = 0, TrainingDataset? validationDataset = null)
     {
         var state = TrainingModelState.Load(checkpointPath); var manifest = state.Manifest;
         if (manifest.DatasetSha256 != dataset.Sha256) throw new InvalidDataException("恢复训练的数据集摘要不同。");
         if (totalEpochs <= manifest.Epoch) throw new ArgumentException("恢复后的总轮数必须大于已完成轮数。");
-        var trainer = new YoloTrainer(checkpointPath, dataset, new() { ImageSize = manifest.ImageSize, Epochs = totalEpochs, BatchSize = manifest.BatchSize, Seed = manifest.Seed, LearningRate = manifest.LearningRate, Momentum = manifest.Momentum, WeightDecay = manifest.WeightDecay, Device = device, CpuThreads = cpuThreads });
+        if (manifest.ValidationDatasetSha256 != validationDataset?.Sha256) throw new InvalidDataException("恢复训练必须使用相同的验证集，不能移除或替换验证数据。");
+        var trainer = new YoloTrainer(checkpointPath, dataset, new() { ImageSize = manifest.ImageSize, Epochs = totalEpochs, BatchSize = manifest.BatchSize, Seed = manifest.Seed, LearningRate = manifest.LearningRate, Momentum = manifest.Momentum, WeightDecay = manifest.WeightDecay, Device = device, CpuThreads = cpuThreads,
+            ValidationDataset = validationDataset, EarlyStoppingPatience = manifest.EarlyStoppingPatience, MinimumImprovement = manifest.MinimumImprovement });
         try
         {
             using var stream = File.OpenRead(checkpointPath); using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
@@ -104,7 +115,16 @@ public sealed class YoloTrainer : IDisposable
                 MemoryMarshal.Cast<byte, float>(bytes).CopyTo(parameter.Velocity);
                 if (parameter.Velocity.Any(v => !float.IsFinite(v))) throw new InvalidDataException("SGD 动量包含非有限值。");
             }
-            trainer.completedEpochs = manifest.Epoch; trainer.completedSteps = manifest.Step; return trainer;
+            trainer.completedEpochs = manifest.Epoch; trainer.completedSteps = manifest.Step;
+            trainer.bestValidationMap = manifest.BestValidationMap; trainer.bestValidationEpoch = manifest.BestValidationEpoch; trainer.staleValidationEpochs = manifest.StaleValidationEpochs;
+            trainer.lastValidatedEpoch = manifest.LastValidatedEpoch;
+            string best = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(checkpointPath))!, "best.sytrain");
+            if (File.Exists(best))
+            {
+                using var bestFile = File.OpenRead(best); using var bestZip = new ZipArchive(bestFile, ZipArchiveMode.Read); var bestManifest = TrainingModelState.ReadManifest(bestZip);
+                if (bestManifest.SourceSha256 == manifest.SourceSha256 && bestManifest.DatasetSha256 == manifest.DatasetSha256 && bestManifest.ValidationDatasetSha256 == manifest.ValidationDatasetSha256 && bestManifest.ClassNames.SequenceEqual(manifest.ClassNames) && bestManifest.Epoch == manifest.BestValidationEpoch && bestManifest.BestValidationMap == manifest.BestValidationMap) trainer.resumeBestPath = best;
+            }
+            return trainer;
         }
         catch { trainer.Dispose(); throw; }
     }
@@ -112,7 +132,8 @@ public sealed class YoloTrainer : IDisposable
     /// <summary>同步执行训练，每完成一轮原子保存 last.sytrain；取消保留最近已完成轮次的快照。</summary>
     /// <param name="outputDirectory">输出目录，将创建 last.sytrain 与 history.jsonl。</param><param name="progress">每次实际 SGD 更新后的同步回调。</param><param name="cancellationToken">取消后抛出异常，已保存快照仍有效。</param>
     /// <exception cref="OperationCanceledException">用户取消训练。</exception><exception cref="InvalidOperationException">会话已在训练。</exception><exception cref="ObjectDisposedException">会话已释放。</exception><exception cref="ArithmeticException">损失或梯度出现非有限值。</exception><exception cref="IOException">无法写入快照或历史。</exception>
-    public void Train(string outputDirectory, Action<TrainingProgress>? progress = null, CancellationToken cancellationToken = default)
+    /// <param name="validationProgress">每轮实际验证完成后的指标和早停回调。</param>
+    public void Train(string outputDirectory, Action<TrainingProgress>? progress = null, CancellationToken cancellationToken = default, Action<EpochValidation>? validationProgress = null)
     {
         lock (gate)
         {
@@ -124,6 +145,13 @@ public sealed class YoloTrainer : IDisposable
         {
             Directory.CreateDirectory(outputDirectory); var elapsed = Stopwatch.StartNew();
             SaveCheckpointCore(Path.Combine(outputDirectory, "last.sytrain"));
+            string bestPath = Path.Combine(outputDirectory, "best.sytrain");
+            if (options.ValidationDataset is not null)
+            {
+                if (resumeBestPath is not null && !Path.GetFullPath(resumeBestPath).Equals(Path.GetFullPath(bestPath), StringComparison.OrdinalIgnoreCase)) File.Copy(resumeBestPath, bestPath, true);
+                if (!bestValidationMap.HasValue || !File.Exists(bestPath)) ValidateEpoch(outputDirectory, true, validationProgress, cancellationToken);
+                else if (lastValidatedEpoch < completedEpochs) { ValidateEpoch(outputDirectory, false, validationProgress, cancellationToken); if (StoppedEarly) return; }
+            }
             using var history = new StreamWriter(Path.Combine(outputDirectory, "history.jsonl"), append: true) { AutoFlush = true };
             for (int epoch = completedEpochs; epoch < options.Epochs; epoch++)
             {
@@ -146,6 +174,11 @@ public sealed class YoloTrainer : IDisposable
                     history.WriteLine(JsonSerializer.Serialize(item)); progress?.Invoke(item);
                 }
                 completedEpochs = epoch + 1; SaveCheckpointCore(Path.Combine(outputDirectory, "last.sytrain"));
+                if (options.ValidationDataset is not null)
+                {
+                    ValidateEpoch(outputDirectory, false, validationProgress, cancellationToken);
+                    if (StoppedEarly) break;
+                }
             }
         }
         catch (OperationCanceledException)
@@ -156,6 +189,21 @@ public sealed class YoloTrainer : IDisposable
             throw;
         }
         finally { lock (gate) running = false; }
+    }
+
+    private void ValidateEpoch(string directory, bool baseline, Action<EpochValidation>? callback, CancellationToken cancellation)
+    {
+        var result = DetectionEvaluator.Evaluate(Path.Combine(directory, "last.sytrain"), options.ValidationDataset!, new() { Device = options.Device, ImageSize = options.ImageSize, CpuThreads = options.CpuThreads }, cancellationToken: cancellation);
+        bool improved = baseline || !bestValidationMap.HasValue || result.Map50To95 > bestValidationMap.Value + options.MinimumImprovement;
+        if (improved) { bestValidationMap = result.Map50To95; bestValidationEpoch = completedEpochs; staleValidationEpochs = 0; } else staleValidationEpochs++;
+        StoppedEarly = !baseline && options.EarlyStoppingPatience > 0 && staleValidationEpochs >= options.EarlyStoppingPatience;
+        LastValidation = new(completedEpochs, result.Precision, result.Recall, result.Map50, result.Map50To95, improved, bestValidationEpoch, staleValidationEpochs, StoppedEarly);
+        lastValidatedEpoch = completedEpochs;
+        File.WriteAllText(Path.Combine(directory, baseline ? "baseline-validation.json" : "last-validation.json"), JsonSerializer.Serialize(result));
+        File.AppendAllText(Path.Combine(directory, "validation-history.jsonl"), JsonSerializer.Serialize(LastValidation) + "\n");
+        SaveCheckpointCore(Path.Combine(directory, "last.sytrain"));
+        if (improved) { File.Copy(Path.Combine(directory, "last.sytrain"), Path.Combine(directory, "best.sytrain"), true); File.WriteAllText(Path.Combine(directory, "best-validation.json"), JsonSerializer.Serialize(result)); }
+        callback?.Invoke(LastValidation);
     }
 
     /// <summary>使用 BN 运行统计计算数据集平均损失；YOLO26 固定初始双头权重，使训练前后可比。</summary>
@@ -194,7 +242,9 @@ public sealed class YoloTrainer : IDisposable
         var snapshot = head.Snapshot(); var entries = snapshot.Select(p => new TrainingTensorEntry(p.Key, p.Value.Shape)).ToList();
         var manifest = new TrainingManifest { Format = "SimdYolo.Training/2", HeadKind = head.Schema.Kind, RegMax = head.Schema.RegMax, EndToEnd = head.Schema.EndToEnd, LossScheduleEpochs = lossScheduleEpochs,
             ClassNames = dataset.ClassNames.ToArray(), SourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source)), Parameters = entries, Epoch = completedEpochs, Step = completedSteps,
-            Seed = options.Seed, ImageSize = options.ImageSize, BatchSize = options.BatchSize, LearningRate = options.LearningRate, Momentum = options.Momentum, WeightDecay = options.WeightDecay, DatasetSha256 = dataset.Sha256 };
+            Seed = options.Seed, ImageSize = options.ImageSize, BatchSize = options.BatchSize, LearningRate = options.LearningRate, Momentum = options.Momentum, WeightDecay = options.WeightDecay, DatasetSha256 = dataset.Sha256,
+            ValidationDatasetSha256 = options.ValidationDataset?.Sha256, BestValidationMap = bestValidationMap, BestValidationEpoch = bestValidationEpoch, StaleValidationEpochs = staleValidationEpochs,
+            EarlyStoppingPatience = options.EarlyStoppingPatience, MinimumImprovement = options.MinimumImprovement, LastValidatedEpoch = lastValidatedEpoch };
         string full = Path.GetFullPath(path); Directory.CreateDirectory(Path.GetDirectoryName(full)!); string temporary = full + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
@@ -226,6 +276,8 @@ public sealed class YoloTrainer : IDisposable
             MemoryMarshal.Cast<byte, float>(bytes).CopyTo(parameter.Velocity); Array.Clear(parameter.Gradient);
         }
         completedEpochs = state.Manifest.Epoch; completedSteps = state.Manifest.Step;
+        bestValidationMap = state.Manifest.BestValidationMap; bestValidationEpoch = state.Manifest.BestValidationEpoch; staleValidationEpochs = state.Manifest.StaleValidationEpochs;
+        lastValidatedEpoch = state.Manifest.LastValidatedEpoch;
     }
 
     /// <summary>释放冻结骨干、设备资源和缓存特征；运行时不可释放。</summary>

@@ -2,6 +2,8 @@
 
 **仓库：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
 
+源码更新到0.11.0后，已加入纯.NET训练验证/早停/最佳模型、PT与SYTRAIN导出标准ONNX、网页检测框标注和预标注，以及CPU FP16混合/INT8实验推理。[功能说明与实测](../model-workflows.md)包含当前限制；低精度暂未取得速度优势，GPU保持FP32。下文0.10.1评测与发布附件保留原始版本。
+
 **发布下载：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) · [网页版](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) · [中文图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
 
 本次发布包含YOLOv8/v9/v10/YOLO11/YOLO26检测头微调、SIMD与工作区优化、Vulkan小矩阵分派，以及与官方参考训练后保存模型的对照。主库、训练库、网页与33模型均有附件。推理历史测量仍标为0.9.0，不把训练数字替换成推理数字。

@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "source": "offline local NuGet consumer without project references",
+  "InputShape": [
+    1,
+    3,
+    64,
+    64
+  ],
+  "labels": {
+    "0": "object-a",
+    "1": "object-b"
+  },
+  "integerBackend": "CPU INT8 AVX2 / INT32 accumulation (dynamic)",
+  "CompletedEpochs": 1,
+  "LastValidation": {
+    "Epoch": 1,
+    "Precision": 0,
+    "Recall": 0,
+    "Map50": 0,
+    "Map50To95": 0,
+    "Improved": false,
+    "BestEpoch": 0,
+    "StaleEpochs": 1,
+    "StoppedEarly": false
+  },
+  "coreAssemblySha256": "a0e1b8b8088edbaa1172db20ffe0581545fd416c4b85e94e0f5646d304b89fbf",
+  "trainingAssemblySha256": "6795079d59723c3fa53ff578cf8bd096afa2db4f15252ee75a3e4611640b3194",
+  "coreReferences": [
+    "System.Runtime",
+    "System.Threading.Tasks.Parallel",
+    "System.Numerics.Vectors",
+    "System.Collections",
+    "System.Runtime.Intrinsics",
+    "System.Threading.Thread",
+    "System.Threading",
+    "System.Collections.Concurrent",
+    "System.IO.Compression",
+    "System.Linq",
+    "System.Security.Cryptography",
+    "System.Memory",
+    "System.Text.Json",
+    "System.Runtime.InteropServices",
+    "System.Collections.Immutable",
+    "System.Console"
+  ],
+  "trainingReferences": [
+    "System.Runtime",
+    "SimdYolo",
+    "System.Collections",
+    "System.Numerics.Vectors",
+    "System.Threading.Tasks.Parallel",
+    "System.IO.Compression",
+    "System.Text.Json",
+    "System.Security.Cryptography",
+    "System.Linq",
+    "System.Memory",
+    "System.Threading"
+  ]
+}

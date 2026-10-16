@@ -1,5 +1,7 @@
 # 纯 C# 五代 YOLO 检测头训练
 
+**0.11.0源码新增**：独立验证集、训练前/逐轮P/R与mAP、best.sytrain、早停和验证状态恢复；训练结果可纯.NET导出标准ONNX，网页支持检测框标注和预标注。[新增功能与完整API](model-workflows.md) · [验证证据](../artifacts/validation/0.11.0/README.md)。历史0.10.1发布附件保持原内容。
+
 0.10.1 源码与发布包支持 **YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26 的检测头微调**，CPU 使用 C# SIMD，Vulkan 加速冻结网络和较大的前后向 GEMM。无需 Python、PyTorch、TorchSharp、ONNX Runtime、BLAS 或 CUDA 运行依赖。
 
 本轮新增SIMD激活/BN/SGD、直接点积反向、1×1零复制、有界卷积工作区与小矩阵设备选择。[训练速度、资源和训练后模型对比](../artifacts/training-optimization-0.10.1.md)同时给出原版PyTorch、优化前和当前实现，保留历史测量口径。
@@ -14,7 +16,7 @@
 
 本次覆盖表中的五份权重。其他 n/s/m/l/x 尺度按受支持模块结构解析，但未逐份验证；YOLOv9 原仓库的 DualDDetect/TripleDDetect、只有推理分支的融合 PT 不在此训练支持表内。不能据系列名称推断所有衍生模型都兼容。
 
-范围保持为**冻结骨干和 FPN、仅更新完整检测头**。分割/姿态训练、全参数训练、Metal 训练、AdamW/MuSGD、EMA、数据增强和业务数据集 mAP 评测尚未实现。YOLO26 的损失与固定参考对应，优化器仍为 SGD，不声称复刻官方完整训练配方。普通 ONNX 只支持推理，不能作为本训练器的初始化结构。
+范围保持为**冻结骨干和 FPN、仅更新完整检测头**。分割/姿态训练、全参数训练、Metal 训练、AdamW/MuSGD、EMA与数据增强尚未实现。0.11.0已支持调用方检测数据集的托管mAP验证，指标范围见新增文档。YOLO26 的损失与固定参考对应，优化器仍为 SGD，不声称复刻官方完整训练配方。普通 ONNX 只支持推理，不能作为本训练器的初始化结构。
 
 Vulkan 是混合训练：矩阵乘加项数大于4,000,000的普通卷积 GEMM在GPU，小矩阵使用CPU SIMD以避免提交/回读开销；头部深度/分组卷积、im2col、BN、激活、标签分配、损失和SGD在CPU。CPU线程遵守`CpuThreads`。[实际训练性能](../artifacts/training-optimization-0.10.1.md)不能以推理速度推断。
 

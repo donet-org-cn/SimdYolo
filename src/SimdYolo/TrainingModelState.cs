@@ -29,6 +29,20 @@ internal sealed class TrainingManifest
     public bool EndToEnd { get; set; }
     /// <summary>首次创建时固定的渐进损失调度长度，恢复延长训练时保持不变。</summary><value>旧版无调度时为零。</value>
     public int LossScheduleEpochs { get; set; }
+    /// <summary>独立验证数据摘要；旧归档或无验证时为空。</summary>
+    public string? ValidationDatasetSha256 { get; set; }
+    /// <summary>已记录的最佳mAP50:95。</summary>
+    public double? BestValidationMap { get; set; }
+    /// <summary>最佳模型轮次。</summary>
+    public int BestValidationEpoch { get; set; }
+    /// <summary>连续未改善的轮数。</summary>
+    public int StaleValidationEpochs { get; set; }
+    /// <summary>最后完成验证的轮次；-1表示尚未验证，可在取消恢复时补齐待验证轮次。</summary>
+    public int LastValidatedEpoch { get; set; } = -1;
+    /// <summary>早停耐心轮数。</summary>
+    public int EarlyStoppingPatience { get; set; }
+    /// <summary>最佳模型的最小提升门槛。</summary>
+    public double MinimumImprovement { get; set; } = .0001;
 }
 
 /// <summary>记录检测头参数名称、形状和归档内索引。</summary>
@@ -60,6 +74,8 @@ internal sealed class TrainingModelState
             throw new InvalidDataException("训练归档格式、类别或参数清单无效。");
         if (manifest.Format == "SimdYolo.Training/2" && (manifest.LossScheduleEpochs is < 1 or > 10000 || manifest.HeadKind switch { "Dfl" => manifest.EndToEnd || manifest.RegMax != 16, "LegacyEndToEnd" => !manifest.EndToEnd || manifest.RegMax != 16, "ProgressiveEndToEnd" => !manifest.EndToEnd || manifest.RegMax != 1, _ => true }))
             throw new InvalidDataException("训练归档的头类型、回归通道或损失调度无效。");
+        if (manifest.BestValidationMap is { } best && (!double.IsFinite(best) || best is < 0 or > 1) || manifest.BestValidationEpoch < 0 || manifest.BestValidationEpoch > manifest.Epoch || manifest.StaleValidationEpochs < 0 || manifest.LastValidatedEpoch < -1 || manifest.LastValidatedEpoch > manifest.Epoch || manifest.EarlyStoppingPatience is < 0 or > 10000 || !double.IsFinite(manifest.MinimumImprovement) || manifest.MinimumImprovement is < 0 or > 1)
+            throw new InvalidDataException("验证和早停状态无效。");
         return manifest;
     }
 

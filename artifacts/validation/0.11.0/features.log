@@ -1,0 +1,23 @@
+PASS AP101: perfect, duplicate, false positive, wrong class and no ground truth
+PASS Deterministic holdout split and content leakage rejection
+PASS INT8 exact dot: SIMD tails and INT32 overflow segmentation
+PASS INT8 convolution grouped/depthwise/batch/asymmetric pads/dilation/SiLU and GEMM reference
+PASS yolov8n full PT standard ONNX export numerical parity
+PASS yolov8n trained custom-class SYTRAIN to ONNX parity
+PASS yolov9t full PT standard ONNX export numerical parity
+PASS yolov9t trained custom-class SYTRAIN to ONNX parity
+PASS yolov10n full PT standard ONNX export numerical parity
+PASS yolov10n trained custom-class SYTRAIN to ONNX parity
+PASS yolo11n full PT standard ONNX export numerical parity
+PASS yolo11n trained custom-class SYTRAIN to ONNX parity
+PASS yolo26n full PT standard ONNX export numerical parity
+PASS yolo26n trained custom-class SYTRAIN to ONNX parity
+PASS yolov10n ONNX two-stage TopK with more than 300 anchors
+PASS yolo26n ONNX two-stage TopK with more than 300 anchors
+PASS yolov8n-seg full PT ONNX numerical parity
+PASS yolov8n-pose full PT ONNX numerical parity
+PASS yolo26n-seg full PT ONNX numerical parity
+PASS yolo26n-pose full PT ONNX numerical parity
+PASS FP16 mixed operands and INT8 actual model execution are finite
+PASS Static INT8 calibration binds model and input
+PASS Validation, best checkpoint, early stop and resume holdout binding

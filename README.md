@@ -6,6 +6,10 @@
 
 ## 当前版本能力
 
+当前源码为 **0.11.0**，新增纯.NET的训练验证/早停/最佳模型、PT/SYTRAIN导出ONNX、网页检测框标注与预标注、CPU FP16混合/INT8实验推理。[使用说明与API](docs/model-workflows.md) · [本轮验证与截图](artifacts/validation/0.11.0/README.md)。历史0.10.1下载包不包含这些新增功能。
+
+低精度目前**没有实测速度优势**，默认仍为FP32。FP16使用Half操作数和FP32累加；INT8使用托管整数内核；GPU仍为FP32。应用不引入Python、ORT或原生推理库。
+
 | 能力 | 0.10.1 发布版 |
 | --- | --- |
 | 推理任务 | 目标检测、实例分割、姿态估计 |
@@ -20,7 +24,7 @@
 
 主库和训练核心为纯托管 C#，无 Python、PyTorch、TorchSharp、ORT、BLAS/MKL/OpenBLAS 运行依赖。GPU 通过 P/Invoke 调用系统图形 API。Vulkan 不需要 CUDA Toolkit、cuDNN、cuBLAS，也无需安装 Vulkan SDK 才能运行；需要兼容驱动和 Vulkan loader，修改着色器后才需重新编译。
 
-训练支持表、实际权重和评测见[五代检测头训练](docs/training.md)及[本版训练评测](artifacts/training-optimization-0.10.1.md)。当前仍为**冻结骨干/FPN 的检测头微调**，没有全参数、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`，暂不导出 ONNX。梯度累加按图像平均，每图 BN 独立统计。
+训练支持表、实际权重和评测见[五代检测头训练](docs/training.md)及[0.10.1训练评测](artifacts/training-optimization-0.10.1.md)。当前仍为**冻结骨干/FPN 的检测头微调**，没有全参数、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`；0.11.0源码已支持纯.NET导出标准ONNX。梯度累加按图像平均，每图 BN 独立统计。
 
 **0.10.1 发布包已包含五代检测头训练与本轮优化**，可直接下载主库、训练库、网页版、33模型和中文图文包。[中文发布说明](docs/releases/v0.10.1.md)保留验证范围及未通过的参数比较项。
 
@@ -59,6 +63,8 @@ dotnet run --project examples/SimdYolo.Web -c Release
 打开 **http://127.0.0.1:5188**。网页版运行包需要已安装的 .NET 10 / ASP.NET Core 运行时，不含模型与运行时，具体步骤见包内说明。它是本地示例，绑定回环地址，没有公网账号/鉴权配置。
 
 [查看实际推理截图](artifacts/validation/0.10.0/web-browser/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
+
+当前源码网页版新增[人物/车辆分离与背景去除](examples/SimdYolo.Web/README.md)：点击“人物 / 车辆示例”，分别预览并下载“只保留目标”和“移除目标的背景”透明PNG；支持大图有界处理。[实际截图与下载验证](artifacts/validation/web-cutout/README.md)。这些网页新增功能尚未加入历史0.10.1下载包。
 
 ## 推理性能：0.9.0 冻结版本实测
 

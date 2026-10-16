@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#f7f8fb">
   <title>SimdYolo · 视觉工作台</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%238c70df'/%3E%3Cpath d='M9 13V9h4m6 0h4v4M9 19v4h4m6 0h4v-4' fill='none' stroke='white' stroke-width='2.5'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="/app.css">
-  <script src="/app.js" defer></script>
+  <link rel="stylesheet" href="/app.css?v=features-011">
+  <script type="module" src="/app.js?v=features-011"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -36,6 +36,8 @@
     <nav class="nav">
       <a class="nav-link active" href="#inference" data-view="inference" aria-current="page"><svg class="icon"><use href="#i-scan"/></svg>模型推理<span class="nav-short">01</span></a>
       <a class="nav-link" href="#training" data-view="training"><svg class="icon"><use href="#i-chart"/></svg>模型训练<span class="nav-short">02</span></a>
+      <a class="nav-link" href="#annotation" data-view="annotation"><svg class="icon"><use href="#i-image"/></svg>数据标注<span class="nav-short">03</span></a>
+      <a class="nav-link" href="#evaluate" data-view="evaluate"><svg class="icon"><use href="#i-grid"/></svg>评估与导出<span class="nav-short">04</span></a>
       <a class="nav-link" href="#jobs" data-view="jobs"><svg class="icon"><use href="#i-clock"/></svg>任务记录<span id="jobs-count" class="nav-count">0</span></a>
     </nav>
     <div class="sidebar-note"><span class="eyebrow">BUILT WITH .NET</span><strong>从图像，到洞察。</strong><p>纯 C# 计算内核<br>在本机完成推理与训练</p><div class="engine-badges"><span>SIMD</span><span>VULKAN</span></div></div>
@@ -53,7 +55,49 @@
           </section>
           <aside class="settings-column"><section class="card settings-card"><div class="card-header"><h2>推理设置</h2><span class="step-label">01 / CONFIGURE</span></div><form id="inference-form" class="card-body"><label class="field"><span>模型</span><select id="inference-model" required disabled><option value="">正在加载模型…</option></select></label><button id="upload-model" class="upload-model-button" type="button"><svg class="icon"><use href="#i-upload"/></svg>加载自己的 .pt / .onnx / .sytrain</button><div id="model-detail" class="model-detail">模型支持信息将从服务端读取</div><fieldset class="field"><legend>计算后端</legend><div id="inference-backends" class="backend-options"></div></fieldset><label class="field"><span class="field-label-row">置信度阈值 <output id="confidence-value" for="confidence">0.25</output></span><input id="confidence" type="range" min="0.01" max="0.99" step="0.01" value="0.25"><span class="range-labels"><span>更多结果</span><span>更高置信度</span></span></label><label class="checkbox-field"><input id="show-masks" type="checkbox" checked><span>显示分割掩码</span></label><button id="run-inference" class="button button-primary button-full" type="submit" disabled><svg class="icon"><use href="#i-play"/></svg><span>开始推理</span><svg class="icon trailing-icon"><use href="#i-arrow"/></svg></button><p class="form-footnote">图像在浏览器解码，计算由本机 .NET 服务完成。</p><div id="inference-error" class="inline-error" role="alert" hidden></div></form></section><section class="result-summary card"><span class="eyebrow">LAST INFERENCE</span><div class="result-time"><strong id="inference-time">—</strong><span>ms</span></div><div class="summary-row"><span>识别实例</span><strong id="instance-count">—</strong></div><div class="summary-row"><span>实际后端</span><strong id="actual-backend">—</strong></div><p id="result-note" class="muted text-small">运行后显示服务端实测数据。</p></section></aside>
         </div>
+        <section id="cutout-panel" class="card cutout-card" aria-labelledby="cutout-title">
+          <div class="card-header"><div><h2 id="cutout-title"><svg class="icon"><use href="#i-image"/></svg>目标分离 · 背景去除</h2><span class="muted text-small">选择人物或车辆，分别导出目标与背景。</span></div><button id="load-cutout-sample" class="button button-secondary button-small" type="button">人物 / 车辆示例</button></div>
+          <div class="cutout-controls"><label class="field"><span>要分离的目标</span><select id="cutout-target"><option value="vehicles">车辆（汽车 / 公交车 / 卡车）</option><option value="people">人物</option><option value="all">全部已识别目标</option></select></label><button id="run-cutout" class="button button-primary" type="button" disabled><svg class="icon"><use href="#i-play"/></svg><span>分离目标</span></button><p id="cutout-status" class="muted text-small" role="status">上传图片或使用人物 / 车辆示例，点击分离目标。</p></div>
+          <div id="cutout-empty" class="compact-empty">使用实例分割模型提取轮廓，透明区域以棋盘格显示。</div>
+          <div id="cutout-results" class="cutout-results" hidden>
+            <figure><div class="cutout-stage"><canvas id="cutout-foreground" aria-label="仅保留选定目标的透明图像"></canvas></div><figcaption><span id="cutout-foreground-title">只保留车辆</span><button id="download-foreground" class="button button-secondary button-small" type="button" disabled><svg class="icon"><use href="#i-download"/></svg>下载目标 PNG</button></figcaption></figure>
+            <figure><div class="cutout-stage"><canvas id="cutout-background" aria-label="移除选定目标后的透明背景图像"></canvas></div><figcaption><span id="cutout-background-title">背景（移除车辆）</span><button id="download-background" class="button button-secondary button-small" type="button" disabled><svg class="icon"><use href="#i-download"/></svg>下载背景 PNG</button></figcaption></figure>
+          </div>
+          <p class="cutout-footnote">移除目标的位置保留透明，不自动补画被遮挡的背景。大图按预览尺寸导出 PNG。</p>
+          <div id="cutout-error" class="inline-error" role="alert" hidden></div>
+        </section>
         <section class="card results-card"><div class="card-header"><h2>识别结果 <span id="results-badge" class="count-badge">0</span></h2><span class="muted text-small">按置信度排序</span></div><div id="results-empty" class="compact-empty">推理完成后，这里会显示每个目标的类别、置信度和位置。</div><div class="table-scroll" id="results-table-wrap" hidden><table><thead><tr><th>目标</th><th>类别</th><th>置信度</th><th>位置 · 像素</th><th>附加信息</th></tr></thead><tbody id="results-body"></tbody></table></div></section>
+      </section>
+      <section id="view-annotation" class="view" aria-labelledby="annotation-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">ANNOTATION STUDIO</div><h1 id="annotation-title">把数据，标得更准确<span class="heading-dot">.</span></h1><p>拖动画框、移动与调整四角。模型预标注需人工确认后保存。</p></div><a href="#training" class="button button-secondary">导入图像 / 开始训练</a></div>
+        <div class="annotation-layout"><section class="card"><div class="card-header"><h2>图像与检测框</h2><span id="annotation-status" class="text-small muted" role="status">选择数据集</span></div><div class="annotation-stage"><canvas id="annotation-canvas" tabindex="0" aria-label="检测框标注画布，拖动空白处画框，选中框后可移动、拖动四角缩放或按Delete删除"></canvas></div><div class="card-footer text-small muted">选框编辑 · 四角缩放 · 空白画框 · Delete 删除 · Ctrl+Z 撤销</div></section>
+          <section class="card"><div class="card-header"><h2>标注设置</h2></div><div class="card-body">
+            <label class="field"><span>数据集</span><select id="annotation-dataset"></select></label><label class="field"><span>图像</span><select id="annotation-image"></select></label>
+            <label class="field"><span>类别（选框后可修改）</span><select id="annotation-class"></select></label>
+            <div class="inline-actions"><button id="annotation-delete" class="button button-secondary button-small" type="button">删除选框</button><button id="annotation-undo" class="button button-secondary button-small" type="button">撤销</button></div>
+            <div id="annotation-boxes" class="annotation-boxes" aria-label="检测框列表"></div>
+            <button id="annotation-save" class="button button-primary button-full" type="button">保存标注</button>
+            <a id="annotation-export" class="button button-secondary button-full disabled" download>下载 YOLO 数据集 ZIP</a>
+            <hr class="form-divider"><label class="field"><span>预标注模型（按类别名称匹配）</span><select id="annotation-model"></select></label>
+            <label class="field"><span>置信度</span><input id="annotation-confidence" type="number" value="0.25" min="0.001" max="0.99" step="0.01"></label>
+            <button id="annotation-prelabel" class="button button-secondary button-full" type="button">生成预标注建议</button><p class="form-footnote">建议会替换当前画布中的框，点击保存才写入数据集。训练中的数据集不能修改。</p><div id="annotation-error" class="inline-error" role="alert" hidden></div>
+          </div></section></div>
+      </section>
+      <section id="view-evaluate" class="view" aria-labelledby="evaluate-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">MODEL VALIDATION</div><h1 id="evaluate-title">用结果，验证每次改变<span class="heading-dot">.</span></h1><p>相同验证集比较模型，查看误检漏检，再导出标准 ONNX。</p></div></div>
+        <div class="workflow-grid"><section class="card"><div class="card-header"><h2>检测评估与模型比较</h2></div><div class="card-body">
+          <label class="field"><span>独立验证集</span><select id="evaluation-dataset"></select></label><label class="field"><span>原模型 / 单模型评估</span><select id="evaluation-model"></select></label><label class="field"><span>对照模型（如 best.sytrain）</span><select id="evaluation-other"></select></label>
+          <div class="form-grid"><label class="field"><span>设备</span><select id="evaluation-backend"><option value="Cpu">CPU SIMD</option></select></label><label class="field"><span>输入尺寸</span><select id="evaluation-size"><option>128</option><option>320</option><option selected>640</option></select></label></div>
+          <label class="field"><span>精度</span><select id="evaluation-precision"><option value="Float32">FP32</option><option value="Float16">CPU FP16 操作数 / FP32 累加</option><option value="Int8">CPU INT8 动态量化</option></select></label>
+          <div class="inline-actions"><button id="evaluation-run" class="button button-primary" type="button">评估原模型</button><button id="evaluation-compare" class="button button-secondary" type="button">比较两个模型</button></div>
+          <p class="form-footnote">检测指标：101点 AP，IoU 0.50–0.95；P/R 阈值0.25。完整逐图结果可下载。分割和姿态的专用指标尚未实现。</p>
+        </div></section><section class="card"><div class="card-header"><h2>模型导出与 INT8 校准</h2></div><div class="card-body">
+          <label class="field"><span>模型</span><select id="tools-model"></select></label><label class="field"><span>导出 / 校准尺寸</span><select id="tools-size"><option>128</option><option>320</option><option selected>640</option></select></label>
+          <button id="tools-export" class="button button-primary button-full" type="button">PT / SYTRAIN → 标准 ONNX</button><p class="form-footnote">纯 C# 生成 FP32、batch=1 静态图。训练快照使用保存时的输入尺寸。</p>
+          <label class="field"><span>校准代表性数据集</span><select id="calibration-dataset"></select></label><button id="tools-calibrate" class="button button-secondary button-full" type="button">运行 FP32 并生成 INT8 校准</button><p class="form-footnote">校准绑定实际模型 SHA256 和输入形状；更换权重后需重新校准。完成后可在推理页选择。</p>
+        </div></section></div>
+        <div id="workflow-error" class="inline-error" role="alert" hidden></div><section class="card workflow-progress"><div class="card-header"><h2>任务进度</h2><span id="workflow-status" class="text-small muted" role="status">尚未开始</span></div><div class="card-body"><div class="inline-actions"><button id="workflow-cancel" class="button button-secondary button-small" type="button" disabled>取消当前任务</button><a id="workflow-download" class="button button-secondary button-small disabled" download>下载任务结果</a></div><div id="evaluation-results" class="table-scroll"></div><div id="evaluation-classes" class="table-scroll"></div><details id="evaluation-confusion" hidden><summary>混淆矩阵（行是真值，列是预测）</summary><div id="evaluation-matrix" class="table-scroll"></div></details><p id="workflow-message" class="text-small muted"></p></div></section>
+        <section class="card"><div class="card-header"><h2>评估 / 导出 / 校准记录</h2><button id="workflow-refresh" class="button button-quiet" type="button">刷新</button></div><div id="workflow-history" class="card-body workflow-history"></div></section>
       </section>
       <section id="view-training" class="view" aria-labelledby="training-title" hidden>
         <div class="page-heading"><div><div class="eyebrow">TRAINING LAB</div><h1 id="training-title">让模型更懂你的场景<span class="heading-dot">.</span></h1><p>使用标注数据微调检测头，在浏览器观察真实训练进度。</p></div><a href="#jobs" class="button button-secondary"><svg class="icon"><use href="#i-clock"/></svg>查看任务记录</a></div>

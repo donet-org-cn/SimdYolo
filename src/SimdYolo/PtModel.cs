@@ -459,6 +459,7 @@ internal sealed partial class PtModel : IModel
     /// <returns>形状为 [批量,保留数,6+附加字段] 的结果，附加字段与边框使用同一锚点。</returns>
     private static Tensor EndToEndTopK(Tensor x, int maximum, int nc)
     {
+        if (DeviceScope.For(x) is OnnxTraceBackend trace) return trace.EndToEnd(x, maximum, nc);
         if (DeviceScope.For(x) is VulkanBackend vulkan && vulkan.TryEndToEndTopK(x, maximum, nc) is { } deviceResult) return deviceResult;
         if (CpuEndToEnd.PtEnabled && DeviceScope.For(x) is null && x.Rank == 3 && x.Shape[1] >= nc + 4 && nc > 0 && maximum > 0 && x.Shape[2] > 0)
             return CpuEndToEnd.SelectPt(x, maximum, nc);

@@ -14,6 +14,32 @@ public sealed class TrainingDataset
     /// <summary>类别、图像尺寸、像素及标注共同形成的 SHA256。</summary><value>用于拒绝数据集不同的断点恢复。</value>
     public string Sha256 { get; }
 
+    /// <summary>按固定种子拆分训练与验证样本；拒绝内容重复，避免相同照片泄漏到两侧。</summary>
+    /// <param name="validationFraction">验证比例，必须大于零且小于一。</param><param name="seed">洗牌种子。</param>
+    /// <returns>包含相同类别、互不重叠照片的训练和验证集。</returns>
+    /// <exception cref="ArgumentException">样本不足、比例非法或存在重复照片。</exception>
+    public (TrainingDataset Training, TrainingDataset Validation) Split(double validationFraction = .2, int seed = 26)
+    {
+        if (Images.Count < 2 || !double.IsFinite(validationFraction) || validationFraction <= 0 || validationFraction >= 1) throw new ArgumentException("拆分需要至少两张图，验证比例在0到1之间。");
+        if (Images.Select(ImageHash).Distinct(StringComparer.Ordinal).Count() != Images.Count) throw new ArgumentException("数据集含重复像素内容，请先去重再拆分，避免验证泄漏。");
+        int[] order = Enumerable.Range(0, Images.Count).ToArray(); new Random(seed).Shuffle(order);
+        int count = Math.Clamp((int)Math.Round(Images.Count * validationFraction), 1, Images.Count - 1);
+        return (new(ClassNames, order[count..].Select(i => Images[i])), new(ClassNames, order[..count].Select(i => Images[i])));
+    }
+
+    /// <summary>校验独立验证集的类别和照片内容。</summary>
+    /// <param name="validation">验证集。</param>
+    /// <exception cref="ArgumentException">类别不同或两侧含相同照片。</exception>
+    public void ValidateHoldout(TrainingDataset validation)
+    {
+        ArgumentNullException.ThrowIfNull(validation);
+        if (!ClassNames.SequenceEqual(validation.ClassNames)) throw new ArgumentException("训练和验证集类别名称及顺序必须一致。");
+        var hashes = Images.Select(ImageHash).ToHashSet(StringComparer.Ordinal);
+        if (validation.Images.Any(image => hashes.Contains(ImageHash(image)))) throw new ArgumentException("训练和验证集包含相同照片，请使用独立数据或先拆分。");
+    }
+
+    private static string ImageHash(TrainingImage image) => $"{image.Width}x{image.Height}:" + Convert.ToHexStringLower(SHA256.HashData(image.Pixels));
+
     /// <summary>构造检测数据集并校验所有归一化标签。</summary>
     /// <param name="classNames">类别名称。</param><param name="images">RGB24 图像及 YOLO 标签。</param>
     /// <exception cref="ArgumentException">类别或图像为空、尺寸不合法、像素长度错误。</exception>

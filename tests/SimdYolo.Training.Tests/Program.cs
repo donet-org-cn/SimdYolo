@@ -7,6 +7,8 @@ using SimdYolo.Training;
 Console.OutputEncoding = new System.Text.UTF8Encoding(false);
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true };
 if (args.FirstOrDefault() == "profile-head") { TrainingProfile.Run(args); return; }
+if (args.FirstOrDefault() == "features") { FeatureTests.Run(args); return; }
+if (args.FirstOrDefault() == "precision-validation") { PrecisionValidation.Run(args); return; }
 if (args.FirstOrDefault() is "outcome-emit" or "outcome-run") { TrainingOutcome.Run(args); return; }
 if (args.FirstOrDefault() is "emit-matrix" or "test-matrix" or "bench-head") { TrainingMatrix.Run(args); return; }
 if (args.FirstOrDefault() == "emit-oracle")

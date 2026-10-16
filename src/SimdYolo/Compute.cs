@@ -175,6 +175,7 @@ public sealed class TensorOps(IComputeBackend backend)
         long widthNumerator = (long)width + pads[1] + pads[3] - (long)dilations[1] * (kw - 1) - 1;
         if (heightNumerator < 0 || widthNumerator < 0) throw new ArgumentException("Convolution kernel exceeds the padded input dimensions.");
         int oh = checked((int)(heightNumerator / strides[0] + 1)), ow = checked((int)(widthNumerator / strides[1] + 1));
+        if (Backend is PrecisionCpuBackend low) return low.Convolve(x, w, bias, [batches, oc, oh, ow], strides, pads, dilations, groups, silu);
         if (Backend is IDeviceBackend { FrameActive: true } device) return device.DeviceConv(x, w, bias, [batches, oc, oh, ow], strides, pads, dilations, groups, silu);
         if (Backend is CpuBackend cpuWinograd && groups == 1 && kh == 3 && kw == 3 && strides.SequenceEqual([1, 1]) && pads.SequenceEqual([1, 1, 1, 1]) && dilations.SequenceEqual([1, 1]) && ic >= 8 && oc >= 8 && oh * ow >= 64)
         {

@@ -156,6 +156,7 @@ internal static class DeviceOps
     /// <exception cref="NotSupportedException">输入张量秩超过 4。</exception>
     public static Tensor Transpose(IDeviceBackend owner, Tensor x, int[] perm, int[] shape)
     {
+        if (owner is OnnxTraceBackend trace) return trace.Transpose(x, perm, shape);
         if (x.Rank > 4) throw new NotSupportedException("Device transpose rank > 4.");
         var p = Parameters((uint)x.Length); int lead = 4 - x.Rank; int[] strides = Tensor.Strides(x.Shape);
         for (int i = 0; i < 4; i++) { p[1 + i] = i < lead ? 1 : (uint)shape[i - lead]; p[5 + i] = i < lead ? 0 : (uint)strides[perm[i - lead]]; }

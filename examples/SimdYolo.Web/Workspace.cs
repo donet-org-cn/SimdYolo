@@ -7,6 +7,12 @@ namespace SimdYolo.Web;
 /// <summary>维护本地示例的模型、数据集和生成文件，仅以随机ID对外引用。</summary>
 internal sealed class Workspace
 {
+    /// <summary>浏览器预览和 RGB 上传的最长边；限制中间缓冲区，不限制原照片为此尺寸。</summary>
+    internal const int MaxUploadEdge = 2048;
+    /// <summary>原照片允许的最大单边长度，实际解码能力还取决于浏览器。</summary>
+    internal const int MaxOriginalEdge = 65535;
+    /// <summary>原照片最多包含256 Mi个像素；服务器只接收缩放后的RGB。</summary>
+    internal const long MaxOriginalPixels = 268435456;
     internal string RepositoryRoot { get; }
     internal string DataRoot { get; }
     internal ConcurrentDictionary<string, WebModel> Models { get; } = new(StringComparer.Ordinal);
@@ -60,11 +66,31 @@ internal sealed class Workspace
         return new(request.Classes, images);
     }
 
+    /// <summary>校验原照片尺寸，不为原照片分配 RGB 或掩码缓冲区。</summary>
+    /// <param name="width">原照片宽度。</param>
+    /// <param name="height">原照片高度。</param>
+    /// <exception cref="ArgumentException">尺寸非正、超过单边长度或总像素上限。</exception>
+    internal static void ValidateOriginalSize(int width, int height)
+    {
+        if (width < 1 || height < 1 || width > MaxOriginalEdge || height > MaxOriginalEdge || (long)width * height > MaxOriginalPixels)
+            throw new ArgumentException($"原图尺寸无效，最长边不能超过{MaxOriginalEdge}，总像素不能超过256 Mi像素。");
+    }
+
+    /// <summary>解码已缩放的RGB24，先限制编码长度，避免按原照片尺寸分配服务端内存。</summary>
+    /// <param name="width">上传图像宽度。</param>
+    /// <param name="height">上传图像高度。</param>
+    /// <param name="encoded">RGB24的Base64编码。</param>
+    /// <returns>字节数与上传尺寸一致的RGB24数据。</returns>
+    /// <exception cref="ArgumentException">上传尺寸、编码长度或解码字节数无效。</exception>
+    /// <exception cref="FormatException">数据不是有效的Base64编码。</exception>
     internal static byte[] DecodePixels(int width, int height, string? encoded)
     {
-        if (width is < 1 or > 2048 || height is < 1 or > 2048 || encoded is null || encoded.Length > 2048 * 2048 * 4) throw new ArgumentException("图像尺寸或 RGB 数据超限，最大2048×2048。");
+        if (width < 1 || width > MaxUploadEdge || height < 1 || height > MaxUploadEdge || encoded is null)
+            throw new ArgumentException($"上传RGB最长边为{MaxUploadEdge}，网页会自动缩放大图；直接调用API时请先缩放并携带originalWidth/originalHeight。");
+        int byteCount = checked(width * height * 3);
+        if (encoded.Length != (byteCount + 2) / 3 * 4) throw new ArgumentException("RGB24 编码长度与图像尺寸不一致。");
         byte[] bytes = Convert.FromBase64String(encoded);
-        if (bytes.Length != checked(width * height * 3)) throw new ArgumentException("RGB24 字节数与图像尺寸不一致。");
+        if (bytes.Length != byteCount) throw new ArgumentException("RGB24 字节数与图像尺寸不一致。");
         return bytes;
     }
 
