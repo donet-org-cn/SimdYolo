@@ -2,15 +2,15 @@
 
 ASP.NET Core 后端直接调用本仓库的纯 C# 推理和训练库。前端为原生 HTML/CSS/JavaScript，不使用 CDN，也没有 npm 构建步骤。
 
-**当前源码0.11.1**：优化分割掩码与目标分离，复用RGB和有界掩码缓存，使用RGB24二进制上传，调整置信度无需重载模型。[性能表格与图](../../artifacts/image-pipeline-optimization-0.11.1.md) · [验证与截图](../../artifacts/validation/0.11.1/README.md) · [文档导航](../../docs/README.md)。
+**当前源码0.11.2**：优化分割掩码与目标分离，复用RGB和有界掩码缓存，使用RGB24二进制上传，调整置信度无需重载模型。[本版原版/ORT排名](../../artifacts/runtime-comparison-0.11.2.md) · [0.11.1掩码管线优化](../../artifacts/image-pipeline-optimization-0.11.1.md) · [验证与截图](../../artifacts/validation/0.11.1/README.md) · [文档导航](../../docs/README.md)。
 
 0.11.0起提供[独立验证集、早停、最佳模型、模型比较、ONNX导出、网页标注与预标注、CPU低精度及校准](../../docs/model-workflows.md)。计算全部由.NET执行；浏览器处理图片和交互。低精度目前未取得速度优势，默认FP32，Vulkan/Metal继续使用FP32。
 
-![0.11.1网页实际标注及模型预标注](../../artifacts/validation/0.11.1/web/web-annotation.png)
+![0.11.2网页实际标注及模型预标注](../../artifacts/validation/0.11.2/web/web-annotation.png)
 
-![0.11.1网页实际模型评估](../../artifacts/validation/0.11.1/web/web-evaluation.png)
+![0.11.2网页实际模型评估](../../artifacts/validation/0.11.2/web/web-evaluation.png)
 
-当前发布版0.10.1优化CPU SIMD与Vulkan混合训练，五代检测模型入口保持一致。[训练速度及保存模型结果对比](../../artifacts/training-optimization-0.10.1.md)区分训练内核计时和真实图片验证指标；[0.10.1运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip)已包含五代检测头训练，模型另下[33模型包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip)，按[启动说明](../../docs/releases/web-runtime.md)运行。
+当前发布版0.11.2包含训练验证、导出、标注与目标分离；五代检测模型入口保持一致。[训练速度及保存模型结果对比](../../artifacts/training-optimization-0.10.1.md)区分训练内核计时和真实图片验证指标；[0.11.2运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-Web-v0.11.2.zip)已包含五代检测头训练，模型另下[33模型包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-models-v0.11.2.zip)，按[启动说明](../../docs/releases/web-runtime.md)运行。
 
 ## 启动
 
@@ -23,9 +23,9 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 打开 **http://127.0.0.1:5188**。需要 .NET 10 SDK；Vulkan 需要显卡驱动支持。CPU 路径不需要 GPU、CUDA 或 Python。
 
-![0.11.1推理页面](../../artifacts/validation/0.11.1/web/web-inference.png)
+![0.11.2推理页面](../../artifacts/validation/0.11.2/web/web-inference.png)
 
-![0.11.1独立验证与最佳模型](../../artifacts/validation/0.11.1/web/web-training-validation.png)
+![0.11.2独立验证与最佳模型](../../artifacts/validation/0.11.2/web/web-training-validation.png)
 
 ## 推理
 
@@ -45,7 +45,7 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 直接调用`POST /api/infer`时，`width`、`height`、`pixels`表示已经缩放的RGB24；可同时传入`originalWidth`、`originalHeight`取得原图坐标，省略两者则兼容原有API。响应的`image`包含原图和处理尺寸；`mask.width/height`表示概率位图尺寸，`mask.x/y`与`mask.displayWidth/displayHeight`表示原图坐标中的绘制范围。
 
-此修复尚未加入历史0.10.1下载包，使用当前源码启动即可体验。[真实浏览器验证与截图](../../artifacts/validation/web-large-images/README.md)。
+此功能已包含在0.11.2源码和网页运行包中。[真实浏览器验证与截图](../../artifacts/validation/web-large-images/README.md)。
 
 ### 人物 / 车辆分离与背景去除（当前源码新增）
 
@@ -57,13 +57,13 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 采用真实实例掩码（概率阈值0.5），同类别多个实例取合并区域。其他类别保留在背景层；未匹配到目标时会提示并禁用下载。移除的位置保留透明，不自动生成被遮挡的场景；轮廓质量取决于分割模型。大图导出为最长边2048的预览尺寸，页面显示实际PNG宽高，棋盘格不会写入图片。
 
-模型推理由本机纯C#后端完成，浏览器合成RGBA与编码PNG，无额外服务和运行依赖。示例照片来源及原许可证保留在`wwwroot/samples/`中。此功能尚未加入历史0.10.1下载包。
+模型推理由本机纯C#后端完成，浏览器合成RGBA与编码PNG，无额外服务和运行依赖。示例照片来源及原许可证保留在`wwwroot/samples/`中。此功能已包含在0.11.2网页运行包中。
 
 0.11.1使用32 MiB上限的掩码画布LRU缓存，复用二值掩码和彩色叠加层；切换人物/车辆无需重新Base64解码。切换图片或获得新结果时释放缓存，尺寸及概率内容变化也会使缓存失效。极大的单张掩码作为临时结果处理，不长期占用缓存。目标和背景继续使用同一张合并掩码合成，保持透明区域互补，不补画被遮挡背景。
 
-![0.11.1人物 / 车辆分离](../../artifacts/validation/0.11.1/web/cutout-vehicles.png)
+![0.11.2人物 / 车辆分离](../../artifacts/validation/0.11.2/web/cutout-vehicles.png)
 
-[实际导出的目标PNG](../../artifacts/validation/0.11.1/web/cutout-foreground.png) · [实际导出的背景PNG](../../artifacts/validation/0.11.1/web/cutout-background.png) · [0.11.1验证记录](../../artifacts/validation/0.11.1/README.md)
+[实际导出的目标PNG](../../artifacts/validation/0.11.2/web/cutout-foreground.png) · [实际导出的背景PNG](../../artifacts/validation/0.11.2/web/cutout-background.png) · [0.11.1验证记录](../../artifacts/validation/0.11.1/README.md)
 
 ## 训练自己的检测头
 
@@ -107,7 +107,7 @@ my-data/
 ```powershell
 dotnet run --project tests/SimdYolo.Training.Tests -c Release -- --integration --vulkan
 # 启动服务后，开发环境可用Python/Pillow验证API，Node24及Edge/Chromium验证界面；结果写入.cache：
-python tools/validate-web.py --version 0.11.1 --output .cache/current-web-validation/web-api.json --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg
+python tools/validate-web.py --version 0.11.2 --output .cache/current-web-validation/web-api.json --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg
 node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --output .cache/current-web-validation/basic
 # 4K/8K检测、分割、Vulkan姿态、原图坐标、有界缓冲区及非法请求验证：
 node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --large-images --output .cache/current-web-validation/large

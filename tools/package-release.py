@@ -72,6 +72,7 @@ def main():
     files.update((ROOT/"docs").rglob("*.md"))
     files.update(p for p in (ROOT/"docs/articles/assets").rglob("*") if p.is_file())
     files.add(ROOT/"docs/articles/manifest.json")
+    files.update((ROOT/"docs/articles").glob("manifest-*.json"))
     files.update(p for p in output.glob(f"*{version}*") if p.is_file() and p.suffix in {".json",".md",".png",".svg"})
     for directory in [output/f"validation/{version}",output/f"validation/{version}-release"]:
         files.update(p for p in directory.rglob("*") if p.is_file() and p.name not in {"package-assets.json","release-publication.json","final-release-audit.json"})
@@ -111,7 +112,8 @@ def main():
         input_path=Path(report["InputDescription"])
         assert sha(input_path)==report["InputSha256"] and input_path.stat().st_size==3*640*640*4
         archive.write(input_path,"benchmark/input-640.f32")
-        archive.writestr("benchmark/README.md",("# 历史推理固定实拍图输入\n\ninput-640.f32 对应"+measured+"推理历史测量，与0.8.1使用相同输入；不是"+version+"训练性能或训练精度的输入。little-endian FP32、NCHW [1,3,640,640]、RGB、0到1，含letterbox。\n\nSHA256：`"+report["InputSha256"]+"`。在compare-runtimes.py的 --input 参数传入此文件即可保持历史输入一致。\n\n原图为Ultralytics官方bus.jpg：https://ultralytics.com/images/bus.jpg 。相关原许可证随文档包models目录保留；仅用于复现实测，不代表独立准确率数据集。\n").encode("utf-8"))
+        measurement="本版推理测量" if measured==version else "历史推理测量"
+        archive.writestr("benchmark/README.md",("# 推理固定实拍图输入\n\ninput-640.f32 对应"+measured+measurement+"，与0.8.1使用相同输入；不是训练性能或训练精度的输入。little-endian FP32、NCHW [1,3,640,640]、RGB、0到1，含letterbox。\n\nSHA256：`"+report["InputSha256"]+"`。在compare-runtimes.py的 --input 参数传入此文件即可复现实测。\n\n原图为Ultralytics官方bus.jpg：https://ultralytics.com/images/bus.jpg 。相关原许可证随文档包models目录保留；仅用于复现实测，不代表独立准确率数据集。\n").encode("utf-8"))
     assets.append(docs_archive)
     assets += [output/f"SimdYolo.{version}.nupkg",output/f"SimdYolo.Training.{version}.nupkg"]
     for path in assets:

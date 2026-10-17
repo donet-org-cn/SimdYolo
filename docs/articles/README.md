@@ -1,17 +1,21 @@
-# SimdYolo 0.11.1 图文文档
+# SimdYolo 0.11.2 图文文档
 
-公众号和博客园已更新0.11.1标题、完整图片推理表格、优化图、人物/车辆分离截图及当前源码入口。0.10.1训练及0.9.0跨引擎推理作为历史章节保留，原数字与采集范围不变。当前图文使用仓库文件；GitHub正式Release及其中的文档ZIP仍为0.10.1。
+公众号和博客园已更新0.11.2跨引擎重测标题、排名及图表，并保留0.11.1的图片管线优化与人物/车辆分离。0.10.1训练及0.9.0跨引擎推理作为历史章节保留，原数字与采集范围不变。当前文章与配图随0.11.2正式Release文档ZIP提供。
 
-[文档与0.11.1包](../README.md) · [0.11.1性能报告](../../artifacts/image-pipeline-optimization-0.11.1.md) · [历史0.10.1中文文档ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
+[文档与0.11.2包](../README.md) · [0.11.2性能报告](../../artifacts/runtime-comparison-0.11.2.md) · [历史0.10.1中文文档ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
 
 | 文件 | 用途 |
 | --- | --- |
-| [wechat.md](wechat.md) | 公众号：0.11.1速度、透明PNG分离、部署和历史训练结果 |
-| [cnblogs.md](cnblogs.md) | 博客园：0.11.1 SIMD/行缓存/网页管线、数值及兼容边界 |
-| [manifest-0.11.1.json](manifest-0.11.1.json) | 当前文章、配图与取数源摘要 |
+| [wechat.md](wechat.md) | 公众号：0.11.2跨引擎速度、透明PNG分离、部署和历史训练结果 |
+| [cnblogs.md](cnblogs.md) | 博客园：0.11.2原版/ORT对照、SIMD与网页管线、数值及兼容边界 |
+| [manifest-0.11.2.json](manifest-0.11.2.json) | 当前文章、配图与取数源摘要 |
 | [manifest.json](manifest.json) | 历史0.10.1发布图文快照清单，保持原内容 |
 
-## 当前0.11.1配图
+## 当前0.11.2跨引擎配图
+
+[CPU](../../artifacts/performance-0.11.2-cpu.png) · [GPU](../../artifacts/performance-0.11.2-gpu.png) · [加载/首帧](../../artifacts/performance-0.11.2-startup.png) · [整卡GPU](../../artifacts/performance-0.11.2-gpu-usage.png) · [完整图集](assets/0.11.2/)
+
+## 0.11.1掩码与分离配图（历史）
 
 | PNG | 内容 |
 | --- | --- |

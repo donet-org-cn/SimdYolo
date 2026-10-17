@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "version": "0.11.2",
+  "repositoryRoot": "F:\\simdyolo\\.cache\\release-0.11.2\\unpacked",
+  "sourceRepositoryFallback": false,
+  "models": 33,
+  "staticSha256": {
+    "app.js": "ac319c195c1e7ff556902d5e6ba088c5e81b0a0a76982ff24bfcadbca9eff633",
+    "cutout.js": "bd5e3613903853e59b99df78847193dead6aecf426403f48b53bccdc70e4b64d",
+    "annotation.js": "e67ba6f5a82eaf5bdc2f8dc8535d6a6a5f06d9b46fe805f9afbabcc42c22dd83",
+    "workflows.js": "bc50ba4a34cc4f6be9b7ed1a70e146ad6b48f8f50245fc70a77d27603868c726",
+    "index.html": "9dd27a153726502aeb9f6eab65a72ded1e6e7a084d8b2cb04253cc2acf3abf9c"
+  },
+  "inference": [
+    {
+      "model": "yolov8n-seg.pt",
+      "backend": "CPU SIMD (256 bits)",
+      "instances": 6,
+      "elapsedMs": 366.6095
+    },
+    {
+      "model": "yolo26n-seg.onnx",
+      "backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "instances": 4,
+      "elapsedMs": 326.8415
+    }
+  ],
+  "runtime": "dotnet published DLL, actual extracted archives"
+}

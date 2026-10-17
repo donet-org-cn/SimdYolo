@@ -1,0 +1,204 @@
+{
+  "Version": "0.11.2",
+  "Source": "artifacts/runtime-comparison-0.11.2.json",
+  "SourceSha256": "5f523c7fe00ed00ae5ea801a4f2f868a34e46e214d596ac7556aaafcf94e5acb",
+  "AssemblySha256": "0db578d4537e21424babdcb3a430216e1ac170dd767d59930008a046adaed199",
+  "Date": "2026-10-17 11:50:41 +0800",
+  "Models": [
+    "yolov8n",
+    "yolov9t",
+    "yolov10n",
+    "yolo11n",
+    "yolo26n",
+    "yolov8n-seg",
+    "yolo11n-seg",
+    "yolo26n-seg",
+    "yolov8n-pose",
+    "yolo11n-pose",
+    "yolo26n-pose"
+  ],
+  "LatencyMs": {
+    "yolov8n": {
+      "torch-cpu": 44.2305,
+      "net-cpu": 21.742825,
+      "net-onnx-cpu": 22.186925000000002,
+      "ort-net-cpu": 24.227675,
+      "net-vulkan": 10.355450000000001,
+      "net-onnx-vulkan": 10.601625,
+      "torch-cuda": 9.766525,
+      "ort-net-cuda": 12.523299999999999
+    },
+    "yolov9t": {
+      "torch-cpu": 76.54775000000001,
+      "net-cpu": 29.15625,
+      "net-onnx-cpu": 30.898600000000002,
+      "ort-net-cpu": 28.5638,
+      "net-vulkan": 12.8205,
+      "net-onnx-vulkan": 14.031175000000001,
+      "torch-cuda": 21.439275000000002,
+      "ort-net-cuda": 17.5579
+    },
+    "yolov10n": {
+      "torch-cpu": 48.148375,
+      "net-cpu": 21.568725,
+      "net-onnx-cpu": 22.217525000000002,
+      "ort-net-cpu": 22.426375,
+      "net-vulkan": 10.025725,
+      "net-onnx-vulkan": 10.227699999999999,
+      "torch-cuda": 10.722925,
+      "ort-net-cuda": 13.267425
+    },
+    "yolo11n": {
+      "torch-cpu": 50.343149999999994,
+      "net-cpu": 21.692325,
+      "net-onnx-cpu": 22.192,
+      "ort-net-cpu": 23.110525000000003,
+      "net-vulkan": 10.549199999999999,
+      "net-onnx-vulkan": 10.60935,
+      "torch-cuda": 10.455875,
+      "ort-net-cuda": 13.516075
+    },
+    "yolo26n": {
+      "torch-cpu": 54.126425,
+      "net-cpu": 22.32335,
+      "net-onnx-cpu": 26.756774999999998,
+      "ort-net-cpu": 18.043574999999997,
+      "net-vulkan": 10.947949999999999,
+      "net-onnx-vulkan": 11.045449999999999,
+      "torch-cuda": 12.1255,
+      "ort-net-cuda": 13.04515
+    },
+    "yolov8n-seg": {
+      "torch-cpu": 58.208225,
+      "net-cpu": 28.123375,
+      "net-onnx-cpu": 28.734575,
+      "ort-net-cpu": 33.8636,
+      "net-vulkan": 13.69875,
+      "net-onnx-vulkan": 13.8018,
+      "torch-cuda": 12.941775,
+      "ort-net-cuda": 16.38835
+    },
+    "yolo11n-seg": {
+      "torch-cpu": 71.59295,
+      "net-cpu": 27.72185,
+      "net-onnx-cpu": 29.9675,
+      "ort-net-cpu": 33.488175,
+      "net-vulkan": 13.459225,
+      "net-onnx-vulkan": 13.568325000000002,
+      "torch-cuda": 13.512599999999999,
+      "ort-net-cuda": 17.3151
+    },
+    "yolo26n-seg": {
+      "torch-cpu": 68.5086,
+      "net-cpu": 30.025100000000002,
+      "net-onnx-cpu": 30.9695,
+      "ort-net-cpu": 28.975875,
+      "net-vulkan": 14.6955,
+      "net-onnx-vulkan": 14.502,
+      "torch-cuda": 16.122075000000002,
+      "ort-net-cuda": 16.94685
+    },
+    "yolov8n-pose": {
+      "torch-cpu": 47.316900000000004,
+      "net-cpu": 22.7756,
+      "net-onnx-cpu": 23.58545,
+      "ort-net-cpu": 25.05695,
+      "net-vulkan": 10.505875,
+      "net-onnx-vulkan": 10.7636,
+      "torch-cuda": 10.119250000000001,
+      "ort-net-cuda": 12.8737
+    },
+    "yolo11n-pose": {
+      "torch-cpu": 54.522525,
+      "net-cpu": 23.145850000000003,
+      "net-onnx-cpu": 23.9053,
+      "ort-net-cpu": 24.846525,
+      "net-vulkan": 11.050899999999999,
+      "net-onnx-vulkan": 11.243,
+      "torch-cuda": 10.943975,
+      "ort-net-cuda": 14.04735
+    },
+    "yolo26n-pose": {
+      "torch-cpu": 58.2904,
+      "net-cpu": 24.8098,
+      "net-onnx-cpu": 25.379775,
+      "ort-net-cpu": 21.43155,
+      "net-vulkan": 11.95875,
+      "net-onnx-vulkan": 12.14525,
+      "torch-cuda": 13.2494,
+      "ort-net-cuda": 13.9184
+    }
+  },
+  "CpuRssMiB": {
+    "yolov8n": {
+      "torch-cpu": 291.146484375,
+      "net-cpu": 487.8674479166667,
+      "net-onnx-cpu": 397.88502604166666,
+      "ort-net-cpu": 153.05230034722223
+    },
+    "yolov9t": {
+      "torch-cpu": 286.177734375,
+      "net-cpu": 457.72682291666666,
+      "net-onnx-cpu": 310.0166015625,
+      "ort-net-cpu": 169.66614583333333
+    },
+    "yolov10n": {
+      "torch-cpu": 282.107421875,
+      "net-cpu": 207.38515625,
+      "net-onnx-cpu": 179.57890625,
+      "ort-net-cpu": 125.41688368055554
+    },
+    "yolo11n": {
+      "torch-cpu": 301.077734375,
+      "net-cpu": 463.220703125,
+      "net-onnx-cpu": 293.3325520833333,
+      "ort-net-cpu": 177.20290798611111
+    },
+    "yolo26n": {
+      "torch-cpu": 296.2177815755208,
+      "net-cpu": 171.89479166666666,
+      "net-onnx-cpu": 149.73958333333334,
+      "ort-net-cpu": 156.00802951388889
+    },
+    "yolov8n-seg": {
+      "torch-cpu": 346.655517578125,
+      "net-cpu": 558.1166666666666,
+      "net-onnx-cpu": 466.25065104166663,
+      "ort-net-cpu": 205.436328125
+    },
+    "yolo11n-seg": {
+      "torch-cpu": 331.49735514322913,
+      "net-cpu": 454.8888020833333,
+      "net-onnx-cpu": 346.759375,
+      "ort-net-cpu": 233.51807725694442
+    },
+    "yolo26n-seg": {
+      "torch-cpu": 313.52880859375,
+      "net-cpu": 427.3190104166667,
+      "net-onnx-cpu": 363.44427083333335,
+      "ort-net-cpu": 228.05824652777778
+    },
+    "yolov8n-pose": {
+      "torch-cpu": 291.93085937499995,
+      "net-cpu": 433.52513020833334,
+      "net-onnx-cpu": 351.10768229166666,
+      "ort-net-cpu": 147.91399739583335
+    },
+    "yolo11n-pose": {
+      "torch-cpu": 302.681884765625,
+      "net-cpu": 409.84257812500005,
+      "net-onnx-cpu": 331.495703125,
+      "ort-net-cpu": 172.21449652777778
+    },
+    "yolo26n-pose": {
+      "torch-cpu": 298.7421875,
+      "net-cpu": 198.751953125,
+      "net-onnx-cpu": 173.944921875,
+      "ort-net-cpu": 163.45529513888889
+    }
+  },
+  "TimedFrames": 39264,
+  "Windows": 176,
+  "OutputChecks": 224,
+  "Aggregation": "Median of independent window medians; ranges are window ranges, not confidence intervals."
+}

@@ -1,6 +1,6 @@
 # 随仓库分发的 YOLO 模型
 
-这里包含 **11 个原始 PyTorch `.pt` 检查点和 22 个 ONNX 导出**，覆盖检测、分割和姿态。模型通过 Git LFS 保存；所有原始文件保持不变，来源、输入尺寸、opset 和 SHA256 见 [manifest.json](manifest.json)。当前 [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) 提供全部33个模型的 ZIP，包含 YOLO26；另有YOLOv8/v9/v10/YOLO11/YOLO26检测头微调和网页示例。
+这里包含 **11 个原始 PyTorch `.pt` 检查点和 22 个 ONNX 导出**，覆盖检测、分割和姿态。模型通过 Git LFS 保存；所有原始文件保持不变，来源、输入尺寸、opset 和 SHA256 见 [manifest.json](manifest.json)。当前 [0.11.2 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2) 提供全部33个模型的 ZIP，包含 YOLO26；另有YOLOv8/v9/v10/YOLO11/YOLO26检测头微调和网页示例。
 
 | 模型 | 任务 | `.pt` | 640×640 ONNX / opset 17 | 动态 ONNX / opset 17 | 128×128 ONNX / opset 12 |
 | --- | --- | --- | --- | --- | --- |

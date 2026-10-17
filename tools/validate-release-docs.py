@@ -25,7 +25,9 @@ def main():
     assert len(report["Records"])==expected and all(c["Passed"] for r in report["Records"] for c in r["Correctness"])
     spec=importlib.util.spec_from_file_location("comparison",ROOT/"tools/compare-runtimes.py");module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     rankings="\n".join(module.render_speed_rankings(report));articles=[]
-    names=["README.md","VALIDATION.md","models/README.md","docs/inference.md","docs/training.md","docs/articles/README.md","docs/articles/wechat.md","docs/articles/cnblogs.md","docs/releases/v0.7.1.md","docs/releases/v0.9.0.md","docs/releases/web-runtime.md","examples/SimdYolo.Web/README.md","artifacts/validation/0.9.0-release/README.md"]
+    current=args.release_version or version
+    manifest_path=ROOT/f"docs/articles/manifest-{current}.json"
+    names=["README.md","VALIDATION.md","models/README.md","docs/README.md","docs/inference.md","docs/training.md","docs/model-workflows.md","docs/articles/README.md","docs/articles/wechat.md","docs/articles/cnblogs.md",f"docs/releases/v{current}.md","docs/releases/web-runtime.md","examples/SimdYolo.Web/README.md",f"artifacts/validation/{current}-release/README.md"]
     if args.release_version and args.release_version!=version:
         names.extend([f'docs/releases/v{args.release_version}.md',f'artifacts/validation/{args.release_version}-release/README.md',f'artifacts/training-optimization-{args.release_version}.md'])
     for name in names:
@@ -33,12 +35,13 @@ def main():
         assert "\ufffd" not in text and "????" not in text,(name,"broken Unicode")
         assert "<!-- CURRENT_RANKINGS -->" not in text and "<!-- TIMED_FRAMES -->" not in text,(name,"unfilled data")
         assert text.count("```")%2==0,(name,"unclosed code fence")
-        if name in {"README.md","docs/articles/wechat.md","docs/articles/cnblogs.md","docs/releases/v0.9.0.md"}:assert rankings in text,(name,"rank table differs from raw report")
+        if name in {"README.md","docs/articles/wechat.md","docs/articles/cnblogs.md",f"docs/releases/v{current}.md"}:assert rankings in text,(name,"rank table differs from raw report")
         images=[]
         for target in re.findall(r"\]\(([^)]+)\)",text):
             if "://" in target or target.startswith("#"):continue
             local=path.parent/target.split("#")[0]
-            assert local.exists(),(name,target)
+            # 本次输出清单在检查完成后写入；其余相对目标必须已存在。
+            assert local.exists() or local.resolve()==manifest_path.resolve(),(name,target)
         for target in re.findall(r"!\[[^\]]*\]\(([^)]+)\)",text):
             if "://" not in target:images.append(target)
         articles.append({"File":name,"Sha256":sha(path),"ChineseCharacters":len(re.findall(r"[\u4e00-\u9fff]",text)),"Images":images,"Utf8AndLinksPassed":True})
@@ -65,7 +68,7 @@ def main():
             manifest['TrainingMeasuredVersion']=args.release_version
             manifest['TrainingValidationSha256']=sha(training)
             manifest['TrainingFiles']=[{'File':p.relative_to(ROOT).as_posix(),'Sha256':sha(p)} for p in sorted((ROOT/'artifacts').glob(f'*{args.release_version}*')) if p.suffix in {'.png','.svg','.md'}]
-    (ROOT/"docs/articles/manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8",newline="\n")
+    manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8",newline="\n")
     print(json.dumps({"status":"passed","documents":len(articles),"png":10,"svg":10,"version":version}))
 
 

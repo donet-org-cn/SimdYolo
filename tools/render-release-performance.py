@@ -156,7 +156,9 @@ def main():
     (assets/"benchmark-data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8",newline="\n")
     spec=importlib.util.spec_from_file_location("comparison",ROOT/"tools/compare-runtimes.py");module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     tables="\n".join(module.render_speed_rankings(report))+"\n"
-    (ROOT/".cache/release-0.9.0/rankings.md").write_text(tables,encoding="utf-8",newline="\n")
+    ranking_path=ROOT/".cache"/f"release-{args.version}"/"rankings.md"
+    ranking_path.parent.mkdir(parents=True,exist_ok=True)
+    ranking_path.write_text(tables,encoding="utf-8",newline="\n")
     print(json.dumps({"status":"passed","version":args.version,"sourceSha256":data["SourceSha256"],"windows":data["Windows"],"frames":data["TimedFrames"],"outputChecks":data["OutputChecks"]}))
 
 

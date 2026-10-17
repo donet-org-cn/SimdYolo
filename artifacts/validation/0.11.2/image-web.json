@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "version": "0.11.2",
+  "checks": [
+    "Legacy JSON and RGB24 transport preserve instances, geometry and masks",
+    "Changing confidence reuses loaded model and obeys current threshold",
+    "Reject missing metadata",
+    "Reject metadata limit",
+    "Reject malformed metadata",
+    "Reject upload dimensions",
+    "Reject RGB content length",
+    "Reject chunked truncated RGB",
+    "Reject chunked surplus RGB",
+    "Reject paired original dimensions",
+    "Reject unknown model",
+    "Reject cross-site request",
+    "Valid chunked RGB body accepted",
+    "Mask cache hits, tint reuse, mutation invalidation, LRU budget and oversized temporary result",
+    "Original and optimized cutouts match every RGBA byte for fractional, overlapping and empty masks"
+  ],
+  "maxBoxError": 0.0002000000000066393,
+  "maxConfidenceError": 0.0000011699999999947863,
+  "maxMaskByteError": 1,
+  "canvas": {
+    "rgbaBytesCompared": 24576,
+    "exact": true,
+    "cacheBudget": true,
+    "mutationInvalidation": true,
+    "tintReuse": true
+  }
+}

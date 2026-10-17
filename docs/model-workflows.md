@@ -1,8 +1,8 @@
-# 验证、导出、标注与低精度（当前源码0.11.1）
+# 验证、导出、标注与低精度（当前源码0.11.2）
 
 四项均使用纯 C# / .NET 10 实现。应用运行不调用 Python、PyTorch、ORT、TorchSharp、BLAS 或第三方原生计算库。浏览器承担 JPG/PNG 解码、画框交互和透明图合成；GPU 仍通过系统 Vulkan/Metal API 工作。开发目录里的 Python/ORT 只用于独立检查，不是应用依赖。
 
-本页功能自0.11.0加入，当前0.11.1继续提供，并优化图片推理、掩码及网页目标分离。[0.11.1使用与下载](README.md) · [优化表格与图](../artifacts/image-pipeline-optimization-0.11.1.md)。[历史0.10.1下载包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)不包含这些功能。启动：
+本页功能自0.11.0加入，当前0.11.2继续提供，并优化图片推理、掩码及网页目标分离。[0.11.1使用与下载](README.md) · [优化表格与图](../artifacts/image-pipeline-optimization-0.11.1.md)。[历史0.10.1下载包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)不包含这些功能。启动：
 
 ~~~powershell
 git lfs pull
@@ -147,6 +147,6 @@ python tools/validate-managed-onnx.py
 node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --features --large-images --cutout --output .cache/current-web-validation
 ~~~
 
-0.11.0独立ONNX及低精度精度/速度证据保留原版本；0.11.1推理116项、训练19项和完整网页41条检查见[当前验证](../artifacts/validation/0.11.1/README.md)。复现输出写入.cache，避免覆盖已经冻结的验证记录。
+0.11.0独立ONNX及低精度精度/速度证据保留原版本；0.11.2推理116项、训练19项和完整网页41条检查见[当前验证](../artifacts/validation/0.11.2/README.md)。复现输出写入.cache，避免覆盖已经冻结的验证记录。
 
 ONNX标准参考：[图、张量与元数据](https://onnx.ai/onnx/intro/concepts.html)、[Conv](https://onnx.ai/onnx/operators/onnx__Conv.html)、[TopK](https://onnx.ai/onnx/operators/onnx__TopK.html)。导出采用标准算子，独立运行检查用于验证实际兼容性。

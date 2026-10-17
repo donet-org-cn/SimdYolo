@@ -2,19 +2,19 @@
 
 **纯 C# / .NET 10 的 YOLO 推理与检测头微调。** CPU 使用 SIMD/intrinsics，GPU 使用 Vulkan/Metal；直接加载支持范围内的 `.pt` 和 ONNX。
 
-[文档导航](docs/README.md) · [0.11.1性能与图](artifacts/image-pipeline-optimization-0.11.1.md) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
+[文档导航](docs/README.md) · [0.11.2原版/ORT排名](artifacts/runtime-comparison-0.11.2.md) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
 
-**当前源码与仓库内NuGet包：0.11.1。GitHub最新正式Release：v0.10.1。** 最新功能使用main源码或下方0.11.1包；[历史Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)中的网页和文档ZIP仍属于0.10.1。
+**当前源码、NuGet及正式Release：0.11.2。** [下载本版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2) · [中文发布说明](docs/releases/v0.11.2.md)。网页、33模型和图文包均随本版提供；历史附件保持原内容。
 
 ## 当前版本能力
 
-当前源码为 **0.11.1**，继续优化实际图片推理、目标分离与背景去除：掩码使用SIMD、坐标表和行缓存，多实例按面积及线程数并行；网页复用RGB与有界掩码缓存，改用RGB24二进制上传，调整置信度无需重载模型。[优化前后实测](artifacts/image-pipeline-optimization-0.11.1.md) · [验证与截图](artifacts/validation/0.11.1/README.md)。历史0.10.1下载包不包含这些新增功能。
+当前源码为 **0.11.2**，包含图片推理、目标分离与背景去除优化，并完成与原版PyTorch/ORT的新一轮对照：掩码使用SIMD、坐标表和行缓存，多实例按面积及线程数并行；网页复用RGB与有界掩码缓存，改用RGB24二进制上传，调整置信度无需重载模型。[优化前后实测](artifacts/image-pipeline-optimization-0.11.1.md) · [本版验证与截图](artifacts/validation/0.11.2/README.md)。历史0.10.1下载包不包含这些新增功能。
 
 0.11.0已加入纯.NET的训练验证/早停/最佳模型、PT/SYTRAIN导出ONNX、网页检测框标注与预标注、CPU FP16混合/INT8实验推理。[使用说明与API](docs/model-workflows.md) · [0.11.0验证](artifacts/validation/0.11.0/README.md)。
 
 低精度目前**没有实测速度优势**，默认仍为FP32。FP16使用Half操作数和FP32累加；INT8使用托管整数内核；GPU仍为FP32。应用不引入Python、ORT或原生推理库。
 
-| 能力 | 当前0.11.1源码 |
+| 能力 | 当前0.11.2源码 |
 | --- | --- |
 | 推理任务 | 目标检测、实例分割、姿态估计 |
 | 已验证模型 | YOLOv8n、Ultralytics YOLOv9t、YOLOv10n、YOLO11n、YOLO26n；v8/11/26 包含分割、姿态 |
@@ -47,22 +47,14 @@
 
 ## 下载与启动
 
-| 当前0.11.1 | 内容 |
+| 附件 | 内容 |
 | --- | --- |
-| [main源码](https://github.com/hnlyf168/SimdYolo/tree/main) | 包含当前网页、中文说明和完整测试工具 |
-| [推理主库0.11.1](artifacts/SimdYolo.0.11.1.nupkg) | 已验证DLL、中文XML及GPU着色器 |
-| [训练库0.11.1](artifacts/SimdYolo.Training.0.11.1.nupkg) | 依赖同版主库，包含训练验证、最佳模型与早停 |
-
-以下为历史0.10.1正式附件，保留原内容；33模型权重可用于当前源码。
-
-| 下载 | 内容 |
-| --- | --- |
-| [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) | 五代检测头训练、SIMD 优化、中文说明与全部附件 |
-| [推理主库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo.0.10.1.nupkg) | 已验证的 SimdYolo.0.10.1.nupkg、中文 XML 文档及着色器 |
-| [训练库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo.Training.0.10.1.nupkg) | 独立训练库，依赖同版本主库 |
-| [33 个模型 ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) | 11 个 PT、22 个 ONNX，包含 YOLO26、清单和原许可证 |
-| [网页版运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) | ASP.NET Core 发布输出、页面、启动说明；模型另下 |
-| [文档与图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip) | 0.10.1发布时的README、中文文档、两篇文章与评测图表 |
+| [SimdYolo.0.11.2.nupkg](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo.0.11.2.nupkg) | 推理主库、中文XML及GPU着色器 |
+| [SimdYolo.Training.0.11.2.nupkg](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo.Training.0.11.2.nupkg) | 五代检测头微调、验证/最佳模型/早停，依赖同版主库 |
+| [SimdYolo-models-v0.11.2.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-models-v0.11.2.zip) | 11个PT、22个ONNX、来源、SHA256和原许可证 |
+| [SimdYolo-Web-v0.11.2.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-Web-v0.11.2.zip) | ASP.NET Core网页、启动脚本；模型和.NET运行时另备 |
+| [SimdYolo-docs-v0.11.2.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-docs-v0.11.2.zip) | 当前README、API/训练说明、图文、完整评测与复现输入 |
+| [SHA256SUMS-v0.11.2.txt](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SHA256SUMS-v0.11.2.txt) | 全部附件的SHA256 |
 
 从源码启动需要 .NET 10 SDK 和 Git LFS：
 
@@ -75,13 +67,70 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 打开 **http://127.0.0.1:5188**。网页版运行包需要已安装的 .NET 10 / ASP.NET Core 运行时，不含模型与运行时，具体步骤见包内说明。它是本地示例，绑定回环地址，没有公网账号/鉴权配置。
 
-[查看0.11.1实际推理截图](artifacts/validation/0.11.1/web/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
+[查看0.11.2实际推理截图](artifacts/validation/0.11.2/web/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
 
-当前源码网页版支持[人物/车辆分离与背景去除](examples/SimdYolo.Web/README.md)：点击“人物 / 车辆示例”，分别预览并下载“只保留目标”和“移除目标的背景”透明PNG；支持大图有界处理。[0.11.1实际截图与下载验证](artifacts/validation/0.11.1/README.md)。这些网页新增功能尚未加入历史0.10.1下载包。
+当前源码网页版支持[人物/车辆分离与背景去除](examples/SimdYolo.Web/README.md)：点击“人物 / 车辆示例”，分别预览并下载“只保留目标”和“移除目标的背景”透明PNG；支持大图有界处理。[0.11.2实际截图与下载验证](artifacts/validation/0.11.2/README.md)。本版网页运行包已包含这些功能。
 
-![0.11.1车辆分离与背景去除](artifacts/validation/0.11.1/web/cutout-vehicles.png)
+![0.11.2车辆分离与背景去除](artifacts/validation/0.11.2/web/cutout-vehicles.png)
 
-## 0.11.1 实际图片推理优化
+## 0.11.2 与原版PyTorch、ORT重新实测
+
+实测日期：2026-10-17 11:50:41 +0800；Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz，NVIDIA GeForce GTX 1050 Ti。FP32、batch1、640×640、CPU12线程。11模型×8配置×两轮，共**176个独立窗口、39,264次推理、224/224项输出校验通过**。预热60次，每窗口至少4秒/40帧。
+
+本表计入网络前向与输出头解码；GPU包含输入上传和全部输出回读，排除图片预处理、NMS、最终实例掩码、模型加载和首帧。原版PyTorch使用官方Ultralytics fuse()，ORT启用全部图优化，CUDA关闭TF32。每格为两个独立窗口中位数的中位数，①最快，按未舍入值排名；接近结果不能解释为稳定胜出。
+
+## CPU / GPU 速度排名
+
+每格为中位耗时 ms + 名次，①最快、④最慢，第一名加粗；重复窗口取各窗口中位数的中位数，按未舍入值排序。小幅差距不代表稳定胜出或统计显著性。
+
+### CPU 速度排名
+
+| 模型 | 原版 PyTorch CPU | 我们的 `.pt` CPU | 我们的 ONNX CPU | ORT CPU（.NET） |
+| --- | ---: | ---: | ---: | ---: |
+| yolov8n | 44.23 ④ | **21.74 ①** | 22.19 ② | 24.23 ③ |
+| yolov9t | 76.55 ④ | 29.16 ② | 30.90 ③ | **28.56 ①** |
+| yolov10n | 48.15 ④ | **21.57 ①** | 22.22 ② | 22.43 ③ |
+| yolo11n | 50.34 ④ | **21.69 ①** | 22.19 ② | 23.11 ③ |
+| yolo26n | 54.13 ④ | 22.32 ② | 26.76 ③ | **18.04 ①** |
+| yolov8n-seg | 58.21 ④ | **28.12 ①** | 28.73 ② | 33.86 ③ |
+| yolo11n-seg | 71.59 ④ | **27.72 ①** | 29.97 ② | 33.49 ③ |
+| yolo26n-seg | 68.51 ④ | 30.03 ② | 30.97 ③ | **28.98 ①** |
+| yolov8n-pose | 47.32 ④ | **22.78 ①** | 23.59 ② | 25.06 ③ |
+| yolo11n-pose | 54.52 ④ | **23.15 ①** | 23.91 ② | 24.85 ③ |
+| yolo26n-pose | 58.29 ④ | 24.81 ② | 25.38 ③ | **21.43 ①** |
+| 第一名次数（完整四配置 11/11 模型） | 0 | 7 | 0 | 4 |
+
+### GPU 速度排名
+
+| 模型 | 原版 PyTorch CUDA | 我们的 `.pt` Vulkan | 我们的 ONNX Vulkan | ORT CUDA（.NET） |
+| --- | ---: | ---: | ---: | ---: |
+| yolov8n | **9.77 ①** | 10.36 ② | 10.60 ③ | 12.52 ④ |
+| yolov9t | 21.44 ④ | **12.82 ①** | 14.03 ② | 17.56 ③ |
+| yolov10n | 10.72 ③ | **10.03 ①** | 10.23 ② | 13.27 ④ |
+| yolo11n | **10.46 ①** | 10.55 ② | 10.61 ③ | 13.52 ④ |
+| yolo26n | 12.13 ③ | **10.95 ①** | 11.05 ② | 13.05 ④ |
+| yolov8n-seg | **12.94 ①** | 13.70 ② | 13.80 ③ | 16.39 ④ |
+| yolo11n-seg | 13.51 ② | **13.46 ①** | 13.57 ③ | 17.32 ④ |
+| yolo26n-seg | 16.12 ③ | 14.70 ② | **14.50 ①** | 16.95 ④ |
+| yolov8n-pose | **10.12 ①** | 10.51 ② | 10.76 ③ | 12.87 ④ |
+| yolo11n-pose | **10.94 ①** | 11.05 ② | 11.24 ③ | 14.05 ④ |
+| yolo26n-pose | 13.25 ③ | **11.96 ①** | 12.15 ② | 13.92 ④ |
+| 第一名次数（完整四配置 11/11 模型） | 5 | 5 | 1 | 0 |
+
+
+![0.11.2 CPU速度](artifacts/performance-0.11.2-cpu.png)
+
+![0.11.2 GPU速度](artifacts/performance-0.11.2-gpu.png)
+
+![0.11.2 加载、首次与稳态](artifacts/performance-0.11.2-startup.png)
+
+[CPU计算成本](artifacts/performance-0.11.2-cpu-time.png) · [CPU内存](docs/articles/assets/0.11.2/09-cpu-memory.png) · [GPU整卡使用率](artifacts/performance-0.11.2-gpu-usage.png) · [整卡显存](artifacts/performance-0.11.2-vram.png) · [完整结果](artifacts/runtime-comparison-0.11.2.md) · [原始JSON](artifacts/runtime-comparison-0.11.2.json)
+
+CPU%按全机逻辑核心归一化；RSS包含宿主、模型和缓存，不能由速度排名推断内存优势。GPU/显存是整卡采样，包含桌面及其他进程。加载、首帧单列，未清空OS/驱动缓存。本轮未比较torch.compile、TensorRT、FP16/INT8，也没有Metal实机结果。
+
+[0.9.0历史排名](artifacts/runtime-comparison-0.9.0.md)保留原始结果；下方0.11.1图片管线测量包含预处理与原图掩码，口径不同。
+
+## 0.11.1掩码与网页优化（历史测量）
 
 对照0.11.0，FP32、640模型输入、CPU四线程；计入真实图片预处理、网络、检测筛选与原图掩码，单位ms。主要分割配置各两个独立进程窗口，大图各一对。网页、HTTP和8位转换单独测量，不能与下方历史纯前向排名混用。
 
@@ -96,72 +145,7 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 ![0.11.1 实际图片推理优化](artifacts/image-pipeline-0.11.1.png)
 
-主要收益来自掩码与网页管线，纯检测控制组基本持平，网络前向内核没有修改。24个性能窗口与12组实际最终帧对照通过，约757万掩码概率无0.5阈值翻转；网页新增有界缓存和RGB24上传。[完整表格、资源口径与限制](artifacts/image-pipeline-optimization-0.11.1.md) · [原始证据与复现](artifacts/validation/0.11.1/README.md)。本轮没有重测PyTorch/ORT，也未实测Metal。
-
-## 推理性能：0.9.0 冻结版本实测
-
-日期：2026-10-15 10:53:49 +0800；i7-8700K（12逻辑核心）、GTX 1050 Ti、31.93 GiB RAM。**176/176 个独立窗口、39,134 次推理、224/224 输出校验通过。**
-
-统一 FP32、batch=1、640×640、12线程，每配置两轮；预热60次，每窗口至少4秒/40帧。每格为窗口中位数的中位数，单位 ms，①最快，按未舍入值排名。GPU 包含上传和全部输出回读；排除图片预处理、NMS、最终 mask 后处理、模型加载和冷首帧。
-
-输入沿用0.8.1的固定实拍图张量。额外随机输入下，ORT CUDA 的 YOLO26 分割曾超出既定数值容差，[诊断记录](artifacts/validation/0.9.0-release/synthetic-input-diagnostic.json)单列保留；本页排名仅代表固定图片和本机环境。
-
-## CPU / GPU 速度排名
-
-每格为中位耗时 ms + 名次，①最快、④最慢，第一名加粗；重复窗口取各窗口中位数的中位数，按未舍入值排序。小幅差距不代表稳定胜出或统计显著性。
-
-### CPU 速度排名
-
-| 模型 | 原版 PyTorch CPU | 我们的 `.pt` CPU | 我们的 ONNX CPU | ORT CPU（.NET） |
-| --- | ---: | ---: | ---: | ---: |
-| yolov8n | 44.98 ④ | **21.74 ①** | 22.24 ② | 24.45 ③ |
-| yolov9t | 77.56 ④ | **30.20 ①** | 33.62 ③ | 31.05 ② |
-| yolov10n | 49.19 ④ | **21.57 ①** | 22.64 ② | 22.92 ③ |
-| yolo11n | 51.80 ④ | **21.71 ①** | 22.72 ② | 23.64 ③ |
-| yolo26n | 54.27 ④ | 22.76 ③ | 22.66 ② | **18.54 ①** |
-| yolov8n-seg | 57.56 ④ | **28.07 ①** | 28.61 ② | 34.38 ③ |
-| yolo11n-seg | 65.14 ④ | **27.99 ①** | 29.48 ② | 33.52 ③ |
-| yolo26n-seg | 69.02 ④ | 30.58 ② | 31.44 ③ | **29.57 ①** |
-| yolov8n-pose | 56.94 ④ | **26.88 ①** | 28.04 ② | 31.25 ③ |
-| yolo11n-pose | 66.76 ④ | **23.27 ①** | 29.65 ③ | 25.35 ② |
-| yolo26n-pose | 59.78 ④ | 24.98 ② | 25.49 ③ | **21.91 ①** |
-| 第一名次数（完整四配置 11/11 模型） | 0 | 8 | 0 | 3 |
-
-### GPU 速度排名
-
-| 模型 | 原版 PyTorch CUDA | 我们的 `.pt` Vulkan | 我们的 ONNX Vulkan | ORT CUDA（.NET） |
-| --- | ---: | ---: | ---: | ---: |
-| yolov8n | **9.83 ①** | 10.39 ② | 10.63 ③ | 12.69 ④ |
-| yolov9t | 22.27 ④ | **12.87 ①** | 14.09 ② | 17.81 ③ |
-| yolov10n | 10.67 ③ | **10.07 ①** | 10.28 ② | 13.52 ④ |
-| yolo11n | **10.52 ①** | 10.62 ② | 10.66 ③ | 13.69 ④ |
-| yolo26n | 12.37 ③ | **10.99 ①** | 11.08 ② | 13.21 ④ |
-| yolov8n-seg | **12.83 ①** | 13.75 ② | 13.88 ③ | 16.56 ④ |
-| yolo11n-seg | 13.61 ② | **13.50 ①** | 13.66 ③ | 17.58 ④ |
-| yolo26n-seg | 16.44 ③ | 14.75 ② | **14.57 ①** | 17.23 ④ |
-| yolov8n-pose | **10.23 ①** | 10.55 ② | 10.86 ③ | 13.17 ④ |
-| yolo11n-pose | 11.18 ② | **11.08 ①** | 11.26 ③ | 14.33 ④ |
-| yolo26n-pose | 13.52 ③ | **12.00 ①** | 12.22 ② | 14.11 ④ |
-| 第一名次数（完整四配置 11/11 模型） | 4 | 6 | 1 | 0 |
-
-
-![0.9.0 CPU 速度对比](artifacts/performance-0.9.0-cpu.png)
-
-![0.9.0 GPU 速度对比](artifacts/performance-0.9.0-gpu.png)
-
-细线为两轮窗口范围，**不是置信区间**。接近结果可能随窗口换位，排名不等于稳定领先；本库没有在所有模型或资源指标上全面胜过 ORT。PyTorch 使用原版 `fuse()`，ORT 开启图优化，未比较 `torch.compile`、TensorRT、FP16/INT8。
-
-### 首次使用与资源成本
-
-![0.9.0 加载、首次前向与稳态拆分](artifacts/performance-0.9.0-startup.png)
-
-加载、首次前向和稳态分别计时。首次前向不是完整进程启动；新进程也不表示清空系统文件或驱动缓存。
-
-![0.9.0 CPU 内存](docs/articles/assets/0.9.0/09-cpu-memory.png)
-
-[CPU 每帧计算成本](artifacts/performance-0.9.0-cpu-time.png) · [GPU 整卡使用率](artifacts/performance-0.9.0-gpu-usage.png) · [GPU 整卡显存](artifacts/performance-0.9.0-vram.png) · [完整报告](artifacts/runtime-comparison-0.9.0.md) · [原始 JSON](artifacts/runtime-comparison-0.9.0.json)
-
-CPU% 以全机逻辑核心归一化，CPU ms/帧衡量计算成本；RSS 包括宿主、模型和缓存，不能据速度排名推断内存优势。GPU/显存是整卡采样，包含桌面及其他进程，不能当作单进程指标。P95、采样、版本、输入/模型/DLL 摘要均在原始 JSON。
+主要收益来自掩码与网页管线，纯检测控制组基本持平，网络前向内核没有修改。24个性能窗口与12组实际最终帧对照通过，约757万掩码概率无0.5阈值翻转；网页新增有界缓存和RGB24上传。[完整表格、资源口径与限制](artifacts/image-pipeline-optimization-0.11.1.md) · [原始证据与复现](artifacts/validation/0.11.1/README.md)。该次0.11.1没有重测PyTorch/ORT，也未实测Metal。
 
 ## C# 使用
 
@@ -198,7 +182,7 @@ trainer.Train(".cache/my-training", p => Console.WriteLine($"{p.Step}: {p.TotalL
 
 ![两边保存后重新加载的模型精度对照](artifacts/training-results-0.10.1.png)
 
-本轮精度对照使用COCO128的96张微调图与32张微调留出图，80类、256×256、2轮。两边的 `.pt` / `.sytrain` 均重新加载并运行完整网络。该短程微调的验证精度有下降，不代表有效训练配方或未见数据泛化能力；数值、误差和边界见[本版报告](artifacts/training-optimization-0.10.1.md)，[0.10.0报告](artifacts/training-evaluation-0.10.0.md)保留为历史结果。
+0.10.1精度对照使用COCO128的96张微调图与32张微调留出图，80类、256×256、2轮。两边的 `.pt` / `.sytrain` 均重新加载并运行完整网络。该短程微调的验证精度有下降，不代表有效训练配方或未见数据泛化能力；数值、误差和边界见[本版报告](artifacts/training-optimization-0.10.1.md)，[0.10.0报告](artifacts/training-evaluation-0.10.0.md)保留为历史结果。
 
 图中只计冻结特征后的检测头前向、损失、反向与 SGD，采用128×128、2类、4线程；[GPU训练速度与资源排名](artifacts/training-optimization-0.10.1.md)使用同一口径，不能与上方640×640推理耗时混用。
 

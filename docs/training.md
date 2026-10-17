@@ -1,10 +1,10 @@
 # 纯 C# 五代 YOLO 检测头训练
 
-**当前源码0.11.1**继续支持五代检测头微调，训练集成/Vulkan回归19项通过。[当前验证](../artifacts/validation/0.11.1/README.md) · [下载与文档导航](README.md)。0.11.0起加入独立验证集、训练前/逐轮P/R与mAP、best.sytrain、早停和验证状态恢复；训练结果可纯.NET导出ONNX，网页支持检测框标注和预标注。[完整API](model-workflows.md) · [0.11.0功能验证](../artifacts/validation/0.11.0/README.md)。
+**当前源码0.11.2**继续支持五代检测头微调，训练集成/Vulkan回归19项通过。[当前验证](../artifacts/validation/0.11.2/README.md) · [下载与文档导航](README.md)。0.11.0起加入独立验证集、训练前/逐轮P/R与mAP、best.sytrain、早停和验证状态恢复；训练结果可纯.NET导出ONNX，网页支持检测框标注和预标注。[完整API](model-workflows.md) · [0.11.0功能验证](../artifacts/validation/0.11.0/README.md)。
 
 0.10.1 源码与发布包支持 **YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26 的检测头微调**，CPU 使用 C# SIMD，Vulkan 加速冻结网络和较大的前后向 GEMM。无需 Python、PyTorch、TorchSharp、ONNX Runtime、BLAS 或 CUDA 运行依赖。
 
-0.10.1训练优化包括SIMD激活/BN/SGD、直接点积反向、1×1零复制、有界卷积工作区与小矩阵设备选择。[训练速度、资源和训练后模型对比](../artifacts/training-optimization-0.10.1.md)对应0.10.1程序集；0.11.1没有重新测量训练速度。
+0.10.1训练优化包括SIMD激活/BN/SGD、直接点积反向、1×1零复制、有界卷积工作区与小矩阵设备选择。[训练速度、资源和训练后模型对比](../artifacts/training-optimization-0.10.1.md)对应0.10.1程序集；0.11.2没有重新测量训练速度。
 
 | 系列 | 仓库实际训练权重 | 回归与分类头 | 训练目标 |
 | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ Vulkan 是混合训练：矩阵乘加项数大于4,000,000的普通卷积 GEMM�
 
 ## 启动网页或 C# API
 
-需要 .NET 10 SDK；Vulkan 需要兼容驱动及系统 loader。可下载[0.10.1 训练库与网页运行包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)，或从源码启动：
+需要 .NET 10 SDK；Vulkan 需要兼容驱动及系统 loader。可下载[0.11.2训练库与网页运行包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)，或从源码启动：
 
 ```powershell
 git clone https://github.com/hnlyf168/SimdYolo.git

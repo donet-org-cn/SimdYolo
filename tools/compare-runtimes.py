@@ -56,7 +56,7 @@ ENGINE_COLORS = {
 
 
 def write_json(path, value):
-    path.write_text(json.dumps(value, indent=2, allow_nan=False), encoding="utf-8")
+    path.write_text(json.dumps(value, indent=2, allow_nan=False), encoding="utf-8", newline="\n")
 
 
 def sha256(path):
@@ -658,7 +658,7 @@ def write_cpu_report(report, destination, no_plot):
     lines += ["", "单进程采样、全部延迟、CPU 时间、RSS/私有提交量峰值、输出正确性、版本、输入与模型 SHA256 均在同名 JSON。启动/首帧时间单独保留，不计入稳态速度。输出字段按 `atol=0.003, rtol=0.0003` 对照本次原版 PyTorch CPU；端到端 TopK 分数使用 `atol=0.0000002, rtol=0.0003`，并对完整解码候选作唯一 anchor/class 配对，连同 mask 系数及关键点整行校验，允许合法同分排序差异。完整候选在计时后生成，未计入延迟或资源窗口。", "",
               "本次结果取决于 CPU、宿主、线程策略、模型和输入，不能外推到其他机器、模型规模、FP16/INT8 或 torch.compile。", "",
               "参考：[ORT 线程与自旋](https://onnxruntime.ai/docs/performance/tune-performance/threading.html)。", ""]
-    destination.with_suffix(".md").write_text("\n".join(lines), encoding="utf-8")
+    destination.with_suffix(".md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
     if not no_plot and report["Records"]:
         write_charts(report, destination, runtime_title)
 
@@ -739,7 +739,7 @@ def write_report(report, destination, no_plot):
         summary += ["", "CPU 内存存在劣势：" + "；".join(cpu_memory) + "。CPU 每帧耗时和内存应分别评估。"]
     summary += ["", "GPU 的低进程 CPU 时间与低进程 RSS 是本次观察到的资源成本优势，不能解读为显存或功耗优势。高 GPU 忙碌率只说明有内核在执行，不能证明算子效率、能效或计算单元占用率。显卡、驱动、宿主、线程策略和本次输入都会影响结果，不能外推到其他机器、模型规模、FP16/INT8、TensorRT、torch.compile 或 Metal。", ""]
     lines += summary + resources
-    destination.with_suffix(".md").write_text("\n".join(lines), encoding="utf-8")
+    destination.with_suffix(".md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
     if no_plot or not report["Records"]:
         return
     write_charts(report, destination, runtime_title)

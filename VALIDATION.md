@@ -1,6 +1,14 @@
 # 验证记录
 
-当前源码与仓库内NuGet包为 **0.11.1**；正式Release仍为 **v0.10.1**。[文档导航、当前包与启动步骤](docs/README.md) · [0.11.1性能表格与图](artifacts/image-pipeline-optimization-0.11.1.md)。各版本原始测试、程序集与包摘要继续保留，文档更新不表示重新测量历史性能。
+当前源码、NuGet与正式Release为 **0.11.2**。[文档导航、当前包与启动步骤](docs/README.md) · [0.11.1性能表格与图](artifacts/image-pipeline-optimization-0.11.1.md)。各版本原始测试、程序集与包摘要继续保留，文档更新不表示重新测量历史性能。
+
+## 0.11.2 原版/ORT重新实测与正式发布
+
+实测日期：2026-10-17 11:50:41 +0800；Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz，NVIDIA GeForce GTX 1050 Ti。FP32、batch1、640×640、CPU12线程。11模型×8配置×两轮，共**176个独立窗口、39,264次推理、224/224项输出校验通过**。预热60次，每窗口至少4秒/40帧。
+
+[本版排名和完整资源](artifacts/runtime-comparison-0.11.2.md) · [中文发布说明](docs/releases/v0.11.2.md) · [功能验证](artifacts/validation/0.11.2/README.md) · [附件审查](artifacts/validation/0.11.2-release/README.md)。
+
+本轮性能使用最终冻结主库，包含CPU/PT、CPU/ONNX、Vulkan/PT、Vulkan/ONNX、官方PyTorch CPU/CUDA与.NET ORT CPU/CUDA；固定既有输出容差，不删端到端候选或附加字段。
 
 ## 0.11.1 图片推理与目标分离优化
 
