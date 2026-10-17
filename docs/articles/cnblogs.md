@@ -1,4 +1,4 @@
-# SimdYolo 0.10.1：纯C#五代YOLO检测头训练优化与模型结果对照
+# SimdYolo 0.11.1：纯C#图片推理优化与人物、车辆背景分离
 
 **仓库：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
 
@@ -6,9 +6,32 @@
 
 源码更新到0.11.0后，已加入纯.NET训练验证/早停/最佳模型、PT与SYTRAIN导出标准ONNX、网页检测框标注和预标注，以及CPU FP16混合/INT8实验推理。[功能说明与实测](../model-workflows.md)包含当前限制；低精度暂未取得速度优势，GPU保持FP32。下文0.10.1评测与发布附件保留原始版本。
 
-**发布下载：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) · [网页版](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) · [中文图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
+**当前源码与包：** [0.11.1下载及文档导航](../README.md)。**历史正式发布：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip)。历史运行包和图文ZIP保持0.10.1内容。
 
-本次发布包含YOLOv8/v9/v10/YOLO11/YOLO26检测头微调、SIMD与工作区优化、Vulkan小矩阵分派，以及与官方参考训练后保存模型的对照。主库、训练库、网页与33模型均有附件。推理历史测量仍标为0.9.0，不把训练数字替换成推理数字。
+## 0.11.1：把原图掩码和网页重复处理降下来
+
+同一FP32权重与实际照片、模型640×640、四线程；YOLOv8n-seg完整Predict包含预处理、网络、筛选与原图尺度掩码，单位ms。HTTP、JSON与网页另测。
+
+| 原图 / 后端 | 冻结0.11.0 | 0.11.1 | 耗时下降 |
+| --- | ---: | ---: | ---: |
+| 810×1080 / CPU | 54.11 | 40.40 | 25.3% |
+| 810×1080 / Vulkan | 30.05 | 17.49 | 41.8% |
+| 2048×1536 / CPU | 62.34 | 41.60 | 33.3% |
+| 2048×1536 / Vulkan | 39.75 | 17.79 | 55.2% |
+
+![0.11.1完整图片推理](../../artifacts/image-pipeline-0.11.1.png)
+
+托管后处理共享原图到原型的坐标表，以SIMD累加原型和计算概率；AVX2 Gather插值后缓存相邻原型行，大区域多实例按CpuThreads并行。临时logits使用ArrayPool，返回的概率数组独立持有；MaskConverter.ToBytes以SIMD窄化并保持中点取偶舍入。没有改GPU前向着色器，纯检测控制组基本持平。
+
+网页复用RGB24缓冲区，通过有界二进制接口上传；二值和彩色掩码使用32 MiB画布LRU，改变图片或结果时清空。置信度使用逐次Predict参数覆盖，只影响本次后处理，不重载权重。目标/背景由同一张合并掩码合成互补透明PNG，保留孔洞与其他类别，不进行场景补全。
+
+![0.11.1实际目标分离](../../artifacts/validation/0.11.1/web/cutout-vehicles.png)
+
+本轮24个串行窗口、12组最终帧约757万个概率对照通过；独立标量公式门槛3e-6，完整模型概率门槛2e-5。CPU/Vulkan回归116项、训练19项、网页41条及传输/缓存15项通过。[完整资源口径、采样与复现](../../artifacts/image-pipeline-optimization-0.11.1.md)。主要分割配置各两个独立进程，大图各一对；小幅波动不能声称稳定领先。本轮没有重测PyTorch/ORT，后文数字保持历史版本。
+
+## 0.10.1训练与模型结果（历史评测）
+
+0.10.1发布包含YOLOv8/v9/v10/YOLO11/YOLO26检测头微调、SIMD与工作区优化、Vulkan小矩阵分派，以及与官方参考训练后保存模型的对照。主库、训练库、网页与33模型均有历史附件。后文推理测量仍标为0.9.0，不把训练数字替换成推理数字。
 
 ## 1. 支持范围与运行依赖
 

@@ -2,7 +2,9 @@
 
 **纯 C# / .NET 10 的 YOLO 推理与检测头微调。** CPU 使用 SIMD/intrinsics，GPU 使用 Vulkan/Metal；直接加载支持范围内的 `.pt` 和 ONNX。
 
-[下载 0.10.1](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
+[文档导航](docs/README.md) · [0.11.1性能与图](artifacts/image-pipeline-optimization-0.11.1.md) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
+
+**当前源码与仓库内NuGet包：0.11.1。GitHub最新正式Release：v0.10.1。** 最新功能使用main源码或下方0.11.1包；[历史Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)中的网页和文档ZIP仍属于0.10.1。
 
 ## 当前版本能力
 
@@ -12,27 +14,28 @@
 
 低精度目前**没有实测速度优势**，默认仍为FP32。FP16使用Half操作数和FP32累加；INT8使用托管整数内核；GPU仍为FP32。应用不引入Python、ORT或原生推理库。
 
-| 能力 | 0.10.1 发布版 |
+| 能力 | 当前0.11.1源码 |
 | --- | --- |
 | 推理任务 | 目标检测、实例分割、姿态估计 |
 | 已验证模型 | YOLOv8n、Ultralytics YOLOv9t、YOLOv10n、YOLO11n、YOLO26n；v8/11/26 包含分割、姿态 |
 | 模型格式 | 完整 `.pt`/`.pth`、ONNX，本项目训练生成的 `.sytrain` |
-| CPU | C# FP32、SIMD/intrinsics、分块 GEMM、Winograd、张量池、专用执行器 |
+| CPU | C# FP32、SIMD/intrinsics、分块GEMM、Winograd、张量池、掩码行缓存与多实例并行；实验低精度默认关闭 |
 | GPU | Vulkan/Metal 与包内着色器；本轮 Windows / GTX 1050 Ti / Vulkan 实测，Metal 未实机验证 |
-| 训练 | YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调，冻结骨干/FPN；双头、深度卷积、自定义类别、SGD、取消/恢复 |
+| 训练 | 五代检测头微调，冻结骨干/FPN；双头、自定义类别、SGD、取消/恢复；独立验证集、最佳模型与早停 |
 | 训练设备 | CPU SIMD；Vulkan 加速冻结网络与大 GEMM，小矩阵及深度卷积/BN/损失/SGD 使用 CPU |
-| 网页 | 图片推理、数据导入、训练曲线、任务记录、取消/恢复、模型上传/下载 |
+| 网页 | 大图推理、人物/车辆分离与背景去除、数据标注与预标注、训练验证、评估/对比/导出、任务记录 |
+| 导出 | 完整PT或训练SYTRAIN纯.NET导出标准ONNX；静态batch1、FP32、opset17 |
 | 标签 | `ModelInfo.Read(path).ClassNames` 读取 PT/ONNX/SYTRAIN 类别，不初始化 GPU |
 
 主库和训练核心为纯托管 C#，无 Python、PyTorch、TorchSharp、ORT、BLAS/MKL/OpenBLAS 运行依赖。GPU 通过 P/Invoke 调用系统图形 API。Vulkan 不需要 CUDA Toolkit、cuDNN、cuBLAS，也无需安装 Vulkan SDK 才能运行；需要兼容驱动和 Vulkan loader，修改着色器后才需重新编译。
 
 训练支持表、实际权重和评测见[五代检测头训练](docs/training.md)及[0.10.1训练评测](artifacts/training-optimization-0.10.1.md)。当前仍为**冻结骨干/FPN 的检测头微调**，没有全参数、分割/姿态或 Metal 训练。`.sytrain` 可直接推理与恢复，是本项目归档格式，不能冒充 PyTorch `.pt`；0.11.0源码已支持纯.NET导出标准ONNX。梯度累加按图像平均，每图 BN 独立统计。
 
-**0.10.1 发布包已包含五代检测头训练与本轮优化**，可直接下载主库、训练库、网页版、33模型和中文图文包。[中文发布说明](docs/releases/v0.10.1.md)保留验证范围及未通过的参数比较项。
+**历史0.10.1发布包**包含五代检测头训练及该版本训练优化。[中文发布说明](docs/releases/v0.10.1.md)保留验证范围及未通过的参数比较项；0.11.x新增功能使用当前源码或包。
 
 0.10.1重点优化CPU SIMD、卷积反向和临时工作区，并补上五模型训练后参数及保存模型的精度对比：[训练速度、排名与结果](artifacts/training-optimization-0.10.1.md)。
 
-本轮检测头训练每步耗时（ms，越低越快；**粗体为同设备组第一**）。128×128、FP32、2类、4线程、相同冻结特征，两独立窗口；不含骨干、预处理和保存，不代表全参数训练速度。
+下表为0.10.1检测头训练每步耗时（ms，越低越快；**粗体为同设备组第一**）。128×128、FP32、2类、4线程、相同冻结特征，两独立窗口；不含骨干、预处理和保存，不代表全参数训练速度。
 
 | 模型 | 原版 PyTorch CPU | 我们 CPU SIMD | 原版 PyTorch CUDA | 我们 Vulkan 混合 |
 | --- | ---: | ---: | ---: | ---: |
@@ -44,6 +47,14 @@
 
 ## 下载与启动
 
+| 当前0.11.1 | 内容 |
+| --- | --- |
+| [main源码](https://github.com/hnlyf168/SimdYolo/tree/main) | 包含当前网页、中文说明和完整测试工具 |
+| [推理主库0.11.1](artifacts/SimdYolo.0.11.1.nupkg) | 已验证DLL、中文XML及GPU着色器 |
+| [训练库0.11.1](artifacts/SimdYolo.Training.0.11.1.nupkg) | 依赖同版主库，包含训练验证、最佳模型与早停 |
+
+以下为历史0.10.1正式附件，保留原内容；33模型权重可用于当前源码。
+
 | 下载 | 内容 |
 | --- | --- |
 | [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) | 五代检测头训练、SIMD 优化、中文说明与全部附件 |
@@ -51,7 +62,7 @@
 | [训练库](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo.Training.0.10.1.nupkg) | 独立训练库，依赖同版本主库 |
 | [33 个模型 ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) | 11 个 PT、22 个 ONNX，包含 YOLO26、清单和原许可证 |
 | [网页版运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) | ASP.NET Core 发布输出、页面、启动说明；模型另下 |
-| [文档与图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip) | 当前 README、中文文档、两篇文章、最新图表与原始结果 |
+| [文档与图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip) | 0.10.1发布时的README、中文文档、两篇文章与评测图表 |
 
 从源码启动需要 .NET 10 SDK 和 Git LFS：
 
@@ -64,9 +75,11 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 打开 **http://127.0.0.1:5188**。网页版运行包需要已安装的 .NET 10 / ASP.NET Core 运行时，不含模型与运行时，具体步骤见包内说明。它是本地示例，绑定回环地址，没有公网账号/鉴权配置。
 
-[查看实际推理截图](artifacts/validation/0.10.0/web-browser/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
+[查看0.11.1实际推理截图](artifacts/validation/0.11.1/web/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
 
-当前源码网页版新增[人物/车辆分离与背景去除](examples/SimdYolo.Web/README.md)：点击“人物 / 车辆示例”，分别预览并下载“只保留目标”和“移除目标的背景”透明PNG；支持大图有界处理。[实际截图与下载验证](artifacts/validation/web-cutout/README.md)。这些网页新增功能尚未加入历史0.10.1下载包。
+当前源码网页版支持[人物/车辆分离与背景去除](examples/SimdYolo.Web/README.md)：点击“人物 / 车辆示例”，分别预览并下载“只保留目标”和“移除目标的背景”透明PNG；支持大图有界处理。[0.11.1实际截图与下载验证](artifacts/validation/0.11.1/README.md)。这些网页新增功能尚未加入历史0.10.1下载包。
+
+![0.11.1车辆分离与背景去除](artifacts/validation/0.11.1/web/cutout-vehicles.png)
 
 ## 0.11.1 实际图片推理优化
 

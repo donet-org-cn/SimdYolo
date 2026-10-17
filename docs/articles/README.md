@@ -1,16 +1,27 @@
-# SimdYolo 0.10.1 图文发布包
+# SimdYolo 0.11.1 图文文档
 
-公众号和博客园分别更新为0.10.1发布内容，覆盖五代检测头训练、SIMD优化、CPU/Vulkan速度与保存模型的真实图片对照。历史0.9.0推理表保留原数字，并在两篇文章中明确标注；不存在将旧推理图当作本版重测的替换。
+公众号和博客园已更新0.11.1标题、完整图片推理表格、优化图、人物/车辆分离截图及当前源码入口。0.10.1训练及0.9.0跨引擎推理作为历史章节保留，原数字与采集范围不变。当前图文使用仓库文件；GitHub正式Release及其中的文档ZIP仍为0.10.1。
 
-[0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [训练报告](../../artifacts/training-optimization-0.10.1.md) · [中文文档ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
+[文档与0.11.1包](../README.md) · [0.11.1性能报告](../../artifacts/image-pipeline-optimization-0.11.1.md) · [历史0.10.1中文文档ZIP](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
 
 | 文件 | 用途 |
 | --- | --- |
-| [wechat.md](wechat.md) | 公众号：速度、模型结果、纯C#部署和网页上手 |
-| [cnblogs.md](cnblogs.md) | 博客园：SIMD/工作区/设备分派、损失、数值和模型边界 |
-| [manifest.json](manifest.json) | 当前发布/测量版本、源结果SHA256与文章/配图核验 |
+| [wechat.md](wechat.md) | 公众号：0.11.1速度、透明PNG分离、部署和历史训练结果 |
+| [cnblogs.md](cnblogs.md) | 博客园：0.11.1 SIMD/行缓存/网页管线、数值及兼容边界 |
+| [manifest-0.11.1.json](manifest-0.11.1.json) | 当前文章、配图与取数源摘要 |
+| [manifest.json](manifest.json) | 历史0.10.1发布图文快照清单，保持原内容 |
 
-## 当前训练配图
+## 当前0.11.1配图
+
+| PNG | 内容 |
+| --- | --- |
+| [完整图片推理](../../artifacts/image-pipeline-0.11.1.png) | 0.11.0→0.11.1，CPU/Vulkan与大小原图 |
+| [车辆分离](../../artifacts/validation/0.11.1/web/cutout-vehicles.png) | 真实照片目标与背景双预览 |
+| [人物分离](../../artifacts/validation/0.11.1/web/cutout-people.png) | 同一结果切换人物类别 |
+| [目标PNG](../../artifacts/validation/0.11.1/web/cutout-foreground.png) | 实际下载的透明前景 |
+| [背景PNG](../../artifacts/validation/0.11.1/web/cutout-background.png) | 实际下载的透明背景 |
+
+## 0.10.1历史训练配图
 
 | PNG | 内容 |
 | --- | --- |

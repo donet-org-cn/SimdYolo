@@ -1,16 +1,39 @@
-# 纯 C# 跑 YOLO 0.10.1：五代训练提速，保存后的模型也一起比
+# 纯 C# 跑 YOLO 0.11.1：推理提速，人物与车辆也能直接分离
 
 **代码：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
 
 源码0.11.1继续优化图片推理与“目标分离 · 背景去除”，包括掩码SIMD、坐标与行缓存、多实例并行、二进制RGB上传及有界画布缓存。[实际图片优化前后结果](../../artifacts/image-pipeline-optimization-0.11.1.md)单独列出CPU、Vulkan与网页整轮耗时；下文训练数字仍属于0.10.1。
 
-**下载：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) · [网页版](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) · [中文图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
+**当前使用：** [0.11.1源码、NuGet与启动步骤](../README.md)。**历史正式下载：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip)。历史网页和图文ZIP不包含0.11.x功能。
+
+## 先看0.11.1的图片推理与目标分离
+
+同一公交实拍图、同一权重，模型输入640、FP32、CPU四线程，比较0.11.0与0.11.1。下表是YOLOv8n-seg完整图片推理，包含预处理、网络、筛选和原图掩码，排除HTTP及浏览器合成，单位ms。
+
+| 原图 / 后端 | 优化前 | 优化后 | 耗时下降 |
+| --- | ---: | ---: | ---: |
+| 810×1080 / CPU | 54.11 | 40.40 | 25.3% |
+| 810×1080 / Vulkan | 30.05 | 17.49 | 41.8% |
+| 2048×1536 / CPU | 62.34 | 41.60 | 33.3% |
+| 2048×1536 / Vulkan | 39.75 | 17.79 | 55.2% |
+
+![0.11.1实际图片推理对照](../../artifacts/image-pipeline-0.11.1.png)
+
+主要收益来自掩码SIMD、坐标/行缓存和多实例并行，纯检测控制组基本持平。本轮未重测PyTorch/ORT，不用这些完整图片数字替换后文历史前向排名。24个性能窗口与12组实际输出对照通过，约757万个概率没有0.5阈值翻转；详细采样与边界见[完整报告](../../artifacts/image-pipeline-optimization-0.11.1.md)。
+
+网页版点击“人物 / 车辆示例”，左侧得到只保留目标的透明PNG，右侧得到移除目标的背景PNG；切换人物、车辆或某个类别会复用现有结果。新版本缓存RGB与掩码，并使用二进制上传，RGB数据体比Base64少25%。核心计算为纯.NET，浏览器只负责图片和交互；移除的位置透明，不生成被遮挡的背景。
+
+![0.11.1车辆与背景分离](../../artifacts/validation/0.11.1/web/cutout-vehicles.png)
+
+[实际目标PNG](../../artifacts/validation/0.11.1/web/cutout-foreground.png) · [实际背景PNG](../../artifacts/validation/0.11.1/web/cutout-background.png) · [网页操作步骤](../../examples/SimdYolo.Web/README.md)
+
+## 0.10.1检测头训练评测（历史）
 
 我希望在.NET应用中，模型加载、推理、训练和结果处理都能直接使用C#。SimdYolo 0.10.1把YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26检测头微调放进同一套API和网页，并针对上一轮训练慢的问题继续优化。
 
 ![本版CPU训练速度](../../artifacts/training-performance-0.10.1-cpu.png)
 
-## 先看本次训练速度
+## 0.10.1训练速度
 
 本机i7-8700K、GTX1050Ti；128×128、FP32、2类、4线程，相同初始权重和冻结特征。计入检测头前向、损失、反向和SGD，排除冻结骨干、预处理和保存。各配置两个独立串行窗口，每窗预热10步，再更新512步；GPU包含上传回读，CUDA每步同步。它不是640尺寸全参数训练的速度。
 

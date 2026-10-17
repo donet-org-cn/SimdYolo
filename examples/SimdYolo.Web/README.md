@@ -2,11 +2,13 @@
 
 ASP.NET Core 后端直接调用本仓库的纯 C# 推理和训练库。前端为原生 HTML/CSS/JavaScript，不使用 CDN，也没有 npm 构建步骤。
 
-**当前源码0.11.0新增**：[独立验证集、早停、最佳模型、模型比较、ONNX导出、网页标注与预标注、CPU低精度及校准](../../docs/model-workflows.md)。这些计算全部由.NET执行，Python/ORT仅出现在开发验证工具中。低精度目前未取得速度优势，默认仍为FP32；FP16采用FP32累加，Vulkan/Metal继续使用FP32。
+**当前源码0.11.1**：优化分割掩码与目标分离，复用RGB和有界掩码缓存，使用RGB24二进制上传，调整置信度无需重载模型。[性能表格与图](../../artifacts/image-pipeline-optimization-0.11.1.md) · [验证与截图](../../artifacts/validation/0.11.1/README.md) · [文档导航](../../docs/README.md)。
 
-![网页实际标注及模型预标注](../../artifacts/validation/0.11.0/web-workflows/web-annotation.png)
+0.11.0起提供[独立验证集、早停、最佳模型、模型比较、ONNX导出、网页标注与预标注、CPU低精度及校准](../../docs/model-workflows.md)。计算全部由.NET执行；浏览器处理图片和交互。低精度目前未取得速度优势，默认FP32，Vulkan/Metal继续使用FP32。
 
-![网页实际模型评估](../../artifacts/validation/0.11.0/web-workflows/web-evaluation.png)
+![0.11.1网页实际标注及模型预标注](../../artifacts/validation/0.11.1/web/web-annotation.png)
+
+![0.11.1网页实际模型评估](../../artifacts/validation/0.11.1/web/web-evaluation.png)
 
 当前发布版0.10.1优化CPU SIMD与Vulkan混合训练，五代检测模型入口保持一致。[训练速度及保存模型结果对比](../../artifacts/training-optimization-0.10.1.md)区分训练内核计时和真实图片验证指标；[0.10.1运行包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip)已包含五代检测头训练，模型另下[33模型包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip)，按[启动说明](../../docs/releases/web-runtime.md)运行。
 
@@ -21,9 +23,9 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 打开 **http://127.0.0.1:5188**。需要 .NET 10 SDK；Vulkan 需要显卡驱动支持。CPU 路径不需要 GPU、CUDA 或 Python。
 
-![0.10.0 推理页面](../../artifacts/validation/0.10.0/web-browser/web-inference.png)
+![0.11.1推理页面](../../artifacts/validation/0.11.1/web/web-inference.png)
 
-![0.10.0 YOLO26 实际训练页面](../../artifacts/validation/0.10.0/web-browser/web-training.png)
+![0.11.1独立验证与最佳模型](../../artifacts/validation/0.11.1/web/web-training-validation.png)
 
 ## 推理
 
@@ -59,9 +61,9 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 0.11.1使用32 MiB上限的掩码画布LRU缓存，复用二值掩码和彩色叠加层；切换人物/车辆无需重新Base64解码。切换图片或获得新结果时释放缓存，尺寸及概率内容变化也会使缓存失效。极大的单张掩码作为临时结果处理，不长期占用缓存。目标和背景继续使用同一张合并掩码合成，保持透明区域互补，不补画被遮挡背景。
 
-![人物 / 车辆分离](../../artifacts/validation/web-cutout/cutout-vehicles.png)
+![0.11.1人物 / 车辆分离](../../artifacts/validation/0.11.1/web/cutout-vehicles.png)
 
-[实际导出的目标PNG](../../artifacts/validation/web-cutout/cutout-foreground.png) · [实际导出的背景PNG](../../artifacts/validation/web-cutout/cutout-background.png) · [验证记录](../../artifacts/validation/web-cutout/README.md)
+[实际导出的目标PNG](../../artifacts/validation/0.11.1/web/cutout-foreground.png) · [实际导出的背景PNG](../../artifacts/validation/0.11.1/web/cutout-background.png) · [0.11.1验证记录](../../artifacts/validation/0.11.1/README.md)
 
 ## 训练自己的检测头
 
@@ -104,15 +106,15 @@ my-data/
 
 ```powershell
 dotnet run --project tests/SimdYolo.Training.Tests -c Release -- --integration --vulkan
-# 启动服务后，开发环境可用 Python + Pillow 验证 API，Node 22+ 和 Edge/Chromium 验证界面：
-python tools/validate-web.py --version 0.10.1 --output artifacts/validation/0.10.1/web-api.json --image .cache/bus.jpg
-node tools/validate-web-browser.mjs --image .cache/bus.jpg
+# 启动服务后，开发环境可用Python/Pillow验证API，Node24及Edge/Chromium验证界面；结果写入.cache：
+python tools/validate-web.py --version 0.11.1 --output .cache/current-web-validation/web-api.json --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg
+node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --output .cache/current-web-validation/basic
 # 4K/8K检测、分割、Vulkan姿态、原图坐标、有界缓冲区及非法请求验证：
-node tools/validate-web-browser.mjs --image .cache/bus.jpg --large-images --output artifacts/validation/web-large-images
+node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --large-images --output .cache/current-web-validation/large
 # 分离人物/车辆、实际下载并重新解码透明PNG，可与大图验证一起运行：
-node tools/validate-web-browser.mjs --image .cache/bus.jpg --cutout --large-images --output artifacts/validation/web-cutout
+node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --cutout --large-images --output .cache/current-web-validation/cutout
 # 新增标注、验证、最佳模型、对比、导出、校准与低精度网页流程：
-node tools/validate-web-browser.mjs --image .cache/bus.jpg --features --output artifacts/validation/0.11.0/web-workflows
+node tools/validate-web-browser.mjs --image examples/SimdYolo.Web/wwwroot/samples/bus.jpg --features --large-images --cutout --output .cache/current-web-validation
 ```
 
 `--image` 应指向包含人的真实照片；现有验证使用 Ultralytics 官方 `bus.jpg`。浏览器工具默认 Windows Edge，可通过 `--browser` 指定 Chromium 路径。Python、Pillow、Node 与浏览器仅为验证工具，应用运行不依赖它们。

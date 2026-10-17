@@ -1,6 +1,6 @@
 # 推理 API 与模型兼容范围
 
-0.11.0源码新增[CPU FP16混合/INT8与校准、纯.NET ONNX导出、检测验证API](model-workflows.md)。低精度为实验功能，当前未取得速度优势；GPU仍为FP32。下列历史发布与性能记录保持原版本。
+当前源码0.11.1优化实际图片推理和掩码处理，新增逐次置信度与8位掩码转换API。[性能表格与图](../artifacts/image-pipeline-optimization-0.11.1.md) · [文档导航与下载](README.md)。0.11.0起提供[CPU FP16混合/INT8与校准、纯.NET ONNX导出、检测验证API](model-workflows.md)；低精度目前未取得速度优势，GPU仍为FP32。
 
 以下命令从仓库根目录执行。当前源码0.11.1，已发布下载仍为[0.10.1](releases/v0.10.1.md)，包含主库、训练库、网页及33模型；推理性能表继续标明0.9.0冻结历史实测。[README](../README.md)另列历史训练速度与结果对比。
 
@@ -26,7 +26,7 @@ dotnet run --project src/SimdYolo.Cli -c Release -- bench models/pt/yolov8n.pt v
 dotnet pack src/SimdYolo -c Release -o artifacts
 ```
 
-0.9.0交付包的 DLL 一致性、依赖和独立NuGet消费结果见[包审查](../artifacts/validation/0.9.0/package-audit.json)、[CPU消费](../artifacts/validation/0.9.0/package-consumer-cpu.json)和[Vulkan消费](../artifacts/validation/0.9.0/package-consumer-vulkan.json)。本次发布保持这些已验证二进制和摘要，最新README/图表另在源码和文档附件中更新。
+0.11.1包的DLL一致性、纯托管依赖、中文XML与33模型许可证见[包审查](../artifacts/validation/0.11.1/package-audit.json)；独立离线NuGet消费覆盖CPU/Vulkan的PT/ONNX分割及训练保存/恢复/导出：[CPU](../artifacts/validation/0.11.1/package-consumer-cpu.json)、[Vulkan](../artifacts/validation/0.11.1/package-consumer-vulkan.json)。历史包与测量保持各自冻结版本，不用当前程序集替换历史数据。
 
 检测、分割和姿态使用同一个 API。图片解码由调用方完成，输入为 RGB24 / BGR24 字节；可接入现有图像库、摄像头或视频帧。
 
