@@ -4,7 +4,23 @@
 
 [文档导航](docs/README.md) · [0.11.2原版/ORT排名](artifacts/runtime-comparison-0.11.2.md) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
 
-**当前源码、NuGet及正式Release：0.11.2。** [下载本版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2) · [中文发布说明](docs/releases/v0.11.2.md)。网页、33模型和图文包均随本版提供；历史附件保持原内容。
+**当前源码：0.11.3；最新正式 NuGet / Release：0.11.2。** [下载正式版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2) · [0.11.2发布说明](docs/releases/v0.11.2.md)。历史附件保持原内容。
+
+0.11.3继续优化加载与首次推理：PT只读解析、一次扫描BN融合、ONNX整数路由及工作区复用，网页一次读取标签/训练能力；Vulkan复用进程实例，减少驱动反复加载。新增可选`.NET ReadyToRun`快速启动发布，主库普通构建仍为托管IL。[加载/首帧/稳态对照与图](artifacts/startup-optimization-0.11.3.md) · [发布方式、计时口径与复现](docs/startup.md) · [稳定性验证](artifacts/validation/0.11.3/README.md)。本轮结果与下文0.11.2原版排名分别保留。
+
+## 加载与首次结果
+
+同一0.11.3源码，CPU、FP32、640×640、12线程，每组4个新进程窗口。以下为托管入口到首次原始输出，不含.NET宿主启动、图片预处理/NMS及最终掩码。
+
+| 模型 | 普通IL发布 | FastStartup发布 | 耗时减少 |
+| --- | ---: | ---: | ---: |
+| YOLOv8n PT检测 | 348.63 ms | **281.63 ms** | 19.2% |
+| YOLO26n PT分割 | 402.88 ms | **317.97 ms** | 21.1% |
+| YOLO11n PT姿态 | 362.72 ms | **285.46 ms** | 21.3% |
+
+网页独立实验（33模型，进程启动到API可用）为0.11.2普通发布 **1.68 s → 0.11.3 FastStartup 1.17 s**，减少30.7%。普通IL源码优化的ONNX CPU稳态中位耗时改善约2–5%，PT CPU基本持平；部分P95没有改善，完整表保留全部窗口。以上不更新历史PyTorch/ORT排名。
+
+![0.11.3同源码快速启动发布对照](artifacts/startup-publish-0.11.3.png)
 
 ## 当前版本能力
 

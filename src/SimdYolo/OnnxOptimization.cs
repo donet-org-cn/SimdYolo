@@ -12,6 +12,8 @@ internal sealed partial class OnnxModel
         public readonly bool Retained = retained;
         /// <summary>按优化后节点序号保存可复用的形状或常量输出数组。</summary>
         public readonly Tensor[]?[] Cached = new Tensor[]?[graph.Nodes.Count];
+        /// <summary>节点的常量与形状依赖已在此输入形状下分析完毕；后续帧不再遍历名称集合。</summary>
+        public readonly bool[] Analyzed = new bool[graph.Nodes.Count];
         /// <summary>当前计划中已知不依赖图像内容的张量名称。</summary>
         public readonly HashSet<string> Constants = new(graph.Weights.Keys);
         /// <summary>当前输入形状下，张量形状已确认稳定的名称集合。</summary>

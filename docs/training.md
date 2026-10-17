@@ -1,6 +1,6 @@
 # 纯 C# 五代 YOLO 检测头训练
 
-**当前源码0.11.2**继续支持五代检测头微调，训练集成/Vulkan回归19项通过。[当前验证](../artifacts/validation/0.11.2/README.md) · [下载与文档导航](README.md)。0.11.0起加入独立验证集、训练前/逐轮P/R与mAP、best.sytrain、早停和验证状态恢复；训练结果可纯.NET导出ONNX，网页支持检测框标注和预标注。[完整API](model-workflows.md) · [0.11.0功能验证](../artifacts/validation/0.11.0/README.md)。
+**当前源码0.11.3**继续支持五代检测头微调，新增`YoloTrainer.CanTrain(path, out ModelInfo info)`，一次取得标签与训练能力。[当前验证](../artifacts/validation/0.11.3/README.md) · [下载与文档导航](README.md)。0.11.0起加入独立验证集、训练前/逐轮P/R与mAP、best.sytrain、早停和验证状态恢复；训练结果可纯.NET导出ONNX，网页支持检测框标注和预标注。[完整API](model-workflows.md) · [0.11.0功能验证](../artifacts/validation/0.11.0/README.md)。
 
 0.10.1 源码与发布包支持 **YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26 的检测头微调**，CPU 使用 C# SIMD，Vulkan 加速冻结网络和较大的前后向 GEMM。无需 Python、PyTorch、TorchSharp、ONNX Runtime、BLAS 或 CUDA 运行依赖。
 

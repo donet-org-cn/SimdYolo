@@ -1,0 +1,123 @@
+PASS Main library is managed IL and references only .NET framework assemblies
+PASS SIMD GEMM, tails and changing buffers
+PASS CPU ConvConcat vs scalar: channel/panel/K tails, aliases, bias and SiLU
+PASS CPU ConvConcat fallback: batches, mutable weights and strided kernels
+PASS CPU Winograd panels vs double scalar: F2/F4, row crossings, odd shapes, tails and batches
+PASS CPU Winograd panels preserve pooled public output ownership
+PASS CPU packed weights GEMM vs double scalar: row/K/panel tails, offsets and updates
+PASS CPU packed weights GEMM preserves zero depth and rejects invalid panel bounds
+PASS CPU 24-column pointwise vs double scalar: row/K/panel tails, concat aliases and SiLU
+PASS CPU pointwise batch fallback retains deep-K inputs with constant weights
+PASS CPU four-lane activation vs dense double oracle and exact special fallback
+PASS CPU FP32 SIMD activation vs double: dense normal range and special values
+PASS Mask SIMD decoder vs scalar: ROI, fractional boxes, odd rows, tiny prototypes and output ownership
+PASS Mask SIMD bytes preserve nearest-even quantization, tails, clamping and nonfinite behavior
+PASS Per-call prediction confidence reuses a session without changing its default
+PASS CPU executor: 20k forced-park epochs with changing participants and Task caller
+PASS CPU executor: bounded worker budget, nested backend calls and thread scopes
+PASS CPU executor: local scratch ownership, exceptions, cleanup and recovery
+PASS CPU executor: concurrent dispose drains active work and unregisters workers
+PASS CPU head FP32 exponential: dense double oracle and exact special-value fallback
+PASS CPU tiled DFL: bins, batches, tile tails, extreme logits and changing inputs
+PASS CPU vector pose: odd widths, batches, coordinate operation order and storage alias
+PASS CPU head coordinates: bins1/16, batches, row tails and XYXY/XYWH match scalar
+PASS CPU head coordinates: NaN payloads, infinities, signed zeros and arbitrary strides
+PASS PT routing reuse: callback exceptions, rejected reentry and detached outputs recover
+PASS CPU constant weight batch tracks source replacements, shape changes and zero K
+PASS CPU convolution and max pool overwrite every element of a dirty pooled output
+PASS CPU broadcast arithmetic, activation, scaling and concat overwrite dirty outputs and preserve empty shapes
+PASS CPU offset batched MatMul preserves broadcast, tails, zero dimensions, aliases and changing inputs
+PASS CPU offset GEMM validates ranges and preserves guarded packed panel writes
+PASS CPU offset MatMul preserves pooled public ownership and custom backend contracts
+PASS Model readers FP16: exhaustive 65536 encodings, vector boundaries and singleton strides
+PASS Model readers: all raw dtypes preserve special values, offsets and exact conversion
+PASS PT storage layouts: transpose, broadcast, empty, invalid strides and offset bounds
+PASS ONNX protobuf views: zero-copy ownership, packed fields and malformed messages
+PASS Startup pickle spans preserve owned bytes and reject truncation
+PASS ONNX routing reuse: aliases, optional inputs, dynamic shapes, exceptions and ownership (Cpu)
+PASS ONNX routing reuse: aliases, optional inputs, dynamic shapes, exceptions and ownership (Vulkan)
+PASS YOLO26 ONNX CPU head preserves extra fields, batch offsets and FP32 bits
+PASS YOLO26 ONNX head rejects shared values, modified indices and invalid K
+PASS YOLO26 ONNX Vulkan head preserves extra fields, dynamic batches and replay
+PASS Metadata labels: Python/JSON dicts and lists preserve Unicode and escapes
+PASS Metadata labels: sparse IDs retain class channels, absent names stay empty
+PASS Metadata labels: invalid labels and expressions are rejected
+PASS Metadata reader skips unsupported weight data and never creates an execution backend
+PASS PT metadata reads dictionary/list labels without a model architecture
+PASS Official YOLO26 PT metadata reads labels after all tensor storage entries are removed
+PASS YOLO26 pose SIMD matches independent half-pixel decoding across batches and tails
+PASS YOLO26 end-to-end pose/mask payloads retain the selected detection row and skip NMS
+PASS YOLO26 CPU TopK preserves extra channels, batches, classes and equal-score anchors
+PASS YOLO26 Vulkan TopK keeps extra channels on device with offset views and batches
+PASS YOLO26 Vulkan single-bin regression passes raw distances and pose uses new anchors
+PASS CPU four-row/24-column GEMM vs double scalar: offsets, tails, deep K and cache layout
+PASS CPU four-row/24-column GEMM preserves zero K and rejects invalid panel bounds
+PASS CPU F4 24-column panels vs double scalar: SIMD rows, row crossings, odd borders, panel tails, bias and batches
+PASS CPU small F4 global coordinate path vs double scalar: padded border SIMD, odd dimensions and batches
+PASS CPU F4 border SIMD input transform preserves scalar FP32 bits, clipped corners, pooled padding and row crossings
+PASS CPU ONNX fused end-to-end preserves two-stage index order and FP32 bits
+PASS CPU ONNX fused end-to-end rejects changed constants and preserves shape fallback
+PASS CPU Pt end-to-end cached heaps preserve NaNs, signed zeros, ties and clamped batch shapes
+PASS CPU Pt end-to-end dispatch preserves zero-k and changing input behavior
+PASS CPU AVX transpose preserves every FP32 bit, panel borders, odd tails and prefix planes
+PASS CPU last-axis transpose dispatch preserves prefix dimensions and input mutation
+PASS CPU depthwise three-by-three shared loads preserve borders, tails, batches and mutable buffers
+PASS CPU padded depthwise SIMD preserves narrow planes, odd tails, batches and changing weights
+PASS CPU padded depthwise exceptional weights retain skipped-padding semantics
+PASS CPU physically aligned 16/48-column pointwise covers row edges, changing inputs, concat aliases, deep K and activation
+PASS CPU stride-two shared input pack is bit-exact: row crossings, boundaries, batches, tails and specials
+PASS CPU stride-two shared pack retains convolution, bias and SiLU across input changes
+PASS CPU physically aligned implicit convolution: cache-line fragments, mutable weights and SiLU
+PASS CPU two-by-two average pooling preserves FP32 order, odd tails, batches and input ownership
+PASS CPU ONNX positive-zero Add unlocks SiLU fusion; tracing and public intermediates retain nodes
+YOLOv9 zero-Add fold count: 42; trace=0; disabled=0; no inference executed.
+PASS CPU ONNX YOLOv9 fixture folds 42 positive-zero SiLU diamonds without inference
+PASS CPU ONNX positive-zero Add fusion leaves device graph unchanged (Vulkan)
+PASS ONNX concat pointwise fusion, consumers and dynamic fallback (Cpu)
+PASS ONNX concat pointwise fusion, consumers and dynamic fallback (Vulkan)
+PASS Frame convolution kernel variants: channel/spatial tails, batches, bias and SiLU
+PASS Depthwise vector3x3: strides, channel tails, batches, borders, bias and SiLU
+PASS ONNX device ReduceMax: dynamic rows, NaNs, infinities and signed zero (Cpu)
+PASS ONNX device GatherElements: axes, negative indices, tails and bounds (Cpu)
+PASS ONNX device ReduceMax: dynamic rows, NaNs, infinities and signed zero (Vulkan)
+PASS ONNX device GatherElements: axes, negative indices, tails and bounds (Vulkan)
+PASS Vulkan lifetime: process instance, independent devices and interleaved disposal
+PASS Vulkan disk caches restore pipelines and tiles, reject corruption and tolerate unwritable paths
+PASS Vulkan command replay updates input, detaches all outputs and re-records changed shapes
+PASS Vulkan command replay rejects CPU value-dependent slice indices
+PASS GPU last-axis TopK preserves NaNs, signed zero, ties, offsets, tails and batches
+PASS GPU end-to-end head TopK matches existing CPU contract across both selection stages
+PASS GPU ONNX end-to-end TopK keeps NaNs first and selection-rank ties
+PASS ONNX fused end-to-end head preserves two-stage ties, NaNs and FP32 bits
+PASS ONNX end-to-end head guards consumers, constants, callbacks and fallback shapes
+PASS Vulkan buffer views preserve independent branches, transfers, aliases and flushes
+PASS Packed pointwise32 preserves input and bias views across channel tails and frames
+PASS Grouped convolution vs scalar
+PASS Implicit convolution panels: strides, borders, batches and mutable weights
+PASS Public shape mutation is rejected before unsafe kernels
+PASS Broadcast/transpose/softmax
+PASS Separable padded max pool vs scalar
+PASS SIMD average pool, padding and excluded samples vs scalar
+PASS SIMD depthwise strided convolution vs scalar
+PASS GEMM transposed convolution vs independent scalar scatter
+PASS Winograd convolution vs double scalar, odd dimensions
+PASS Letterbox, BGR, padding and mapping
+PASS Class-aware NMS and v10 no-NMS
+PASS Mask coefficients excluded from classification, cropped mask
+PASS Pose coordinates and class score
+PASS ONNX slices: dynamic data, aliases, negative bounds and reverse
+PASS ONNX shape caches respect data-dependent reshape and public output edits
+PASS ONNX Conv BN SiLU fusion and multiple consumers vs scalar
+PASS ONNX Sigmoid Concat fusion: arbitrary axes, tails and shared consumers
+PASS ONNX TopK heap preserves ties, NaNs, zero signs and arbitrary axes
+PASS ONNX ReduceMax contiguous rows matches scalar including NaN and zero
+PASS Public pooled output ownership and duplicate aliases
+PASS Nested independent sessions restore CPU pools and GPU scopes
+PASS Frame convolution transforms: batches, tile edges and channel tails
+PASS Winograd shared inputs respect offsets, reshaped aliases and frame lifetime
+PASS Frame tiled MatMul batched and broadcast operands vs double scalar
+PASS ONNX DFL fusion and nonstandard-layout fallback vs scalar
+Vulkan (NVIDIA GeForce GTX 1050 Ti)
+PASS Vulkan GEMM vs double reference
+PASS Vulkan direct Conv, grouped/batched/dilated/SiLU
+120 tests passed.

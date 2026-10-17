@@ -47,8 +47,8 @@ internal sealed class Workspace
 
     internal WebModel RegisterModel(string path, string name)
     {
-        var info = ModelInfo.Read(path); string id = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Path.GetFullPath(path))))[..20];
-        bool trainable = info.Task == YoloTask.Detection && YoloTrainer.CanTrain(path);
+        bool trainable = YoloTrainer.CanTrain(path, out var info);
+        string id = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Path.GetFullPath(path))))[..20];
         var model = new WebModel(id, name, path, info.Format, info.Task.ToString(), trainable); Models[id] = model; return model;
     }
 

@@ -9,8 +9,8 @@ internal sealed partial class OnnxModel : IModel
     private readonly TensorOps ops;
     /// <summary>可选逐节点计时回调。</summary>
     private readonly Action<LayerTiming>? trace;
-    /// <summary>图中各张量的使用次数，包括公开输出，用于控制临时存储存活期。</summary>
-    private readonly Dictionary<string, int> uses;
+    /// <summary>加载时建立的整数路由和会话独占工作区。</summary>
+    private readonly OnnxExecutionPlan execution;
     /// <summary>以输入形状为键的有限形状执行计划缓存。</summary>
     private readonly Dictionary<string, ShapeExecutionPlan> shapePlans = [];
     /// <summary>图像输入维度的副本；非正静态维度按动态输入处理。</summary>
@@ -65,7 +65,7 @@ internal sealed partial class OnnxModel : IModel
             !(n.Op == "_ConcatConv" && concatConvolutions.Contains(n.Name)) &&
             !(n.Op == "_OnnxEndToEnd" && endToEndPatterns.ContainsKey(n.Name)) &&
             !(n.Op == "_SigmoidConcat" && sigmoidConcats.ContainsKey(n.Name))) throw new NotSupportedException($"ONNX node '{n.Name}': operator '{n.Op}' unsupported.");
-        uses = graph.Nodes.SelectMany(n => n.Inputs).Concat(graph.Outputs).Where(s => s != "").GroupBy(s => s).ToDictionary(g => g.Key, g => g.Count());
+        execution = new OnnxExecutionPlan(graph);
     }
     /// <summary>执行优化后的 ONNX 图，缓存仅依赖常量和稳定形状的节点，并按使用次数释放中间值。</summary>
     /// <param name="input">当前节点或模块的输入。</param>
@@ -75,50 +75,66 @@ internal sealed partial class OnnxModel : IModel
     public Tensor[] Run(Tensor input)
     {
         if (input.Rank != graph.InputShape.Length || input.Shape.Where((d, i) => graph.InputShape[i] > 0 && d != graph.InputShape[i]).Any()) throw new ArgumentException($"Expected image input [{string.Join(',', graph.InputShape)}].");
-        var values = new Dictionary<string, Tensor>(graph.Weights) { [graph.Inputs[0]] = input }; var remaining = new Dictionary<string, int>(uses);
         ShapeExecutionPlan plan = ShapePlanFor(input);
-        for (int nodeIndex = 0; nodeIndex < graph.Nodes.Count; nodeIndex++)
+        Tensor?[] values = execution.Values; execution.Begin(input);
+        try
         {
-            var node = graph.Nodes[nodeIndex];
-            Tensor?[] args = node.Inputs.Select(s => s == "" ? null : values[s]).ToArray(); Tensor[] outputs;
-            long started = trace is not null ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
-            try
+            for (int nodeIndex = 0; nodeIndex < graph.Nodes.Count; nodeIndex++)
             {
-                if (plan.Cached[nodeIndex] is { } cached) outputs = cached;
-                else if (CanCache(node, plan))
+                var node = graph.Nodes[nodeIndex];
+                var route = execution.Nodes[nodeIndex]; Tensor?[] args = route.Arguments; Tensor[] outputs;
+                for (int i = 0; i < args.Length; i++) args[i] = route.Inputs[i] < 0 ? null : values[route.Inputs[i]];
+                long started = trace is not null ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                try
                 {
-                    var previousDevice = DeviceScope.Current;
-                    try
+                    if (plan.Cached[nodeIndex] is { } cached) outputs = cached;
+                    else if (!plan.Analyzed[nodeIndex] && CanCache(node, plan))
                     {
-                        DeviceScope.Current = null;
-                        // 常量结果的生命周期超过当前帧，需要复制到独立数组，
-                        // 避免形状缓存引用已经归还并被下一帧覆盖的池缓冲区。
-                        outputs = Execute(node, args).Select(tensor => new Tensor((float[])tensor.Data.Clone(), tensor.Shape) { IsConstant = plan.Retained }).ToArray();
+                        var previousDevice = DeviceScope.Current;
+                        try
+                        {
+                            DeviceScope.Current = null;
+                            // 常量结果的生命周期超过当前帧，需要复制到独立数组，
+                            // 避免形状缓存引用已经归还并被下一帧覆盖的池缓冲区。
+                            outputs = Execute(node, args).Select(tensor => new Tensor((float[])tensor.Data.Clone(), tensor.Shape) { IsConstant = plan.Retained }).ToArray();
+                        }
+                        finally { DeviceScope.Current = previousDevice; }
+                        plan.Cached[nodeIndex] = outputs;
+                        foreach (string name in node.Outputs) if (name != "") plan.Constants.Add(name);
                     }
-                    finally { DeviceScope.Current = previousDevice; }
-                    plan.Cached[nodeIndex] = outputs;
-                    foreach (string name in node.Outputs) if (name != "") plan.Constants.Add(name);
+                    else outputs = Execute(node, args);
+                    if (!plan.Analyzed[nodeIndex])
+                    {
+                        if (HasStableShape(node, plan)) foreach (string name in node.Outputs) if (name != "") plan.StableShapes.Add(name);
+                        plan.Analyzed[nodeIndex] = true;
+                    }
                 }
-                else outputs = Execute(node, args);
-                if (HasStableShape(node, plan)) foreach (string name in node.Outputs) if (name != "") plan.StableShapes.Add(name);
+                catch (Exception e) when (e is ArgumentException or NotSupportedException or IndexOutOfRangeException or InvalidOperationException or OverflowException)
+                { throw new InvalidDataException($"ONNX node '{node.Name}' ({node.Op}): {e.Message}", e); }
+                if (trace is not null && ops.Backend is IDeviceBackend device) device.Flush();
+                trace?.Invoke(new(node.Name, node.Op, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds));
+                if (outputs.Length != node.Outputs.Length) throw new InvalidDataException($"Node '{node.Name}' output count mismatch.");
+                for (int i = 0; i < outputs.Length; i++) if (route.Outputs[i] >= 0) values[route.Outputs[i]] = outputs[i];
+                if (CpuTensorPool.Current is { } pool)
+                {
+                    object?[] roots = execution.Roots;
+                    for (int i = 0; i < route.Live.Length; i++) roots[i] = values[route.Live[i]];
+                    Array.Clear(roots, route.Live.Length, roots.Length - route.Live.Length);
+                    pool.RetainOnly(roots);
+                }
             }
-            catch (Exception e) when (e is ArgumentException or NotSupportedException or IndexOutOfRangeException or InvalidOperationException or OverflowException)
-            { throw new InvalidDataException($"ONNX node '{node.Name}' ({node.Op}): {e.Message}", e); }
-            if (trace is not null && ops.Backend is IDeviceBackend device) device.Flush();
-            trace?.Invoke(new(node.Name, node.Op, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds));
-            if (outputs.Length != node.Outputs.Length) throw new InvalidDataException($"Node '{node.Name}' output count mismatch.");
-            for (int i = 0; i < outputs.Length; i++) if (node.Outputs[i] != "") values[node.Outputs[i]] = outputs[i];
-            foreach (var name in node.Inputs) if (name != "" && --remaining[name] == 0 && !graph.Weights.ContainsKey(name)) values.Remove(name);
-            if (CpuTensorPool.Current is { } pool) pool.RetainOnly(values.Values.Where(tensor => !tensor.IsConstant));
+            var result = new Tensor[execution.Outputs.Length];
+            for (int i = 0; i < result.Length; i++)
+            {
+                var tensor = values[execution.Outputs[i]] ?? throw new InvalidDataException($"ONNX output '{graph.Outputs[i]}' is missing.");
+                // 公开张量允许修改，因此初始化权重和形状缓存输出要复制，
+                // 防止调用方改写模型持久常量并影响后续推理。
+                result[i] = tensor.IsConstant || plan.Constants.Contains(graph.Outputs[i])
+                    ? new Tensor((float[])tensor.Data.Clone(), tensor.Shape) : tensor;
+            }
+            return result;
         }
-        return graph.Outputs.Select(name =>
-        {
-            var tensor = values[name];
-            // 公开张量允许修改，因此初始化权重和形状缓存输出要复制，
-            // 防止调用方改写模型持久常量并影响后续推理。
-            return tensor.IsConstant || plan.Constants.Contains(name)
-                ? new Tensor((float[])tensor.Data.Clone(), tensor.Shape) : tensor;
-        }).ToArray();
+        finally { execution.Clear(); }
     }
     /// <summary>根据算子和属性分派单个 ONNX 节点，必要时选择设备或托管实现。</summary>
     /// <param name="n">当前 ONNX 节点，包含算子类型与属性。</param>

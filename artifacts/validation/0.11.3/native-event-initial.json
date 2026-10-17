@@ -1,0 +1,17 @@
+{
+  "Stage": "Exploratory development run before Vulkan instance lifetime change",
+  "EventLog": "Windows Application",
+  "EventId": 1000,
+  "TimeCreatedUtc": "2026-10-17T05:18:08.465Z",
+  "ProcessId": 20180,
+  "Application": "dotnet.exe",
+  "ApplicationVersion": "11.0.26.42628",
+  "FaultingModule": "nvoglv64.dll_unloaded",
+  "ModuleVersion": "32.0.15.6094",
+  "ExceptionCode": "0xc0000005",
+  "Offset": "0x0000000000e76052",
+  "ReportId": "cd67ab30-bfb3-4eff-b6e7-9f52b38d0ada",
+  "Observation": "Module-unloaded access violation. An internal driver call stack was not captured; this event alone does not establish the driver's internal root cause.",
+  "Change": "Keep one VkInstance for the process lifetime; each backend still owns and destroys its device, queues, commands and memory. Validate interleaved sessions and transitions to zero sessions before reloading.",
+  "TimingPolicy": "Discard exploratory timing affected by concurrent correctness activity. Formal timing uses frozen libraries and runs serially."
+}

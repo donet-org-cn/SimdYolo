@@ -1,0 +1,408 @@
+{
+  "Status": "passed",
+  "StartedUtc": "2026-10-17T06:09:24.330014+00:00",
+  "Comparison": "F:\\simdyolo\\artifacts\\lifecycle-isolated-0.11.3.json",
+  "Tool": {
+    "Path": "tools/validate-lifecycle.py",
+    "Sha256": "515d50421c5f5111ac865c98987746d2297df0d7cf16ac6bcfa5df5076284846"
+  },
+  "Scope": "Every first and final file/index is read and independently checked for SHA256, bytes and shape. Numerical comparison is reused only for identical complete raw bytes, reference-model/input hashes, output index, dtypes, shapes and validation policy; no files or indices are skipped. At most one reference model is retained in the numerical comparison cache. No timing or performance ranking.",
+  "ModelResolution": {
+    "ModelRoot": "F:\\simdyolo\\models",
+    "ReferencePtDirectory": "F:\\simdyolo\\models\\pt",
+    "Policy": "Use readable recorded ModelPath first; otherwise locate Format/Model below ModelRoot and verify recorded SHA256"
+  },
+  "References": [
+    {
+      "Path": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "Sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "Task": "detect",
+      "EndToEnd": false,
+      "ClassCount": 80,
+      "CheckpointVersion": "8.0.0.dev0",
+      "Shapes": [
+        [
+          1,
+          84,
+          8400
+        ]
+      ],
+      "DenseShape": null,
+      "OutputSha256": [
+        "3e9dff3a8d50bd2c719acae758ceb98e9978460b4431e436f9bc17551a8b45c4"
+      ],
+      "InputSha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af",
+      "Reference": 1
+    }
+  ],
+  "Windows": [
+    {
+      "Sequence": 1,
+      "Model": "yolov8n.pt",
+      "ModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "Format": "pt",
+      "RequestedBackend": "Vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Variant": "baseline",
+      "Repeat": 1,
+      "AbbaPosition": 1,
+      "Version": "0.11.3",
+      "Window": 1,
+      "Checks": [
+        {
+          "Phase": "first",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0001-yolov8n-pt-vulkan-baseline.first.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": false,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0001-yolov8n-pt-vulkan-baseline.first.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        },
+        {
+          "Phase": "last",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0001-yolov8n-pt-vulkan-baseline.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0001-yolov8n-pt-vulkan-baseline.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        }
+      ],
+      "Passed": true,
+      "DllSha256": "72d6c746134df7b5088fb96e930b3616e57b2893dedccfb4c5556621456cc6ea",
+      "RecordedModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "ModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "Input": {
+        "Path": "F:\\simdyolo\\.cache\\image-validation\\input.f32",
+        "Sha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af",
+        "Shape": [
+          1,
+          3,
+          640,
+          640
+        ]
+      },
+      "Reference": 1,
+      "ReferenceModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36"
+    },
+    {
+      "Sequence": 2,
+      "Model": "yolov8n.pt",
+      "ModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "Format": "pt",
+      "RequestedBackend": "Vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Variant": "candidate",
+      "Repeat": 1,
+      "AbbaPosition": 2,
+      "Version": "0.11.3",
+      "Window": 2,
+      "Checks": [
+        {
+          "Phase": "first",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0002-yolov8n-pt-vulkan-candidate.first.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0002-yolov8n-pt-vulkan-candidate.first.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        },
+        {
+          "Phase": "last",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0002-yolov8n-pt-vulkan-candidate.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0002-yolov8n-pt-vulkan-candidate.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        }
+      ],
+      "Passed": true,
+      "DllSha256": "33c6e6c53f5ec831bbbf3fca290e445821c0746b8163ebcae880f0989cedf203",
+      "RecordedModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "ModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "Input": {
+        "Path": "F:\\simdyolo\\.cache\\image-validation\\input.f32",
+        "Sha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af",
+        "Shape": [
+          1,
+          3,
+          640,
+          640
+        ]
+      },
+      "Reference": 1,
+      "ReferenceModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36"
+    },
+    {
+      "Sequence": 3,
+      "Model": "yolov8n.pt",
+      "ModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "Format": "pt",
+      "RequestedBackend": "Vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Variant": "candidate",
+      "Repeat": 1,
+      "AbbaPosition": 3,
+      "Version": "0.11.3",
+      "Window": 3,
+      "Checks": [
+        {
+          "Phase": "first",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0003-yolov8n-pt-vulkan-candidate.first.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0003-yolov8n-pt-vulkan-candidate.first.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        },
+        {
+          "Phase": "last",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0003-yolov8n-pt-vulkan-candidate.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0003-yolov8n-pt-vulkan-candidate.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        }
+      ],
+      "Passed": true,
+      "DllSha256": "33c6e6c53f5ec831bbbf3fca290e445821c0746b8163ebcae880f0989cedf203",
+      "RecordedModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "ModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "Input": {
+        "Path": "F:\\simdyolo\\.cache\\image-validation\\input.f32",
+        "Sha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af",
+        "Shape": [
+          1,
+          3,
+          640,
+          640
+        ]
+      },
+      "Reference": 1,
+      "ReferenceModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36"
+    },
+    {
+      "Sequence": 4,
+      "Model": "yolov8n.pt",
+      "ModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "Format": "pt",
+      "RequestedBackend": "Vulkan",
+      "Backend": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "Variant": "baseline",
+      "Repeat": 1,
+      "AbbaPosition": 4,
+      "Version": "0.11.3",
+      "Window": 4,
+      "Checks": [
+        {
+          "Phase": "first",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0004-yolov8n-pt-vulkan-baseline.first.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0004-yolov8n-pt-vulkan-baseline.first.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        },
+        {
+          "Phase": "last",
+          "Output": 0,
+          "Path": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0004-yolov8n-pt-vulkan-baseline.0.f32",
+          "Shape": [
+            1,
+            84,
+            8400
+          ],
+          "ComparisonReused": true,
+          "RecordedPath": "F:\\simdyolo\\.cache\\startup-0113\\final-isolated-windows\\20261017T060526002529Z\\0004-yolov8n-pt-vulkan-baseline.0.f32",
+          "Sha256": "6700c14edd4aa8c31be96077f873c9728f685a567dd4c3e3458d541abdc3da78",
+          "Bytes": 2822400,
+          "ExpectedShape": [
+            1,
+            84,
+            8400
+          ],
+          "MaxAbsError": 0.004364013671875,
+          "MeanAbsError": 2.7995372402765842e-06,
+          "Finite": true,
+          "Validation": "Elementwise FP32",
+          "Tolerance": {
+            "Atol": 0.003,
+            "Rtol": 0.0003
+          },
+          "Passed": true
+        }
+      ],
+      "Passed": true,
+      "DllSha256": "72d6c746134df7b5088fb96e930b3616e57b2893dedccfb4c5556621456cc6ea",
+      "RecordedModelPath": "F:\\simdyolo\\models\\pt\\yolov8n.pt",
+      "ModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "Input": {
+        "Path": "F:\\simdyolo\\.cache\\image-validation\\input.f32",
+        "Sha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af",
+        "Shape": [
+          1,
+          3,
+          640,
+          640
+        ]
+      },
+      "Reference": 1,
+      "ReferenceModelSha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36"
+    }
+  ],
+  "ExpectedWindows": 4,
+  "ComparisonSha256": "547b6cf3ef257381c954734d5dd9a874caaa66fd581625f351035e314bf23818",
+  "ComparisonStatus": "complete",
+  "Oracle": {
+    "Torch": "2.11.0+cpu",
+    "TorchPath": "D:\\Program Files\\Python\\Python313\\Lib\\site-packages\\torch\\__init__.py",
+    "TorchCudaBuild": null,
+    "Ultralytics": "8.4.0",
+    "UltralyticsDirectory": "F:\\simdyolo\\.cache\\yolo26-release-reference",
+    "CpuThreads": 12,
+    "Mode": "CPU FP32 eval().fuse(); export=True, format=onnx, dynamic=False"
+  },
+  "Passed": true,
+  "FinishedUtc": "2026-10-17T06:09:26.408293+00:00",
+  "Summary": {
+    "Windows": 4,
+    "PassedWindows": 4,
+    "OutputChecks": 8,
+    "PassedOutputChecks": 8
+  }
+}

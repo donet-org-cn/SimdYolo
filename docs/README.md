@@ -1,12 +1,13 @@
-# SimdYolo 文档导航（源码0.11.2）
+# SimdYolo 文档导航（源码0.11.3）
 
-当前源码、NuGet及正式Release为 **0.11.2**。[下载本版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)；新运行包和文档ZIP已包含模型工作流及目标分离。历史Release保持原内容。
+当前源码为 **0.11.3**，最新正式NuGet/Release为 **0.11.2**。[下载正式版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)；历史Release保持原内容。0.11.3加载/首帧及稳定性改动使用源码构建，见[实测与图](../artifacts/startup-optimization-0.11.3.md)。
 
 ## 从这里开始
 
 | 需要做什么 | 文档 |
 | --- | --- |
 | 本地运行网页、图片推理、人物/车辆分离和背景去除 | [网页示例](../examples/SimdYolo.Web/README.md) |
+| 加载/首帧优化、ReadyToRun发布、会话稳定性与复现 | [启动说明](startup.md)、[0.11.3验证](../artifacts/validation/0.11.3/README.md) |
 | C#加载PT/ONNX/SYTRAIN、读取标签、检测/分割/姿态 | [推理API](inference.md) |
 | 五代YOLO检测头微调、数据格式、取消和恢复 | [训练说明](training.md) |
 | 验证集、最佳模型、早停、标注、ONNX导出和实验低精度 | [模型工作流](model-workflows.md) |

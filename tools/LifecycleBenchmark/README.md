@@ -1,5 +1,7 @@
 # 加载、首次推理与持续推理对照
 
+当前0.11.3的完整流程见[启动与稳定性说明](../../docs/startup.md)及[本轮表格/图](../../artifacts/startup-optimization-0.11.3.md)。`tools/run-startup-comparison.ps1`先构建普通IL与可选ReadyToRun，再串行执行两组ABBA；下面保留0.8.1历史命令作为参数示例。原始输出迁移规则继续适用。
+
 此项目只用于开发验证，不进入 SimdYolo NuGet 包，也不引入主库运行依赖。控制脚本只使用 Python 标准库，计时程序只使用 C# 和 .NET 框架。
 
 先构建当前 Release 版本，再把旧版 CLI 及其依赖冻结到单独目录。`compare-lifecycle.py` 为两个版本构建相同的计时程序，只替换 `SimdYolo.dll`，并记录程序集、模型和输入的 SHA256。

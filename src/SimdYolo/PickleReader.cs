@@ -97,16 +97,17 @@ internal sealed class PickleReader(ZipArchive zip, string prefix, bool readTenso
     private object?[] MarkItems()
     {
         int index = stack.LastIndexOf(mark); if (index < 0) throw new InvalidDataException("Pickle mark missing.");
-        var items = stack.Skip(index + 1).ToArray(); stack.RemoveRange(index, stack.Count - index); return items;
+        var items = new object?[stack.Count - index - 1];
+        stack.CopyTo(index + 1, items, 0, items.Length); stack.RemoveRange(index, stack.Count - index); return items;
     }
     /// <summary>读取指定数量的 Pickle 字节并推进游标。</summary>
     /// <param name="count">需要从当前 Pickle 游标读取的字节数。</param>
-    /// <returns>具有独立存储的字节数组。</returns>
+    /// <returns>借用本次元数据缓冲区的只读字节视图；需要保留字节对象的操作码必须另行复制。</returns>
     /// <exception cref="InvalidDataException">读取长度为负或超过剩余元数据。</exception>
-    private byte[] Read(int count)
+    private ReadOnlySpan<byte> Read(int count)
     {
         if (count < 0 || count > bytes.Length - pos) throw new InvalidDataException("Truncated pickle.");
-        var b = bytes.AsSpan(pos, count).ToArray(); pos += count; return b;
+        var b = bytes.AsSpan(pos, count); pos += count; return b;
     }
     /// <summary>从当前游标读取小端有符号 32 位整数。</summary>
     /// <returns>解析的整数值。</returns>
@@ -157,9 +158,9 @@ internal sealed class PickleReader(ZipArchive zip, string prefix, bool readTenso
                 case 0x8d: stack.Add(Encoding.UTF8.GetString(Read(checked((int)BinaryPrimitives.ReadUInt64LittleEndian(Read(8)))))); break;
                 case (byte)'U': stack.Add(Encoding.Latin1.GetString(Read(Read(1)[0]))); break;
                 case (byte)'T': stack.Add(Encoding.Latin1.GetString(Read(I32()))); break;
-                case (byte)'C': stack.Add(Read(Read(1)[0])); break;
-                case (byte)'B': stack.Add(Read(I32())); break;
-                case 0x8e: case 0x96: stack.Add(Read(checked((int)BinaryPrimitives.ReadUInt64LittleEndian(Read(8))))); break;
+                case (byte)'C': stack.Add(Read(Read(1)[0]).ToArray()); break;
+                case (byte)'B': stack.Add(Read(I32()).ToArray()); break;
+                case 0x8e: case 0x96: stack.Add(Read(checked((int)BinaryPrimitives.ReadUInt64LittleEndian(Read(8)))).ToArray()); break;
                 case (byte)')': stack.Add(Array.Empty<object?>()); break;
                 case (byte)'t': stack.Add(MarkItems()); break;
                 case 0x85: var one = Pop(); stack.Add(new object?[] { one }); break;

@@ -1,0 +1,92 @@
+{
+  "Status": "complete",
+  "Definition": "Controller process launch to completed HTTP /api/info with 33 registered models; includes dotnet host and ASP.NET startup. No inference or browser loading.",
+  "Order": "ABBA; independent process and data directory per window; OS file cache preserved",
+  "Records": [
+    {
+      "Variant": "baseline",
+      "Repeat": 1,
+      "ProcessToApiReadyMs": 1677.080699999351,
+      "Version": "0.11.2",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "candidate",
+      "Repeat": 1,
+      "ProcessToApiReadyMs": 1169.8016000009375,
+      "Version": "0.11.3",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "candidate",
+      "Repeat": 1,
+      "ProcessToApiReadyMs": 1161.329200011096,
+      "Version": "0.11.3",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "baseline",
+      "Repeat": 1,
+      "ProcessToApiReadyMs": 1663.2668999955058,
+      "Version": "0.11.2",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "baseline",
+      "Repeat": 2,
+      "ProcessToApiReadyMs": 1685.4812000092352,
+      "Version": "0.11.2",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "candidate",
+      "Repeat": 2,
+      "ProcessToApiReadyMs": 1158.8868999970146,
+      "Version": "0.11.3",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "candidate",
+      "Repeat": 2,
+      "ProcessToApiReadyMs": 1179.4997999968473,
+      "Version": "0.11.3",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    },
+    {
+      "Variant": "baseline",
+      "Repeat": 2,
+      "ProcessToApiReadyMs": 1700.5011000001105,
+      "Version": "0.11.2",
+      "Models": 33,
+      "ModelListSha256": "755a6db1d21c1bf40e8dd3e7644f43c24dbf4cb7e352f58743cb31c8472db453"
+    }
+  ],
+  "Libraries": {
+    "baseline": {
+      "Directory": "F:\\simdyolo\\.cache\\release-0.11.2\\published-web",
+      "Sha256": "0db578d4537e21424babdcb3a430216e1ac170dd767d59930008a046adaed199"
+    },
+    "candidate": {
+      "Directory": "F:\\simdyolo\\.cache\\startup-0113\\final-web",
+      "Sha256": "33c6e6c53f5ec831bbbf3fca290e445821c0746b8163ebcae880f0989cedf203"
+    }
+  },
+  "Summary": {
+    "baseline": {
+      "Windows": 4,
+      "MedianMs": 1681.2809500042931
+    },
+    "candidate": {
+      "Windows": 4,
+      "MedianMs": 1165.5654000060167
+    }
+  },
+  "CandidateChangePercent": -30.67396618018895
+}

@@ -2,7 +2,7 @@
 
 ASP.NET Core 后端直接调用本仓库的纯 C# 推理和训练库。前端为原生 HTML/CSS/JavaScript，不使用 CDN，也没有 npm 构建步骤。
 
-**当前源码0.11.2**：优化分割掩码与目标分离，复用RGB和有界掩码缓存，使用RGB24二进制上传，调整置信度无需重载模型。[本版原版/ORT排名](../../artifacts/runtime-comparison-0.11.2.md) · [0.11.1掩码管线优化](../../artifacts/image-pipeline-optimization-0.11.1.md) · [验证与截图](../../artifacts/validation/0.11.1/README.md) · [文档导航](../../docs/README.md)。
+**当前源码0.11.3**：模型列表一次读取标签/训练能力，Vulkan复用进程实例，并提供可选快速启动发布；继续保留RGB24上传、有界掩码缓存和置信度会话复用。[加载/首帧实测](../../artifacts/startup-optimization-0.11.3.md) · [快速启动发布](../../docs/startup.md) · [0.11.2原版/ORT排名](../../artifacts/runtime-comparison-0.11.2.md) · [0.11.1图片管线对照](../../artifacts/image-pipeline-optimization-0.11.1.md)。
 
 0.11.0起提供[独立验证集、早停、最佳模型、模型比较、ONNX导出、网页标注与预标注、CPU低精度及校准](../../docs/model-workflows.md)。计算全部由.NET执行；浏览器处理图片和交互。低精度目前未取得速度优势，默认FP32，Vulkan/Metal继续使用FP32。
 

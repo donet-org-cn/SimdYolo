@@ -1,8 +1,8 @@
-# 验证、导出、标注与低精度（当前源码0.11.2）
+# 验证、导出、标注与低精度（当前源码0.11.3）
 
 四项均使用纯 C# / .NET 10 实现。应用运行不调用 Python、PyTorch、ORT、TorchSharp、BLAS 或第三方原生计算库。浏览器承担 JPG/PNG 解码、画框交互和透明图合成；GPU 仍通过系统 Vulkan/Metal API 工作。开发目录里的 Python/ORT 只用于独立检查，不是应用依赖。
 
-本页功能自0.11.0加入，当前0.11.2继续提供，并优化图片推理、掩码及网页目标分离。[0.11.1使用与下载](README.md) · [优化表格与图](../artifacts/image-pipeline-optimization-0.11.1.md)。[历史0.10.1下载包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)不包含这些功能。启动：
+本页功能自0.11.0加入，当前0.11.3继续提供，另有[加载/首帧与稳定性优化](startup.md)。[使用与正式下载](README.md) · [历史图片管线表格与图](../artifacts/image-pipeline-optimization-0.11.1.md)。[历史0.10.1下载包](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1)不包含这些功能。启动：
 
 ~~~powershell
 git lfs pull

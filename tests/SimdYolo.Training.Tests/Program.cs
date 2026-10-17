@@ -148,6 +148,20 @@ Run("数据集拒绝坏标签和配置", () =>
 if (args.Contains("--integration"))
 {
     string output = ".cache/training-validation/integration"; Directory.CreateDirectory(output); var dataset = TrainingDataset.CreateDemo(1, 26);
+    Run("单次模型检查与独立标签及训练能力读取一致，保护只读元数据", () =>
+    {
+        foreach (string path in Directory.EnumerateFiles("models/pt", "*.pt").Concat(Directory.EnumerateFiles("models/onnx", "*.onnx")))
+        {
+            bool trainable = YoloTrainer.CanTrain(path, out var info); var expected = ModelInfo.Read(path);
+            if (trainable != YoloTrainer.CanTrain(path) || info.Format != expected.Format || info.Task != expected.Task || info.ClassCount != expected.ClassCount || info.EndToEnd != expected.EndToEnd ||
+                !info.ClassNames.OrderBy(pair => pair.Key).SequenceEqual(expected.ClassNames.OrderBy(pair => pair.Key)) || !info.InputShape.SequenceEqual(expected.InputShape) || !info.KeypointShape.SequenceEqual(expected.KeypointShape)) throw new Exception("Single-pass model inspection changed metadata/capabilities: " + path);
+            if (info.ClassNames is IDictionary<int, string> map)
+            {
+                try { map[0] = "mutated"; throw new Exception("Mutable class metadata."); }
+                catch (NotSupportedException) { }
+            }
+        }
+    });
     Run("五代训练能力按真实结构识别、拒绝其他任务和ONNX", () =>
     {
         foreach (string model in new[] { "yolov8n", "yolov9t", "yolov10n", "yolo11n", "yolo26n" })

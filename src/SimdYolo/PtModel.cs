@@ -127,17 +127,18 @@ internal sealed partial class PtModel : IModel
             if (pair.Value is PyObject child && !IsTrainingOnly(p, pair.Key) && !IsInactiveHeadBranch(p, pair.Key)) Prepare(child);
         if (p.Type.Name is "Conv" or "DWConv" && p.Has("bn"))
         {
-            var conv = p.Child("conv"); var bn = p.Child("bn"); var weights = conv.Weight("weight"); var w = new Tensor((float[])weights.Data.Clone(), weights.Shape); var bias = new Tensor(weights.Shape[0]);
+            var conv = p.Child("conv"); var bn = p.Child("bn"); var weights = conv.Weight("weight"); var w = new Tensor(GC.AllocateUninitializedArray<float>(weights.Length), weights.Shape); var bias = new Tensor(weights.Shape[0]);
             var gamma = bn.Weight("weight"); var beta = bn.Weight("bias"); var mean = bn.Weight("running_mean"); var variance = bn.Weight("running_var"); var oldBias = conv.Map("_parameters").GetValueOrDefault("bias") as Tensor;
             int size = w.Length / w.Shape[0]; float epsilon = bn.Float("eps", 1e-5f);
-            float[] data = w.Data, gammas = gamma.Data, betas = beta.Data, means = mean.Data, variances = variance.Data;
+            // 原权重供训练和共享引用使用；融合结果单独持有，在一次 SIMD 扫描中完成复制及缩放。
+            float[] data = w.Data, source = weights.Data, gammas = gamma.Data, betas = beta.Data, means = mean.Data, variances = variance.Data;
             for (int c = 0; c < w.Shape[0]; c++)
             {
                 float scale = gammas[c] / MathF.Sqrt(variances[c] + epsilon); int start = c * size, j = 0;
                 var factor = new System.Numerics.Vector<float>(scale);
                 for (; j <= size - System.Numerics.Vector<float>.Count; j += System.Numerics.Vector<float>.Count)
-                    (new System.Numerics.Vector<float>(data, start + j) * factor).CopyTo(data, start + j);
-                for (; j < size; j++) data[start + j] *= scale;
+                    (new System.Numerics.Vector<float>(source, start + j) * factor).CopyTo(data, start + j);
+                for (; j < size; j++) data[start + j] = source[start + j] * scale;
                 bias.Data[c] = betas[c] + ((oldBias?.Data[c] ?? 0) - means[c]) * scale;
             }
             w.IsConstant = bias.IsConstant = true; fused[p] = (w, bias);

@@ -6,6 +6,8 @@ namespace SimdYolo;
 /// <summary>创建 Vulkan FP32 计算后端；设备内存、上传区和命令资源由本实例持有。</summary>
 public sealed unsafe partial class VulkanBackend : IComputeBackend, IConvolutionBackend, IDeviceBackend
 {
+    /// <summary>进程内共享实例，使驱动在会话切换期间保持加载；设备、队列和显存仍由各后端独立拥有。</summary>
+    private static readonly Lazy<nint> processInstance = new(CreateProcessInstance);
     private nint instance, physical, device, queue, command;
     private ulong descriptorLayout, pipelineLayout, shader, pipeline, descriptorPool, descriptorSet, commandPool, fence;
     private readonly GpuBuffer[] buffers = [new(), new(), new(), new()];
@@ -36,15 +38,23 @@ public sealed unsafe partial class VulkanBackend : IComputeBackend, IConvolution
         if (IntPtr.Size != 8) throw new PlatformNotSupportedException("Vulkan backend requires 64-bit .NET.");
         try { Initialize(); if (timestampBits == 0) gpuProfile = false; } catch { Dispose(); throw; }
     }
+    /// <summary>按需创建进程唯一的 Vulkan 实例，避免最后会话释放时反复卸载驱动模块。</summary>
+    /// <returns>在进程退出前保持有效的实例句柄；实例本身由操作系统随进程回收。</returns>
+    /// <remarks>实例没有会话显存或命令资源。保留一个实例可以避免驱动卸载时的后台线程竞态，并减少后续模型加载开销。</remarks>
+    /// <exception cref="InvalidOperationException">Vulkan 实例创建失败。</exception>
+    private static nint CreateProcessInstance()
+    {
+        InstanceInfo info = new() { Type = 1 }; nint result = 0;
+        Check(Vk.CreateInstance(&info, null, &result), "CreateInstance"); return result;
+    }
     /// <summary>建立 Vulkan 实例、计算队列、基础管线、描述符、命令池和提交栅栏。</summary>
     /// <exception cref="InvalidOperationException">没有 Vulkan 设备或计算队列、缺少嵌入着色器，或 Vulkan 资源初始化失败。</exception>
     private void Initialize()
     {
-        fixed (nint* instancePtr = &instance, devicePtr = &device, queuePtr = &queue, commandPtr = &command)
+        fixed (nint* devicePtr = &device, queuePtr = &queue, commandPtr = &command)
         fixed (ulong* descriptorLayoutPtr = &descriptorLayout, pipelineLayoutPtr = &pipelineLayout, shaderPtr = &shader, pipelinePtr = &pipeline, descriptorPoolPtr = &descriptorPool, descriptorSetPtr = &descriptorSet, commandPoolPtr = &commandPool, fencePtr = &fence)
         {
-            InstanceInfo ci = new() { Type = 1 };
-            Check(Vk.CreateInstance(&ci, null, instancePtr), "CreateInstance");
+            instance = processInstance.Value;
             uint count = 0; Check(Vk.EnumeratePhysicalDevices(instance, &count, null), "EnumeratePhysicalDevices");
             if (count == 0) throw new InvalidOperationException("No Vulkan GPU found.");
             nint[] devices = new nint[count]; fixed (nint* ptr = devices) Check(Vk.EnumeratePhysicalDevices(instance, &count, ptr), "EnumeratePhysicalDevices");
@@ -302,7 +312,8 @@ public sealed unsafe partial class VulkanBackend : IComputeBackend, IConvolution
                 if (pipelineCache != 0) Vk.DestroyPipelineCache(device, pipelineCache, null); pipelineCache = 0;
                 Vk.DestroyDevice(device, null); device = 0;
             }
-            if (instance != 0) { Vk.DestroyInstance(instance, null); instance = 0; }
+            // VkInstance 属于进程，不能在单个会话释放时销毁；否则其他会话的物理设备句柄会失效。
+            instance = 0;
         }
     }
     /// <summary>检查 Vulkan 返回码，把非成功状态转换成包含操作名和 VkResult 的托管异常。</summary>

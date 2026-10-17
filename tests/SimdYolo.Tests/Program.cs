@@ -46,6 +46,7 @@ PtRoutingReuseTests.Run(Test);
 CpuWeightBatchTests.Run(Test);
 CpuMatMulOffsetsTests.Run(Test);
 ModelReaderOptimizationTests.Run(Test);
+StartupReuseTests.Run(Test, FixtureDevices());
 OnnxYolo26HeadTests.Run(Test, args.Contains("--vulkan"));
 ModelInfoTests.Run(Test);
 Yolo26Tests.Run(Test, args.Contains("--vulkan"));
@@ -65,7 +66,7 @@ OnnxConcatConvRegression.Run(Test, FixtureDevices());
 GpuConvolutionKernelTests.Run(Test, FixtureDevices());
 GpuDepthwiseVectorTests.Run(Test, FixtureDevices());
 OnnxDeviceHeadTests.Run(Test, FixtureDevices());
-if (args.Contains("--vulkan")) { VulkanPipelineCacheTests.Run(Test); VulkanReplayTests.Run(Test); GpuTopKTests.Run(Test); OnnxEndToEndTests.Run(Test); VulkanBufferViewsTests.Run(Test); GpuPackedPointwise32Tests.Run(Test); }
+if (args.Contains("--vulkan")) { VulkanLifetimeTests.Run(Test); VulkanPipelineCacheTests.Run(Test); VulkanReplayTests.Run(Test); GpuTopKTests.Run(Test); OnnxEndToEndTests.Run(Test); VulkanBufferViewsTests.Run(Test); GpuPackedPointwise32Tests.Run(Test); }
 Test("Grouped convolution vs scalar", () =>
 {
     var ops = new TensorOps(cpu); var x = new Tensor(Enumerable.Range(0, 2 * 4 * 7 * 9).Select(i => MathF.Sin(i)).ToArray(), 2, 4, 7, 9);

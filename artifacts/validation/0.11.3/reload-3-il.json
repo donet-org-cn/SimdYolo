@@ -1,0 +1,55 @@
+{
+  "Status": "passed",
+  "Version": "0.11.3",
+  "Model": "yolov8n.pt",
+  "Device": "Vulkan",
+  "Frames": 124,
+  "SessionCycles": 4,
+  "WarmupPerCycle": 41,
+  "Tolerance": "abs 0.003 \u002B rel 0.0003; retained outputs bit-exact",
+  "LiveMemoryLimitMiB": 32,
+  "Cycles": [
+    {
+      "Cycle": 0,
+      "Frames": 100,
+      "ModelLoadMs": 436.7516,
+      "ManagedBeforeBytes": 74055752,
+      "ManagedAfterBytes": 76879624,
+      "ManagedGrowthBytes": 2823872,
+      "PeakWorkingSetMiB": 525.765625,
+      "ReplayedFrames": 139
+    },
+    {
+      "Cycle": 1,
+      "Frames": 8,
+      "ModelLoadMs": 228.2458,
+      "ManagedBeforeBytes": 82541664,
+      "ManagedAfterBytes": 76896816,
+      "ManagedGrowthBytes": -5644848,
+      "PeakWorkingSetMiB": 632.1953125,
+      "ReplayedFrames": 47
+    },
+    {
+      "Cycle": 2,
+      "Frames": 8,
+      "ModelLoadMs": 228.7121,
+      "ManagedBeforeBytes": 82541760,
+      "ManagedAfterBytes": 76896912,
+      "ManagedGrowthBytes": -5644848,
+      "PeakWorkingSetMiB": 546.0390625,
+      "ReplayedFrames": 47
+    },
+    {
+      "Cycle": 3,
+      "Frames": 8,
+      "ModelLoadMs": 221.4285,
+      "ManagedBeforeBytes": 82541832,
+      "ManagedAfterBytes": 76896984,
+      "ManagedGrowthBytes": -5644848,
+      "PeakWorkingSetMiB": 600.90234375,
+      "ReplayedFrames": 47
+    }
+  ],
+  "DllSha256": "72d6c746134df7b5088fb96e930b3616e57b2893dedccfb4c5556621456cc6ea",
+  "InputSha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af"
+}

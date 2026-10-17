@@ -1,4 +1,4 @@
-using System.Collections.Frozen;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO.Compression;
 
@@ -46,7 +46,8 @@ public sealed class ModelInfo
     /// <param name="keypoints">关键点维度。</param>
     internal ModelInfo(string format, IReadOnlyDictionary<int, string> names, int classes, YoloTask task, bool endToEnd, int[] input, int[] keypoints)
     {
-        Format = format; ClassNames = names.ToFrozenDictionary(); ClassCount = classes; Task = task; EndToEnd = endToEnd;
+        // 标签集合很小且在加载时只构建一次；普通只读映射避免首次创建 Frozen 特化类型的 JIT 开销。
+        Format = format; ClassNames = new ReadOnlyDictionary<int, string>(new Dictionary<int, string>(names)); ClassCount = classes; Task = task; EndToEnd = endToEnd;
         inputShape = (int[])input.Clone(); keypointShape = task == YoloTask.Pose ? (int[])keypoints.Clone() : [];
     }
 
@@ -85,7 +86,16 @@ public sealed class ModelInfo
     /// <returns>检查点提供的元数据。</returns>
     /// <exception cref="NotSupportedException">检查点没有 data.pkl。</exception>
     /// <exception cref="InvalidDataException">标签或元数据损坏、超限。</exception>
-    private static ModelInfo ReadPt(string path)
+    private static ModelInfo ReadPt(string path) => ReadPt(path, out _);
+
+    /// <summary>在一次元数据解析中同时取得不可变信息与符号检测头，供训练能力检查复用。</summary>
+    /// <param name="path">完整 PT/PTH 检查点路径。</param>
+    /// <param name="head">解析得到的最终符号模块；无完整模型结构时为 null。</param>
+    /// <returns>模型的不可变标签、任务和尺寸元数据。</returns>
+    /// <exception cref="InvalidDataException">归档或元数据损坏、超限。</exception>
+    /// <exception cref="NotSupportedException">文件不是可解析的 Torch ZIP 检查点。</exception>
+    /// <exception cref="IOException">文件无法读取或被截断。</exception>
+    internal static ModelInfo ReadPt(string path, out PyObject? head)
     {
         using var stream = File.OpenRead(path); using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
         var entry = zip.Entries.SingleOrDefault(e => e.FullName.EndsWith("/data.pkl", StringComparison.Ordinal)) ?? throw new NotSupportedException("PT metadata requires a torch.save ZIP checkpoint.");
@@ -93,7 +103,7 @@ public sealed class ModelInfo
         string prefix = entry.FullName[..^"data.pkl".Length]; var bytes = new byte[(int)entry.Length]; using (var data = entry.Open()) data.ReadExactly(bytes);
         object? root = new PickleReader(zip, prefix, false).Load(bytes);
         var checkpoint = root as Dictionary<object, object?>; object? candidate = checkpoint is null ? root : checkpoint.GetValueOrDefault("ema") ?? checkpoint.GetValueOrDefault("model");
-        var model = candidate as PyObject; var head = model is { } && model.Has("model") ? model.Child("model").Children.LastOrDefault() : null;
+        var model = candidate as PyObject; head = model is { } && model.Has("model") ? model.Child("model").Children.LastOrDefault() : null;
         var names = ReadNames(model?.Get("names") ?? checkpoint?.GetValueOrDefault("names"));
         var task = head?.Type.Name switch { "Segment" or "Segment26" => YoloTask.Segmentation, "Pose" or "Pose26" => YoloTask.Pose, _ => YoloTask.Detection };
         int classes = head?.Int("nc", LabelClassCount(names)) ?? LabelClassCount(names);
@@ -172,7 +182,7 @@ public sealed class ModelInfo
             { if (item is not string name) throw new InvalidDataException("Class names must be strings."); labels.Add(labels.Count, name); }
         }
         else if (value is not null) throw new InvalidDataException("Class names require a dictionary or list.");
-        return labels.ToFrozenDictionary();
+        return new ReadOnlyDictionary<int, string>(labels);
     }
 
     /// <summary>从标签最大编号推导通道数量，保留稀疏编号的含义。</summary>

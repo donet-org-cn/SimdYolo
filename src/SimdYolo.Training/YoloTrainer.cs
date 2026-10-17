@@ -59,6 +59,31 @@ public sealed class YoloTrainer : IDisposable
         catch (NotSupportedException) { return false; }
     }
 
+    /// <summary>一次读取模型信息及检测头微调能力，避免模型列表先取标签、再重复解析 PT。</summary>
+    /// <param name="modelPath">PT/PTH、ONNX 或 SYTRAIN 路径。</param>
+    /// <param name="modelInfo">与独立 ModelInfo.Read 相同的不可变元数据。</param>
+    /// <returns>支持检测头微调时返回 true；分割、姿态及普通 ONNX 返回 false。</returns>
+    /// <exception cref="ArgumentException">路径为空或无效。</exception>
+    /// <exception cref="NotSupportedException">文件格式或元数据编码不受支持。</exception>
+    /// <exception cref="InvalidDataException">模型归档、标签或训练头结构损坏。</exception>
+    /// <exception cref="IOException">无法读取模型文件。</exception>
+    /// <exception cref="UnauthorizedAccessException">没有读取文件的权限。</exception>
+    /// <exception cref="OverflowException">元数据维度或类别数量超限。</exception>
+    public static bool CanTrain(string modelPath, out ModelInfo modelInfo)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modelPath);
+        string extension = Path.GetExtension(modelPath).ToLowerInvariant();
+        if (extension is ".pt" or ".pth")
+        {
+            modelInfo = ModelInfo.ReadPt(modelPath, out var head);
+            if (head is null || modelInfo.Task != YoloTask.Detection) return false;
+            try { TrainingHeadSchema.Read(head); return true; }
+            catch (NotSupportedException) { return false; }
+        }
+        modelInfo = ModelInfo.Read(modelPath);
+        return extension == ".sytrain";
+    }
+
     /// <summary>从原 PT 或自包含训练快照初始化检测头；自定义类别按名称复用已有分类通道。</summary>
     /// <param name="modelPath">五代支持的检测 PT 或 .sytrain 文件。</param><param name="dataset">检测数据集。</param><param name="options">训练选项。</param>
     /// <exception cref="ArgumentException">配置无效。</exception><exception cref="NotSupportedException">模型或设备不属于首期支持范围。</exception><exception cref="InvalidDataException">模型或快照不完整。</exception><exception cref="IOException">无法读取模型文件。</exception>

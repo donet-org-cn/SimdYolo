@@ -7,6 +7,18 @@ using SimdYolo.Training;
 var device = Enum.Parse<ComputeDevice>(args.Length > 0 ? args[0] : "Cpu");
 string output = args.Length > 1 ? args[1] : ".cache/image-package-consumer/" + device;
 Directory.CreateDirectory(output); var cases = new List<object>();
+// 新包验证单次模型检查；通过反射保留此工具对0.11.2历史包的复现能力。
+bool singlePassModelInspection = false;
+if (typeof(YoloTrainer).Assembly.GetName().Version! >= new Version(0, 11, 3))
+{
+    var inspect = typeof(YoloTrainer).GetMethod("CanTrain", [typeof(string), typeof(ModelInfo).MakeByRefType()]) ?? throw new Exception("新包缺少单次模型检查API。");
+    foreach (string path in Directory.EnumerateFiles("models/pt", "*.pt").Concat(Directory.EnumerateFiles("models/onnx", "*.onnx")))
+    {
+        object?[] arguments = [path, null]; bool trainable = (bool)inspect.Invoke(null, arguments)!; var info = (ModelInfo)arguments[1]!;
+        if (trainable != YoloTrainer.CanTrain(path) || info.Task != ModelInfo.Read(path).Task) throw new Exception("包内模型检查结果不一致。");
+    }
+    singlePassModelInspection = true;
+}
 byte[] pixels = File.ReadAllBytes(".cache/image-optimization/fixtures/bus.rgb");
 foreach (string name in new[] { "yolov8n-seg", "yolo26n-seg" })
 foreach (string format in new[] { "pt", "onnx" })
@@ -34,7 +46,7 @@ using (var detector = new YoloDetector(Path.Combine(training, "last.sytrain"), n
 ModelExporter.ExportOnnx(Path.Combine(training, "last.sytrain"), Path.Combine(training, "export.onnx"), 64);
 var report = new { status = "passed", device = device.ToString(), version = typeof(YoloDetector).Assembly.GetName().Version!.ToString(3),
     coreSha256 = Hash(typeof(YoloDetector).Assembly.Location), trainingSha256 = Hash(typeof(YoloTrainer).Assembly.Location),
-    projectReference = false, cases, trainingSavedResumedAndInferred = true, exportedTrainedOnnx = true };
+    projectReference = false, singlePassModelInspection, cases, trainingSavedResumedAndInferred = true, exportedTrainedOnnx = true };
 File.WriteAllText(Path.Combine(output, "consumer.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine(JsonSerializer.Serialize(report));
 static string Hash(string file) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(file)));

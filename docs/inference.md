@@ -1,8 +1,8 @@
 # 推理 API 与模型兼容范围
 
-当前源码0.11.2优化实际图片推理和掩码处理，新增逐次置信度与8位掩码转换API。[本版原版/ORT排名](../artifacts/runtime-comparison-0.11.2.md) · [0.11.1掩码管线优化](../artifacts/image-pipeline-optimization-0.11.1.md) · [文档导航与下载](README.md)。0.11.0起提供[CPU FP16混合/INT8与校准、纯.NET ONNX导出、检测验证API](model-workflows.md)；低精度目前未取得速度优势，GPU仍为FP32。
+当前源码0.11.3减少PT解析与ONNX逐帧分配，复用Vulkan进程实例，并提供可选快速启动发布。[加载/首帧实测](../artifacts/startup-optimization-0.11.3.md) · [配置与复现](startup.md) · [0.11.2原版/ORT排名](../artifacts/runtime-comparison-0.11.2.md) · [0.11.1掩码优化](../artifacts/image-pipeline-optimization-0.11.1.md)。逐次置信度、8位掩码转换及[验证/导出/低精度API](model-workflows.md)继续保留；低精度尚未取得速度优势，GPU仍为FP32。
 
-以下命令从仓库根目录执行。当前源码0.11.2，已发布下载为[0.11.2](releases/v0.11.2.md)，包含主库、训练库、网页及33模型；推理排名已按0.11.2重新实测，0.9.0历史结果单独保留。[README](../README.md)另列历史训练速度与结果对比。
+以下命令从仓库根目录执行。当前源码0.11.3，已发布下载仍为[0.11.2](releases/v0.11.2.md)，包含主库、训练库、网页及33模型；0.11.3尚未发布新的正式附件。原版排名对应0.11.2，不能把后续源码的新计时套入历史表格。[README](../README.md)另列历史训练速度与结果对比。
 
 ## 构建和使用
 

@@ -2,6 +2,8 @@
 
 **仓库：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo) · **本版下载：** [0.11.2 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)
 
+后续源码0.11.3增加ONNX整数路由/工作区复用、PT加载优化、Vulkan进程实例和ReadyToRun发布选项。[加载/首帧对照与图](../../artifacts/startup-optimization-0.11.3.md)；本文下方原版/ORT排名仍为0.11.2实测，正式下载与历史附件保持原内容。
+
 实测日期：2026-10-17 11:50:41 +0800；Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz，NVIDIA GeForce GTX 1050 Ti。FP32、batch1、640×640、CPU12线程。11模型×8配置×两轮，共**176个独立窗口、39,264次推理、224/224项输出校验通过**。预热60次，每窗口至少4秒/40帧。
 
 本表计入网络前向与输出头解码；GPU包含输入上传和全部输出回读，排除图片预处理、NMS、最终实例掩码、模型加载和首帧。原版PyTorch使用官方Ultralytics fuse()，ORT启用全部图优化，CUDA关闭TF32。每格为两个独立窗口中位数的中位数，①最快，按未舍入值排名；接近结果不能解释为稳定胜出。
