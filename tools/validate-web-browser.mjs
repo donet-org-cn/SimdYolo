@@ -56,8 +56,13 @@ try{
       window.largeImageDraws={boxes:[],points:[],masks:[]};
       window.largeImageOriginalFetch=(...args)=>originalFetch(...args);
       window.fetch=async (...args)=>{
-        const inference=String(args[0])==='/api/infer';
-        if(inference){window.largeImageRequest=JSON.parse(args[1].body);window.largeImageResponse=null;}
+        const inference=['/api/infer','/api/infer-rgb'].includes(String(args[0]));
+        if(inference){
+          const binary=String(args[0])==='/api/infer-rgb';
+          if(binary){const bytes=args[1].body,parts=[];for(let i=0;i<bytes.length;i+=8192)parts.push(String.fromCharCode(...bytes.subarray(i,i+8192)));window.largeImageRequest={...JSON.parse(args[1].headers['X-SimdYolo']),pixels:btoa(parts.join(''))};}
+          else window.largeImageRequest=JSON.parse(args[1].body);
+          window.largeImageResponse=null;
+        }
         const response=await originalFetch(...args);
         if(inference)window.largeImageResponse=await response.clone().json();
         return response;
@@ -204,7 +209,7 @@ try{
       return {customClassOrder:true,maskHoles:true,coordinateProjection:true,multipleInstances:true,specificClass:true,missingTarget:true,invalidMaskRejected:true};
     })()`);
     // 切换为人物时沿用同一次分割，不触发额外模型推理。
-    await evaluate("window.cutoutFetches=0;const previous=window.fetch;window.fetch=(...args)=>{if(String(args[0])==='/api/infer')window.cutoutFetches++;return previous(...args);};document.querySelector('#cutout-target').value='people';document.querySelector('#cutout-target').dispatchEvent(new Event('change',{bubbles:true}));");
+    await evaluate("window.cutoutFetches=0;const previous=window.fetch;window.fetch=(...args)=>{if(['/api/infer','/api/infer-rgb'].includes(String(args[0])))window.cutoutFetches++;return previous(...args);};document.querySelector('#cutout-target').value='people';document.querySelector('#cutout-target').dispatchEvent(new Event('change',{bubbles:true}));");
     await waitFor(()=>evaluate("document.querySelector('#cutout-foreground-title').textContent==='只保留人物' && !document.querySelector('#download-foreground').disabled"),'Person cutout updated without inference');
     if(await evaluate('window.cutoutFetches')!==0)throw new Error('Changing target repeated inference');
     await screenshot('cutout-people.png');

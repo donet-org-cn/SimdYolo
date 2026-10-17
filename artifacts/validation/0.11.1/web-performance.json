@@ -1,0 +1,529 @@
+{
+  "status": "passed",
+  "browser": "Headless Edge --disable-gpu (canvas); .NET Vulkan uses actual GPU",
+  "warmup": 3,
+  "measured": 5,
+  "scope": "Actual UI; client includes 2ms completion polling and response-clone instrumentation on both variants. Development diagnostic only.",
+  "records": [
+    {
+      "variant": "before",
+      "url": "http://127.0.0.1:5200",
+      "name": "bus",
+      "width": 810,
+      "height": 1080,
+      "backend": "Cpu",
+      "samples": [
+        {
+          "clientMs": 241.09999999403954,
+          "serverMs": 58.8416,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499391,
+          "maskDecodes": 7,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 218.70000000298023,
+          "serverMs": 55.529,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499391,
+          "maskDecodes": 7,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 230.90000000596046,
+          "serverMs": 56.5304,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499391,
+          "maskDecodes": 7,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 230.70000000298023,
+          "serverMs": 56.9428,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499391,
+          "maskDecodes": 7,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 264.20000000298023,
+          "serverMs": 57.0223,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499391,
+          "maskDecodes": 7,
+          "canvasReads": 2
+        }
+      ],
+      "medianClientMs": 230.90000000596046,
+      "switchTarget": {
+        "meanMs": 10.122222221559948,
+        "maskDecodes": 33
+      }
+    },
+    {
+      "variant": "before",
+      "url": "http://127.0.0.1:5200",
+      "name": "bus",
+      "width": 810,
+      "height": 1080,
+      "backend": "Vulkan",
+      "samples": [
+        {
+          "clientMs": 189.3999999910593,
+          "serverMs": 33.4594,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499394,
+          "maskDecodes": 12,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 198,
+          "serverMs": 42.5553,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499394,
+          "maskDecodes": 12,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 183.3999999910593,
+          "serverMs": 33.6023,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499394,
+          "maskDecodes": 12,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 192.20000000298023,
+          "serverMs": 33.933,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499394,
+          "maskDecodes": 12,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 189.90000000596046,
+          "serverMs": 34.1879,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer",
+          "requestBytes": 3499394,
+          "maskDecodes": 12,
+          "canvasReads": 2
+        }
+      ],
+      "medianClientMs": 189.90000000596046,
+      "switchTarget": {
+        "meanMs": 8.122222221559948,
+        "maskDecodes": 33
+      }
+    },
+    {
+      "variant": "before",
+      "url": "http://127.0.0.1:5200",
+      "name": "large",
+      "width": 2048,
+      "height": 1536,
+      "backend": "Cpu",
+      "samples": [
+        {
+          "clientMs": 577.8000000119209,
+          "serverMs": 66.5351,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583105,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 580.7999999970198,
+          "serverMs": 70.0402,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583105,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 580.9000000059605,
+          "serverMs": 73.964,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583105,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 606.5999999940395,
+          "serverMs": 69.1405,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583105,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 583.5,
+          "serverMs": 66.8609,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583105,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        }
+      ],
+      "medianClientMs": 580.9000000059605,
+      "switchTarget": {
+        "meanMs": 21.7111111101177,
+        "maskDecodes": 24
+      }
+    },
+    {
+      "variant": "before",
+      "url": "http://127.0.0.1:5200",
+      "name": "large",
+      "width": 2048,
+      "height": 1536,
+      "backend": "Vulkan",
+      "samples": [
+        {
+          "clientMs": 567.2999999970198,
+          "serverMs": 43.9425,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583108,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 550.2999999970198,
+          "serverMs": 44.8229,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583108,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 587.2000000029802,
+          "serverMs": 47.5435,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583108,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 588.2999999970198,
+          "serverMs": 45.7223,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583108,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        },
+        {
+          "clientMs": 629,
+          "serverMs": 46.9707,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer",
+          "requestBytes": 12583108,
+          "maskDecodes": 8,
+          "canvasReads": 2
+        }
+      ],
+      "medianClientMs": 587.2000000029802,
+      "switchTarget": {
+        "meanMs": 25.077777778108914,
+        "maskDecodes": 24
+      }
+    },
+    {
+      "variant": "after",
+      "url": "http://127.0.0.1:5201",
+      "name": "bus",
+      "width": 810,
+      "height": 1080,
+      "backend": "Cpu",
+      "samples": [
+        {
+          "clientMs": 202.3999999910593,
+          "serverMs": 154.2614,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 170.8999999910593,
+          "serverMs": 128.9145,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 172.59999999403954,
+          "serverMs": 122.771,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 176.09999999403954,
+          "serverMs": 125.5102,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 160.70000000298023,
+          "serverMs": 119.1138,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        }
+      ],
+      "medianClientMs": 172.59999999403954,
+      "switchTarget": {
+        "meanMs": 5.466666666997804,
+        "maskDecodes": 0
+      }
+    },
+    {
+      "variant": "after",
+      "url": "http://127.0.0.1:5201",
+      "name": "bus",
+      "width": 810,
+      "height": 1080,
+      "backend": "Vulkan",
+      "samples": [
+        {
+          "clientMs": 67,
+          "serverMs": 24.6636,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 63.8999999910593,
+          "serverMs": 23.3168,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 75,
+          "serverMs": 25.753,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 88.3999999910593,
+          "serverMs": 29.1232,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 92.40000000596046,
+          "serverMs": 29.8705,
+          "reusedSession": true,
+          "instances": 6,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 2624400,
+          "maskDecodes": 6,
+          "canvasReads": 1
+        }
+      ],
+      "medianClientMs": 75,
+      "switchTarget": {
+        "meanMs": 8.377777776784367,
+        "maskDecodes": 0
+      }
+    },
+    {
+      "variant": "after",
+      "url": "http://127.0.0.1:5201",
+      "name": "large",
+      "width": 2048,
+      "height": 1536,
+      "backend": "Cpu",
+      "samples": [
+        {
+          "clientMs": 163.79999999701977,
+          "serverMs": 52.7657,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 148.5,
+          "serverMs": 46.5663,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 160.29999999701977,
+          "serverMs": 43.1611,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 156.40000000596046,
+          "serverMs": 43.7546,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 156.90000000596046,
+          "serverMs": 50.5865,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        }
+      ],
+      "medianClientMs": 156.90000000596046,
+      "switchTarget": {
+        "meanMs": 17.822222222884495,
+        "maskDecodes": 0
+      }
+    },
+    {
+      "variant": "after",
+      "url": "http://127.0.0.1:5201",
+      "name": "large",
+      "width": 2048,
+      "height": 1536,
+      "backend": "Vulkan",
+      "samples": [
+        {
+          "clientMs": 134.29999999701977,
+          "serverMs": 22.5596,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 128.19999998807907,
+          "serverMs": 23.0513,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 111.90000000596046,
+          "serverMs": 21.6661,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 132.30000001192093,
+          "serverMs": 21.4099,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        },
+        {
+          "clientMs": 128,
+          "serverMs": 23.0762,
+          "reusedSession": true,
+          "instances": 4,
+          "transport": "/api/infer-rgb",
+          "requestBytes": 9437184,
+          "maskDecodes": 4,
+          "canvasReads": 1
+        }
+      ],
+      "medianClientMs": 128.19999998807907,
+      "switchTarget": {
+        "meanMs": 16.65555555621783,
+        "maskDecodes": 0
+      }
+    }
+  ]
+}

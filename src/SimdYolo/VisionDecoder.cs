@@ -30,6 +30,7 @@ public static class VisionDecoder
     /// <exception cref="ArgumentException">模型输出缺失、布局有歧义、类别或关键点维度不匹配，或分割原型不满足单图要求。</exception>
     /// <exception cref="NotSupportedException">检测头不是三维张量。</exception>
     /// <exception cref="OverflowException">关键点字段数或裁剪掩码面积超出 Int32 范围。</exception>
+    /// <exception cref="AggregateException">并行掩码解码中的工作线程发生异常。</exception>
     public static IReadOnlyList<YoloInstance> Decode(Tensor[] outputs, Letterbox transform, DetectorOptions options, bool decodeMasks = true)
     {
         if (outputs.Length == 0) throw new ArgumentException("Model outputs missing.");
@@ -62,9 +63,11 @@ public static class VisionDecoder
         int extraOffset = endToEnd ? 6 : 4 + classes;
         // 统一通道优先与通道最后布局的字段读取，后续掩码/关键点计算复用同一锚点索引。
         float At(int a, int c) => head.Data[first ? c * count + a : a * fields + c];
-        var result = new List<YoloInstance>();
-        foreach (var (box, anchor) in detections)
+        var maskDecoder = task == YoloTask.Segmentation && decodeMasks && detections.Count > 0 ? new CpuMaskDecoder(outputs[1], transform) : null;
+        var result = new YoloInstance[detections.Count];
+        YoloInstance DecodeInstance(int index)
         {
+            var (box, anchor) = detections[index];
             InstanceMask? mask = null; Keypoint[] points = [];
             if (task == YoloTask.Pose)
             {
@@ -78,36 +81,17 @@ public static class VisionDecoder
             }
             if (task == YoloTask.Segmentation && decodeMasks)
             {
-                var prototype = outputs[1]; if (prototype.Shape[0] != 1) throw new ArgumentException("Single-image mask decoding only.");
-                int mh = prototype.Shape[2], mw = prototype.Shape[3], plane = mh * mw;
-                // 先在线性空间融合原型与实例系数，再插值 logits；Sigmoid 必须放在插值之后。
-                var low = new float[plane];
-                for (int c = 0; c < extra; c++)
-                {
-                    float weight = At(anchor, extraOffset + c); int i = 0; var vw = new System.Numerics.Vector<float>(weight);
-                    for (; i <= plane - System.Numerics.Vector<float>.Count; i += System.Numerics.Vector<float>.Count)
-                        (new System.Numerics.Vector<float>(low, i) + vw * new System.Numerics.Vector<float>(prototype.Data, c * plane + i)).CopyTo(low, i);
-                    for (; i < plane; i++) low[i] += weight * prototype.Data[c * plane + i];
-                }
-                int left = (int)MathF.Floor(box.X), top = (int)MathF.Floor(box.Y), right = (int)MathF.Ceiling(box.X + box.Width), bottom = (int)MathF.Ceiling(box.Y + box.Height), width = right - left, height = bottom - top;
-                // 按 letterbox 的有效图像区域取原型 ROI，避免将填充区域拉伸进原图掩码。
-                int roiLeft = Math.Clamp((int)MathF.Round((float)transform.PadX * mw / transform.TargetWidth), 0, mw - 1);
-                int roiTop = Math.Clamp((int)MathF.Round((float)transform.PadY * mh / transform.TargetHeight), 0, mh - 1);
-                int roiRight = Math.Clamp((int)MathF.Round((transform.PadX + transform.SourceWidth * transform.ScaleX) * mw / transform.TargetWidth), roiLeft + 1, mw);
-                int roiBottom = Math.Clamp((int)MathF.Round((transform.PadY + transform.SourceHeight * transform.ScaleY) * mh / transform.TargetHeight), roiTop + 1, mh);
-                var values = new float[checked(width * height)];
-                for (int y = 0; y < height; y++) for (int x = 0; x < width; x++)
-                {
-                    float px = roiLeft + (left + x + .5f) * (roiRight - roiLeft) / transform.SourceWidth - .5f;
-                    float py = roiTop + (top + y + .5f) * (roiBottom - roiTop) / transform.SourceHeight - .5f;
-                    px = Math.Clamp(px, roiLeft, roiRight - 1); py = Math.Clamp(py, roiTop, roiBottom - 1); int x0 = (int)px, y0 = (int)py, x1 = Math.Min(x0 + 1, roiRight - 1), y1 = Math.Min(y0 + 1, roiBottom - 1); float fx = px - x0, fy = py - y0;
-                    float logit = (low[y0 * mw + x0] * (1 - fx) + low[y0 * mw + x1] * fx) * (1 - fy) + (low[y1 * mw + x0] * (1 - fx) + low[y1 * mw + x1] * fx) * fy;
-                    values[y * width + x] = left + x >= box.X && top + y >= box.Y && left + x < box.X + box.Width && top + y < box.Y + box.Height ? TensorOps.Sigmoid(logit) : 0;
-                }
-                mask = new(left, top, width, height, values);
+                var coefficients = new float[extra];
+                for (int c = 0; c < extra; c++) coefficients[c] = At(anchor, extraOffset + c);
+                mask = maskDecoder!.Decode(box, coefficients);
             }
-            result.Add(new(box, mask, points));
+            return new(box, mask, points);
         }
+        int threads = options.CpuThreads > 0 ? options.CpuThreads : Environment.ProcessorCount;
+        long area = maskDecoder is null ? 0 : detections.Sum(item => (long)MathF.Ceiling(item.Box.Width) * (long)MathF.Ceiling(item.Box.Height));
+        if (maskDecoder is not null && result.Length > 1 && area >= 65536 && threads > 1)
+            Parallel.For(0, result.Length, new ParallelOptions { MaxDegreeOfParallelism = Math.Min(threads, result.Length) }, index => result[index] = DecodeInstance(index));
+        else for (int index = 0; index < result.Length; index++) result[index] = DecodeInstance(index);
         return result;
     }
 }

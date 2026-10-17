@@ -210,7 +210,7 @@ internal sealed class OnnxTraceBackend : IComputeBackend, IDeviceBackend
         string[] outputNames = outputs.Select(NameOf).ToArray(); var graph = new Wire();
         foreach (byte[] node in nodes) graph.Bytes(1, node); graph.Text(2, "SimdYolo"); foreach (byte[] constant in constants) graph.Bytes(5, constant);
         graph.Bytes(11, ValueInfo("images", inputShape)); for (int i = 0; i < outputs.Length; i++) graph.Bytes(12, ValueInfo(outputNames[i], outputs[i].Shape));
-        var result = new Wire(); result.Int(1, 9); result.Text(2, "SimdYolo.NET"); result.Text(3, "0.11.0"); result.Bytes(7, graph.Data()); var opset = new Wire(); opset.Int(2, 17); result.Bytes(8, opset.Data());
+        var result = new Wire(); result.Int(1, 9); result.Text(2, "SimdYolo.NET"); result.Text(3, typeof(ModelExporter).Assembly.GetName().Version!.ToString(3)); result.Bytes(7, graph.Data()); var opset = new Wire(); opset.Int(2, 17); result.Bytes(8, opset.Data());
         var metadata = new Dictionary<string, string> { ["names"] = JsonSerializer.Serialize(model.Names), ["task"] = model.Task switch { YoloTask.Segmentation => "segment", YoloTask.Pose => "pose", _ => "detect" },
             ["imgsz"] = JsonSerializer.Serialize(inputShape[2..]), ["end2end"] = model.EndToEnd ? "True" : "False", ["simdyolo.source_sha256"] = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(sourcePath))), ["simdyolo.export"] = "pure-dotnet/opset17/static-batch1" };
         if (model.Task == YoloTask.Pose) metadata["kpt_shape"] = JsonSerializer.Serialize(model.KeypointShape);

@@ -38,7 +38,7 @@ try { using var backend = new VulkanBackend(); vulkan = true; }
 catch (Exception error) when (error is DllNotFoundException or EntryPointNotFoundException or PlatformNotSupportedException or InvalidOperationException) { vulkanError = error.Message; }
 object ModelView(WebModel model) => new { model.Id, model.Name, model.Format, model.Task, model.Trainable };
 app.MapGet("/api/info", () => Results.Ok(new { version = typeof(YoloDetector).Assembly.GetName().Version!.ToString(3), models = workspace.Models.Values.OrderBy(m => m.Name).Select(ModelView),
-    imageLimits = new { maxUploadEdge = Workspace.MaxUploadEdge, maxOriginalEdge = Workspace.MaxOriginalEdge, maxOriginalPixels = Workspace.MaxOriginalPixels },
+    binaryRgb = true, imageLimits = new { maxUploadEdge = Workspace.MaxUploadEdge, maxOriginalEdge = Workspace.MaxOriginalEdge, maxOriginalPixels = Workspace.MaxOriginalPixels },
     backends = new[] { new { id = "Cpu", name = "CPU SIMD", inference = true, training = true }, new { id = "Vulkan", name = "Vulkan GPU", inference = vulkan, training = vulkan }, new { id = "Metal", name = "Metal（训练尚未支持）", inference = OperatingSystem.IsMacOS(), training = false } },
     trainingScope = "YOLOv8/v9/v10/YOLO11/YOLO26 检测头微调，骨干与 FPN 冻结。梯度累加按图像平均；Vulkan 加速普通卷积 GEMM，深度卷积、BN、损失和 SGD 在 CPU。", vulkanError }));
 
@@ -49,6 +49,13 @@ app.MapGet("/api/sample", () =>
 });
 
 app.MapPost("/api/infer", async (InferenceRequest request, InferenceService inference, CancellationToken cancellation) => Results.Ok(await inference.Predict(request, cancellation)));
+app.MapPost("/api/infer-rgb", async (HttpRequest http, InferenceService inference, CancellationToken cancellation) =>
+{
+    string metadata = http.Headers["X-SimdYolo"].ToString();
+    if (metadata.Length is < 2 or > 4096) throw new ArgumentException("缺少或超限的RGB推理元数据。");
+    var request = JsonSerializer.Deserialize<InferenceRequest>(metadata, Workspace.JsonOptions) ?? throw new ArgumentException("RGB推理元数据无效。");
+    return Results.Ok(await inference.PredictRgb(request, http.Body, http.ContentLength, cancellation));
+});
 
 app.MapPost("/api/models", async (HttpRequest request, CancellationToken cancellation) =>
 {

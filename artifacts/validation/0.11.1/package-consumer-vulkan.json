@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "device": "Vulkan",
+  "version": "0.11.1",
+  "coreSha256": "aa90e392beab34186dfb8001d47e23c17c065f9060ebf76ad9c50bec7b9ab1d9",
+  "trainingSha256": "d8c3fbd0cd3e3ef2c8862d366c683d32432748913ce3d75f861a100b721fc50d",
+  "projectReference": false,
+  "cases": [
+    {
+      "model": "models/pt/yolov8n-seg.pt",
+      "BackendName": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "instances": 6,
+      "maskPixels": 654174
+    },
+    {
+      "model": "models/onnx/yolov8n-seg.onnx",
+      "BackendName": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "instances": 6,
+      "maskPixels": 654174
+    },
+    {
+      "model": "models/pt/yolo26n-seg.pt",
+      "BackendName": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "instances": 4,
+      "maskPixels": 612255
+    },
+    {
+      "model": "models/onnx/yolo26n-seg.onnx",
+      "BackendName": "Vulkan (NVIDIA GeForce GTX 1050 Ti)",
+      "instances": 4,
+      "maskPixels": 612255
+    }
+  ],
+  "trainingSavedResumedAndInferred": true,
+  "exportedTrainedOnnx": true
+}

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup Condition="'$(SimdYoloLibraryPath)' == ''"><ProjectReference Include="../../src/SimdYolo/SimdYolo.csproj" /></ItemGroup>
+  <ItemGroup Condition="'$(SimdYoloLibraryPath)' != ''"><Reference Include="SimdYolo"><HintPath>$(SimdYoloLibraryPath)</HintPath></Reference></ItemGroup>
+</Project>

@@ -325,11 +325,29 @@ public sealed class YoloDetector : IDisposable
     /// <exception cref="InvalidDataException">模型路由或节点执行失败。</exception>
     /// <exception cref="OverflowException">图像缓冲区尺寸、关键点数量、运行时形状或类别编号超过受支持整数范围。</exception>
     public IReadOnlyList<YoloInstance> Predict(ReadOnlySpan<byte> pixels, int width, int height, bool bgr = false, int rowStride = 0)
+        => PredictImage(pixels, width, height, options.Confidence, bgr, rowStride);
+
+    /// <summary>复用当前模型权重，以本次请求的置信度执行推理，不修改会话默认配置。</summary>
+    /// <param name="pixels">RGB24或BGR24像素。</param><param name="width">源图宽度。</param><param name="height">源图高度。</param>
+    /// <param name="confidence">本次置信度阈值，范围0到1。</param><param name="bgr">是否为BGR顺序。</param><param name="rowStride">源行跨度；零表示紧密排列。</param>
+    /// <returns>本次阈值筛选并还原到原图的实例。</returns>
+    /// <exception cref="ArgumentException">阈值、图像或解码配置非法。</exception><exception cref="InvalidDataException">模型图数据无效。</exception>
+    /// <exception cref="ObjectDisposedException">会话已释放。</exception><exception cref="InvalidOperationException">会话重入或后端失败。</exception>
+    /// <exception cref="NotSupportedException">模型布局或算子不受支持。</exception><exception cref="OverflowException">尺寸或索引计算溢出。</exception>
+    public IReadOnlyList<YoloInstance> Predict(ReadOnlySpan<byte> pixels, int width, int height, float confidence, bool bgr = false, int rowStride = 0)
+        => PredictImage(pixels, width, height, confidence, bgr, rowStride);
+
+    /// <summary>共用图像推理实现，置信度只在后处理阶段覆盖，保留模型/设备缓存。</summary>
+    /// <param name="pixels">源像素。</param><param name="width">源宽度。</param><param name="height">源高度。</param><param name="confidence">当前阈值。</param>
+    /// <param name="bgr">是否交换通道。</param><param name="rowStride">源行跨度。</param><returns>本次解码结果。</returns>
+    private IReadOnlyList<YoloInstance> PredictImage(ReadOnlySpan<byte> pixels, int width, int height, float confidence, bool bgr, int rowStride)
     {
+        if (!float.IsFinite(confidence) || confidence is < 0 or > 1) throw new ArgumentException("Confidence must be between 0 and 1.");
         int tw = model.InputShape.ElementAtOrDefault(3) > 0 ? model.InputShape[3] : options.Width;
         int th = model.InputShape.ElementAtOrDefault(2) > 0 ? model.InputShape[2] : options.Height;
         var (input, transform) = ImagePreprocessor.Letterbox(pixels, width, height, tw, th, bgr, rowStride);
-        var outputs = PredictRaw(input); return VisionDecoder.Decode(outputs, transform, EffectiveOptions(outputs));
+        var outputs = PredictRaw(input); var effective = EffectiveOptions(outputs);
+        return VisionDecoder.Decode(outputs, transform, confidence == effective.Confidence ? effective : effective with { Confidence = confidence });
     }
     /// <summary>用模型元数据补齐自动任务、类别数、关键点维度和输出布局。</summary>
     /// <param name="outputs">本次推理输出数组。</param>

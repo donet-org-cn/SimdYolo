@@ -6,7 +6,9 @@
 
 ## 当前版本能力
 
-当前源码为 **0.11.0**，新增纯.NET的训练验证/早停/最佳模型、PT/SYTRAIN导出ONNX、网页检测框标注与预标注、CPU FP16混合/INT8实验推理。[使用说明与API](docs/model-workflows.md) · [本轮验证与截图](artifacts/validation/0.11.0/README.md)。历史0.10.1下载包不包含这些新增功能。
+当前源码为 **0.11.1**，继续优化实际图片推理、目标分离与背景去除：掩码使用SIMD、坐标表和行缓存，多实例按面积及线程数并行；网页复用RGB与有界掩码缓存，改用RGB24二进制上传，调整置信度无需重载模型。[优化前后实测](artifacts/image-pipeline-optimization-0.11.1.md) · [验证与截图](artifacts/validation/0.11.1/README.md)。历史0.10.1下载包不包含这些新增功能。
+
+0.11.0已加入纯.NET的训练验证/早停/最佳模型、PT/SYTRAIN导出ONNX、网页检测框标注与预标注、CPU FP16混合/INT8实验推理。[使用说明与API](docs/model-workflows.md) · [0.11.0验证](artifacts/validation/0.11.0/README.md)。
 
 低精度目前**没有实测速度优势**，默认仍为FP32。FP16使用Half操作数和FP32累加；INT8使用托管整数内核；GPU仍为FP32。应用不引入Python、ORT或原生推理库。
 
@@ -65,6 +67,23 @@ dotnet run --project examples/SimdYolo.Web -c Release
 [查看实际推理截图](artifacts/validation/0.10.0/web-browser/web-inference.png) · [网页版详细步骤](examples/SimdYolo.Web/README.md)
 
 当前源码网页版新增[人物/车辆分离与背景去除](examples/SimdYolo.Web/README.md)：点击“人物 / 车辆示例”，分别预览并下载“只保留目标”和“移除目标的背景”透明PNG；支持大图有界处理。[实际截图与下载验证](artifacts/validation/web-cutout/README.md)。这些网页新增功能尚未加入历史0.10.1下载包。
+
+## 0.11.1 实际图片推理优化
+
+对照0.11.0，FP32、640模型输入、CPU四线程；计入真实图片预处理、网络、检测筛选与原图掩码，单位ms。主要分割配置各两个独立进程窗口，大图各一对。网页、HTTP和8位转换单独测量，不能与下方历史纯前向排名混用。
+
+| 图片 / 模型 / 后端 | 优化前 ms | 优化后 ms | 耗时下降 |
+| --- | ---: | ---: | ---: |
+| 810×1080 / v8分割 / CPU | 54.11 | 40.40 | 25.3% |
+| 810×1080 / v8分割 / Vulkan | 30.05 | 17.49 | 41.8% |
+| 810×1080 / YOLO26分割 / CPU | 52.74 | 41.66 | 21.0% |
+| 810×1080 / YOLO26分割 / Vulkan | 27.63 | 16.56 | 40.1% |
+| 2048×1536 / v8分割 / CPU | 62.34 | 41.60 | 33.3% |
+| 2048×1536 / v8分割 / Vulkan | 39.75 | 17.79 | 55.2% |
+
+![0.11.1 实际图片推理优化](artifacts/image-pipeline-0.11.1.png)
+
+主要收益来自掩码与网页管线，纯检测控制组基本持平，网络前向内核没有修改。24个性能窗口与12组实际最终帧对照通过，约757万掩码概率无0.5阈值翻转；网页新增有界缓存和RGB24上传。[完整表格、资源口径与限制](artifacts/image-pipeline-optimization-0.11.1.md) · [原始证据与复现](artifacts/validation/0.11.1/README.md)。本轮没有重测PyTorch/ORT，也未实测Metal。
 
 ## 推理性能：0.9.0 冻结版本实测
 

@@ -16,7 +16,39 @@ internal sealed class InferenceService(Workspace workspace, WorkflowService work
     /// <exception cref="ArgumentException">原图尺寸、RGB数据、后端或置信度无效。</exception>
     /// <exception cref="FormatException">RGB编码无效。</exception>
     /// <exception cref="OperationCanceledException">等待或执行前任务被取消。</exception>
-    internal async Task<object> Predict(InferenceRequest request, CancellationToken cancellation)
+    internal Task<object> Predict(InferenceRequest request, CancellationToken cancellation)
+        => PredictCore(request, _ => Task.FromResult(Workspace.DecodePixels(request.Width, request.Height, request.Pixels)), cancellation);
+
+    /// <summary>接收有界RGB24字节流，在取得推理队列位置后才分配和读取，避免Base64与大JSON复制。</summary>
+    /// <param name="request">模型与图像元数据。</param><param name="body">请求RGB24数据流。</param><param name="length">可选Content-Length。</param><param name="cancellation">取消标记。</param>
+    /// <returns>与原JSON接口相同的推理结果。</returns>
+    /// <exception cref="ArgumentException">尺寸、RGB精确长度或元数据无效。</exception>
+    /// <exception cref="KeyNotFoundException">模型不存在。</exception>
+    /// <exception cref="OperationCanceledException">排队或读取时被取消。</exception>
+    internal Task<object> PredictRgb(InferenceRequest request, Stream body, long? length, CancellationToken cancellation)
+    {
+        if (request.Width is < 1 or > Workspace.MaxUploadEdge || request.Height is < 1 or > Workspace.MaxUploadEdge) throw new ArgumentException("上传RGB最长边为2048。");
+        int bytes = checked(request.Width * request.Height * 3);
+        if (length.HasValue && length != bytes) throw new ArgumentException("RGB24字节数与图像尺寸不一致。");
+        return PredictCore(request, async token =>
+        {
+            var pixels = GC.AllocateUninitializedArray<byte>(bytes);
+            try { await body.ReadExactlyAsync(pixels, token); }
+            catch (EndOfStreamException) { throw new ArgumentException("RGB24数据被截断。"); }
+            if (!length.HasValue && await body.ReadAsync(new byte[1], token) != 0) throw new ArgumentException("RGB24数据超过图像尺寸。");
+            return pixels;
+        }, cancellation);
+    }
+
+    /// <summary>共用元数据校验、串行会话缓存和推理输出，保持JSON与二进制接口语义一致。</summary>
+    /// <param name="request">已声明模型、设备、尺寸、精度及阈值的请求。</param>
+    /// <param name="readPixels">取得队列位置后读取有界RGB24数据的函数。</param>
+    /// <param name="cancellation">排队、读取及执行前的取消标记。</param>
+    /// <returns>框、关键点、量化掩码及实际计时结果。</returns>
+    /// <exception cref="ArgumentException">图像或推理元数据无效。</exception>
+    /// <exception cref="KeyNotFoundException">模型不存在。</exception>
+    /// <exception cref="OperationCanceledException">任务被取消。</exception>
+    private async Task<object> PredictCore(InferenceRequest request, Func<CancellationToken, Task<byte[]>> readPixels, CancellationToken cancellation)
     {
         if (!workspace.Models.TryGetValue(request.ModelId, out var model)) throw new KeyNotFoundException("模型不存在。");
         if (request.OriginalWidth.HasValue != request.OriginalHeight.HasValue) throw new ArgumentException("originalWidth与originalHeight必须同时提供。");
@@ -29,12 +61,12 @@ internal sealed class InferenceService(Workspace workspace, WorkflowService work
         await gate.WaitAsync(cancellation);
         try
         {
+            byte[] pixels = await readPixels(cancellation);
             return await Task.Run<object>(() =>
             {
-                // 排队后才解码RGB，避免多个等待请求同时持有解码后的像素数组。
-                byte[] pixels = Workspace.DecodePixels(request.Width, request.Height, request.Pixels);
+                cancellation.ThrowIfCancellationRequested();
                 float scaleX = (float)originalWidth / request.Width, scaleY = (float)originalHeight / request.Height;
-                var key = (model.Id, device, request.Confidence, precision, request.CalibrationId);
+                var key = (model.Id, device, precision, request.CalibrationId);
                 var node = sessions.First;
                 while (node is not null && node.Value.Key != key) node = node.Next;
                 bool reusedSession = node is not null; double modelLoadMs = 0;
@@ -51,7 +83,7 @@ internal sealed class InferenceService(Workspace workspace, WorkflowService work
                 }
                 else { sessions.Remove(node); sessions.AddFirst(node); }
                 var active = node.Value.Detector;
-                var watch = Stopwatch.StartNew(); var instances = active.Predict(pixels, request.Width, request.Height); watch.Stop();
+                var watch = Stopwatch.StartNew(); var instances = active.Predict(pixels, request.Width, request.Height, request.Confidence); watch.Stop();
                 return new { elapsedMs = watch.Elapsed.TotalMilliseconds, modelLoadMs, reusedSession, backend = active.BackendName, task = active.Task.ToString(),
                     image = new { originalWidth, originalHeight, processedWidth = request.Width, processedHeight = request.Height, resized = originalWidth != request.Width || originalHeight != request.Height, coordinateSystem = "original" },
                     instances = instances.Select(instance => new
@@ -61,7 +93,7 @@ internal sealed class InferenceService(Workspace workspace, WorkflowService work
                     keypoints = instance.Keypoints.Select(point => point with { X = point.X * scaleX, Y = point.Y * scaleY }).ToArray(),
                     // Width/Height是位图尺寸，DisplayWidth/DisplayHeight是原图中的显示范围，避免放大概率数组。
                     mask = instance.Mask is { } mask ? new { x = mask.X * scaleX, y = mask.Y * scaleY, mask.Width, mask.Height, displayWidth = mask.Width * scaleX, displayHeight = mask.Height * scaleY,
-                        probabilities = Convert.ToBase64String(mask.Probabilities.Select(p => (byte)Math.Clamp((int)MathF.Round(p * 255), 0, 255)).ToArray()) } : null
+                        probabilities = MaskConverter.ToBytes(mask.Probabilities) } : null
                 }).ToArray() };
             }, cancellation);
         }
@@ -70,5 +102,5 @@ internal sealed class InferenceService(Workspace workspace, WorkflowService work
 
     /// <summary>在主机停止后释放缓存的模型与设备资源。</summary>
     public void Dispose() { foreach (var session in sessions) session.Detector.Dispose(); sessions.Clear(); gate.Dispose(); }
-    private sealed record Session((string ModelId, ComputeDevice Device, float Confidence, InferencePrecision Precision, string? CalibrationId) Key, YoloDetector Detector);
+    private sealed record Session((string ModelId, ComputeDevice Device, InferencePrecision Precision, string? CalibrationId) Key, YoloDetector Detector);
 }

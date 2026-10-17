@@ -2,6 +2,8 @@
 
 **代码：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
 
+源码0.11.1继续优化图片推理与“目标分离 · 背景去除”，包括掩码SIMD、坐标与行缓存、多实例并行、二进制RGB上传及有界画布缓存。[实际图片优化前后结果](../../artifacts/image-pipeline-optimization-0.11.1.md)单独列出CPU、Vulkan与网页整轮耗时；下文训练数字仍属于0.10.1。
+
 **下载：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) · [网页版](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) · [中文图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)
 
 我希望在.NET应用中，模型加载、推理、训练和结果处理都能直接使用C#。SimdYolo 0.10.1把YOLOv8、Ultralytics YOLOv9、YOLOv10、YOLO11、YOLO26检测头微调放进同一套API和网页，并针对上一轮训练慢的问题继续优化。

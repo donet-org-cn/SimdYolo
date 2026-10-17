@@ -1,5 +1,5 @@
 "use strict";
-import { renderCutouts } from "/cutout.js?v=1";
+import { renderCutouts, MaskCanvasCache } from "/cutout.js?v=2";
 import { createWorkflows } from "/workflows.js?v=011";
 import { createAnnotation } from "/annotation.js?v=011";
 
@@ -9,10 +9,11 @@ import { createAnnotation } from "/annotation.js?v=011";
   const state = {
     info: null, datasets: [], jobs: [], activeJobId: null, activeJob: null,
     image: null, imageName: "", originalWidth: 0, originalHeight: 0, imageVersion: 0, result: null,
-    resultModelId: null, resultBackend: null, resultConfidence: null, resultPrecision: null, cutoutReady: false,
+    resultModelId: null, resultBackend: null, resultConfidence: null, resultPrecision: null, cutoutReady: false, rgbPayload: null,
     inferenceBusy: false, modelUploadBusy: false, trainingBusy: false,
     datasetUploadBusy: false, view: "inference", pollTimer: null, pollFailures: 0,
   };
+  const maskCache = new MaskCanvasCache();
   const colors = ["#8c70df", "#e29268", "#57a6a6", "#b99b53", "#d87b9e", "#729ac9", "#75a76c"];
   const statusLabels = { queued: "等待中", running: "训练中", completed: "已完成", cancelled: "已取消", failed: "失败", idle: "未开始" };
   const taskLabels = { detect: "目标检测", detection: "目标检测", segment: "实例分割", segmentation: "实例分割", pose: "姿态估计" };
@@ -196,13 +197,6 @@ import { createAnnotation } from "/annotation.js?v=011";
     return btoa(parts.join(""));
   }
 
-  function base64ToBytes(base64) {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
-  }
-
   async function decodeImage(blob) {
     if (typeof createImageBitmap === "function") return createImageBitmap(blob);
     const url = URL.createObjectURL(blob);
@@ -238,7 +232,7 @@ import { createAnnotation } from "/annotation.js?v=011";
     return canvas;
   }
 
-  function rgbPayload(image) {
+  function rgbPayload(image, binary = false) {
     const { width, height } = boundedImageSize(image);
     const canvas = imageCanvas(image, width, height);
     try {
@@ -249,13 +243,14 @@ import { createAnnotation } from "/annotation.js?v=011";
         rgb[target++] = rgba[source + 1];
         rgb[target++] = rgba[source + 2];
       }
-      return { width, height, pixels: bytesToBase64(rgb) };
+      return { width, height, pixels: binary ? rgb : bytesToBase64(rgb) };
     } finally { canvas.width = canvas.height = 0; }
   }
 
   async function setImage(blob, name) {
     if (state.inferenceBusy) return;
     const version = ++state.imageVersion;
+    state.rgbPayload = null; maskCache.clear();
     let image = await decodeImage(blob);
     let dimensions;
     try {
@@ -309,19 +304,9 @@ import { createAnnotation } from "/annotation.js?v=011";
         const mask = instance.mask;
         if (!mask.probabilities || !Number.isInteger(mask.width) || !Number.isInteger(mask.height) || mask.width <= 0 || mask.height <= 0) continue;
         try {
-          const bytes = base64ToBytes(mask.probabilities);
-          if (bytes.length !== mask.width * mask.height) continue;
           const rgb = hexRgb(colors[index % colors.length]);
-          const image = new ImageData(mask.width, mask.height);
-          for (let i = 0; i < bytes.length; i++) {
-            image.data[i * 4] = rgb[0]; image.data[i * 4 + 1] = rgb[1]; image.data[i * 4 + 2] = rgb[2];
-            image.data[i * 4 + 3] = bytes[i] >= 128 ? 94 : 0;
-          }
-          const offscreen = document.createElement("canvas");
-          offscreen.width = mask.width; offscreen.height = mask.height;
-          offscreen.getContext("2d").putImageData(image, 0, 0);
+          const offscreen = maskCache.get(mask, rgb, 94);
           context.drawImage(offscreen, mask.x || 0, mask.y || 0, mask.displayWidth ?? mask.width, mask.displayHeight ?? mask.height);
-          offscreen.width = offscreen.height = 0;
         } catch { /* 单个异常掩码不影响检测框及其他实例的可视化。 */ }
       }
     }
@@ -396,7 +381,7 @@ import { createAnnotation } from "/annotation.js?v=011";
         try {
           const target = $("cutout-target").value;
           const name = { people: "人物", vehicles: "车辆", all: "全部目标" }[target] || $("cutout-target").selectedOptions[0].textContent.replace(/^单独选择：/, "");
-          const result = renderCutouts(state.image, state.result.instances || [], state.originalWidth, state.originalHeight, target, foreground, background);
+          const result = renderCutouts(state.image, state.result.instances || [], state.originalWidth, state.originalHeight, target, foreground, background, maskCache);
           if (!result.instances || !result.pixels) {
             foreground.width = foreground.height = background.width = background.height = 0;
             $("cutout-status").textContent = `未找到可分离的${name}，可调整置信度后重新推理或选择其他类别。`;
@@ -486,11 +471,13 @@ import { createAnnotation } from "/annotation.js?v=011";
     updateButtons();
     try {
       const imageVersion = state.imageVersion;
-      const payload = rgbPayload(state.image);
+      const payload = state.rgbPayload ||= rgbPayload(state.image, state.info.binaryRgb === true);
       const modelId = $("inference-model").value, backend = selectedBackend("inference"), confidence = Number($("confidence").value);
       const precisionKey = workflows.precisionKey();
-      const result = await post("/api/infer", { modelId, backend, ...payload, originalWidth: state.originalWidth, originalHeight: state.originalHeight, confidence, ...workflows.inferenceOptions() });
+      const metadata = { modelId, backend, width: payload.width, height: payload.height, originalWidth: state.originalWidth, originalHeight: state.originalHeight, confidence, ...workflows.inferenceOptions() };
+      const result = payload.pixels instanceof Uint8Array ? await api("/api/infer-rgb", { method: "POST", headers: { "Content-Type": "application/octet-stream", "X-SimdYolo": JSON.stringify(metadata) }, body: payload.pixels }) : await post("/api/infer", { ...metadata, pixels: payload.pixels });
       if (imageVersion !== state.imageVersion) return;
+      maskCache.clear();
       state.result = result;
       state.resultModelId = modelId; state.resultBackend = backend; state.resultConfidence = confidence;
       state.resultPrecision = precisionKey;
@@ -897,7 +884,7 @@ import { createAnnotation } from "/annotation.js?v=011";
   window.addEventListener("hashchange", navigate);
   if (typeof ResizeObserver === "function") new ResizeObserver(() => window.requestAnimationFrame(drawChart)).observe($("loss-chart").parentElement);
   else window.addEventListener("resize", drawChart);
-  window.addEventListener("pagehide", () => { window.clearTimeout(state.pollTimer); state.image?.close?.(); });
+  window.addEventListener("pagehide", () => { window.clearTimeout(state.pollTimer); state.image?.close?.(); state.rgbPayload = null; maskCache.clear(); });
   window.addEventListener("pageshow", (event) => { if (event.persisted) { state.image = null; state.result = null; $("image-empty").hidden = false; $("inference-canvas").hidden = true; updateButtons(); poll(); } });
 
   navigate();

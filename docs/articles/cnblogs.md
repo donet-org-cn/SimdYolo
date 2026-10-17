@@ -2,6 +2,8 @@
 
 **仓库：** [hnlyf168/SimdYolo](https://github.com/hnlyf168/SimdYolo)
 
+源码0.11.1新增实际图片推理和目标分离的优化：纯C#掩码SIMD、原型行缓存及多实例并行，网页改用RGB24二进制与有界掩码缓存，置信度变化不再重载模型。[CPU/Vulkan完整图片推理与网页实测](../../artifacts/image-pipeline-optimization-0.11.1.md)保留原始采样、数值门槛和测试范围。
+
 源码更新到0.11.0后，已加入纯.NET训练验证/早停/最佳模型、PT与SYTRAIN导出标准ONNX、网页检测框标注和预标注，以及CPU FP16混合/INT8实验推理。[功能说明与实测](../model-workflows.md)包含当前限制；低精度暂未取得速度优势，GPU保持FP32。下文0.10.1评测与发布附件保留原始版本。
 
 **发布下载：** [0.10.1 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.10.1) · [33模型](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-models-v0.10.1.zip) · [网页版](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-Web-v0.10.1.zip) · [中文图文包](https://github.com/hnlyf168/SimdYolo/releases/download/v0.10.1/SimdYolo-docs-v0.10.1.zip)

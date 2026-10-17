@@ -38,6 +38,7 @@ CpuWinogradPanelTests.Run(Test);
 CpuPackedGemmTests.Run(Test);
 CpuPointwise24Tests.Run(Test);
 CpuActivationTests.Run(Test);
+MaskPipelineTests.Run(Test);
 CpuExecutorTests.Run(Test);
 CpuHeadOptimizationTests.Run(Test);
 CpuHeadCoordinatesTests.Run(Test);

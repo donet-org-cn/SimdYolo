@@ -2,7 +2,7 @@
 
 0.11.0源码新增[CPU FP16混合/INT8与校准、纯.NET ONNX导出、检测验证API](model-workflows.md)。低精度为实验功能，当前未取得速度优势；GPU仍为FP32。下列历史发布与性能记录保持原版本。
 
-以下命令从仓库根目录执行。当前源码0.11.0，已发布下载仍为[0.10.1](releases/v0.10.1.md)，包含主库、训练库、网页及33模型；推理性能表继续标明0.9.0冻结历史实测。[README](../README.md)另列历史训练速度与结果对比。
+以下命令从仓库根目录执行。当前源码0.11.1，已发布下载仍为[0.10.1](releases/v0.10.1.md)，包含主库、训练库、网页及33模型；推理性能表继续标明0.9.0冻结历史实测。[README](../README.md)另列历史训练速度与结果对比。
 
 ## 构建和使用
 
@@ -52,6 +52,24 @@ foreach (var instance in instances)
 ```
 
 换成 `yolo11n-pose.pt` 可返回关键点；换成检测权重可返回检测框。`.onnx` 同样直接传文件路径。
+
+### 0.11.1 图片推理与掩码
+
+同一会话可逐次调整置信度，保持加载时的默认值：
+
+```csharp
+var strict = detector.Predict(rgbBytes, imageWidth, imageHeight, confidence: 0.7f);
+var defaults = detector.Predict(rgbBytes, imageWidth, imageHeight);
+// 直接得到独立的8位掩码数组；可交给自己的.NET图像处理代码。
+if (strict.FirstOrDefault()?.Mask is { } mask)
+{
+    byte[] maskBytes = MaskConverter.ToBytes(mask.Probabilities);
+}
+```
+
+转换前应检查实例存在且包含Mask。转换将有限概率裁剪到0到1，再乘255并按中点取偶舍入；NaN和无穷转换为0。浮点概率仍由InstanceMask提供，不强制应用改用8位掩码。
+
+掩码解码共享坐标表、复用双线性插值行，并以SIMD计算概率。多实例且总区域足够大时，按CpuThreads限制并行，保留实例顺序与各输出数组的独立所有权；单实例或小区域串行。CPU及Vulkan/Metal输出共用此托管后处理，未改变GPU前向着色器。[实际图片优化前后及数值校验](../artifacts/image-pipeline-optimization-0.11.1.md)。
 
 YOLO26 使用相同 API，路径可换成 `models/pt/yolo26n.pt`、`yolo26n-seg.pt`、`yolo26n-pose.pt` 或对应的 `models/onnx/*.onnx`。框、掩码、关键点随端到端 TopK 一起收集，端到端结果跳过 NMS。
 
