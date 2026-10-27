@@ -4,7 +4,7 @@
 
 [文档导航](docs/README.md) · [0.11.2原版/ORT排名](artifacts/runtime-comparison-0.11.2.md) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
 
-**当前源码：0.11.3；最新正式 NuGet / Release：0.11.2。** [下载正式版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2) · [0.11.2发布说明](docs/releases/v0.11.2.md)。历史附件保持原内容。
+**当前源码：0.11.3；最新正式 NuGet / Release：0.11.2。** [下载正式版](https://github.com/donet-org-cn/SimdYolo/releases/tag/v0.11.2) · [0.11.2发布说明](docs/releases/v0.11.2.md)。历史附件保持原内容。
 
 0.11.3继续优化加载与首次推理：PT只读解析、一次扫描BN融合、ONNX整数路由及工作区复用，网页一次读取标签/训练能力；Vulkan复用进程实例，减少驱动反复加载。新增可选`.NET ReadyToRun`快速启动发布，主库普通构建仍为托管IL。[加载/首帧/稳态对照与图](artifacts/startup-optimization-0.11.3.md) · [发布方式、计时口径与复现](docs/startup.md) · [稳定性验证](artifacts/validation/0.11.3/README.md)。本轮结果与下文0.11.2原版排名分别保留。
 
@@ -65,17 +65,17 @@
 
 | 附件 | 内容 |
 | --- | --- |
-| [SimdYolo.0.11.2.nupkg](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo.0.11.2.nupkg) | 推理主库、中文XML及GPU着色器 |
-| [SimdYolo.Training.0.11.2.nupkg](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo.Training.0.11.2.nupkg) | 五代检测头微调、验证/最佳模型/早停，依赖同版主库 |
-| [SimdYolo-models-v0.11.2.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-models-v0.11.2.zip) | 11个PT、22个ONNX、来源、SHA256和原许可证 |
-| [SimdYolo-Web-v0.11.2.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-Web-v0.11.2.zip) | ASP.NET Core网页、启动脚本；模型和.NET运行时另备 |
-| [SimdYolo-docs-v0.11.2.zip](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SimdYolo-docs-v0.11.2.zip) | 当前README、API/训练说明、图文、完整评测与复现输入 |
-| [SHA256SUMS-v0.11.2.txt](https://github.com/hnlyf168/SimdYolo/releases/download/v0.11.2/SHA256SUMS-v0.11.2.txt) | 全部附件的SHA256 |
+| [SimdYolo.0.11.2.nupkg](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SimdYolo.0.11.2.nupkg) | 推理主库、中文XML及GPU着色器 |
+| [SimdYolo.Training.0.11.2.nupkg](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SimdYolo.Training.0.11.2.nupkg) | 五代检测头微调、验证/最佳模型/早停，依赖同版主库 |
+| [SimdYolo-models-v0.11.2.zip](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SimdYolo-models-v0.11.2.zip) | 11个PT、22个ONNX、来源、SHA256和原许可证 |
+| [SimdYolo-Web-v0.11.2.zip](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SimdYolo-Web-v0.11.2.zip) | ASP.NET Core网页、启动脚本；模型和.NET运行时另备 |
+| [SimdYolo-docs-v0.11.2.zip](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SimdYolo-docs-v0.11.2.zip) | 当前README、API/训练说明、图文、完整评测与复现输入 |
+| [SHA256SUMS-v0.11.2.txt](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SHA256SUMS-v0.11.2.txt) | 全部附件的SHA256 |
 
 从源码启动需要 .NET 10 SDK 和 Git LFS：
 
 ```powershell
-git clone https://github.com/hnlyf168/SimdYolo.git
+git clone https://github.com/donet-org-cn/SimdYolo.git
 cd SimdYolo
 git lfs pull
 dotnet run --project examples/SimdYolo.Web -c Release
