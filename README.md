@@ -4,7 +4,7 @@
 
 [文档导航](docs/README.md) · [0.11.2原版/ORT排名](artifacts/runtime-comparison-0.11.2.md) · [网页版示例](examples/SimdYolo.Web/README.md) · [推理 API](docs/inference.md) · [训练说明](docs/training.md) · [模型与许可证](models/README.md)
 
-**当前源码：0.11.3；最新正式 NuGet / Release：0.11.2。** [下载正式版](https://github.com/donet-org-cn/SimdYolo/releases/tag/v0.11.2) · [0.11.2发布说明](docs/releases/v0.11.2.md)。历史附件保持原内容。
+**当前源码：0.11.3。** [最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest) · [0.11.3 发布说明与性能对照](docs/releases/v0.11.3.md) · [0.11.2 历史版本](docs/releases/v0.11.2.md)。
 
 0.11.3继续优化加载与首次推理：PT只读解析、一次扫描BN融合、ONNX整数路由及工作区复用，网页一次读取标签/训练能力；Vulkan复用进程实例，减少驱动反复加载。新增可选`.NET ReadyToRun`快速启动发布，主库普通构建仍为托管IL。[加载/首帧/稳态对照与图](artifacts/startup-optimization-0.11.3.md) · [发布方式、计时口径与复现](docs/startup.md) · [稳定性验证](artifacts/validation/0.11.3/README.md)。本轮结果与下文0.11.2原版排名分别保留。
 
@@ -24,7 +24,7 @@
 
 ## 当前版本能力
 
-当前源码为 **0.11.2**，包含图片推理、目标分离与背景去除优化，并完成与原版PyTorch/ORT的新一轮对照：掩码使用SIMD、坐标表和行缓存，多实例按面积及线程数并行；网页复用RGB与有界掩码缓存，改用RGB24二进制上传，调整置信度无需重载模型。[优化前后实测](artifacts/image-pipeline-optimization-0.11.1.md) · [本版验证与截图](artifacts/validation/0.11.2/README.md)。历史0.10.1下载包不包含这些新增功能。
+**0.11.2** 包含图片推理、目标分离与背景去除优化，并完成与原版PyTorch/ORT的新一轮对照：掩码使用SIMD、坐标表和行缓存，多实例按面积及线程数并行；网页复用RGB与有界掩码缓存，改用RGB24二进制上传，调整置信度无需重载模型。[优化前后实测](artifacts/image-pipeline-optimization-0.11.1.md) · [0.11.2 验证与截图](artifacts/validation/0.11.2/README.md)。
 
 0.11.0已加入纯.NET的训练验证/早停/最佳模型、PT/SYTRAIN导出ONNX、网页检测框标注与预标注、CPU FP16混合/INT8实验推理。[使用说明与API](docs/model-workflows.md) · [0.11.0验证](artifacts/validation/0.11.0/README.md)。
 

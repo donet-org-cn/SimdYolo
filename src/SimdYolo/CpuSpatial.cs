@@ -22,16 +22,17 @@ internal static class CpuSpatial
     {
         int ih = x.Shape[2], iw = x.Shape[3], channels = x.Shape[0] * x.Shape[1];
         var result = Tensor.TemporaryUninitialized(x.Shape[0], x.Shape[1], h, w); float[] input = x.Data, output = result.Data;
-        int[] columns = Enumerable.Range(0, w).Select(xx => xx * iw / w).ToArray();
+        bool doubleSize = h == ih * 2 && w == iw * 2;
+        int[] columns = doubleSize ? [] : Enumerable.Range(0, w).Select(xx => xx * iw / w).ToArray();
         // 处理一个批次/通道的独立空间平面，将结果写入其独占输出区。
         // 参数 c：当前批次/通道平面的索引。
         void Channel(int c)
         {
-            if (h == ih * 2 && w == iw * 2)
+            if (doubleSize)
                 for (int y = 0; y < ih; y++)
                 {
                     int src = (c * ih + y) * iw, dst = (c * h + y * 2) * w;
-                    RepeatTwo(input, output, src, dst, iw); Array.Copy(output, dst, output, dst + w, w);
+                    RepeatTwo(input, output, src, dst, w, iw);
                 }
             else
                 for (int y = 0; y < h; y++)
@@ -44,13 +45,14 @@ internal static class CpuSpatial
         else for (int c = 0; c < channels; c++) Channel(c);
         return result;
     }
-    /// <summary>将一个输入行的每个采样重复两次写入输出行。</summary>
+    /// <summary>将一个输入行的每个采样重复两次，并把同一组向量写入两个相邻输出行。</summary>
     /// <param name="input">输入张量或连续输入缓冲区。</param>
     /// <param name="output">预分配的目标张量、数组或固定写入指针。</param>
     /// <param name="source">当前读取在源数组中的起始元素偏移。</param>
     /// <param name="target">当前写入在目标数组中的起始元素偏移。</param>
+    /// <param name="stride">两个相邻输出行之间的元素距离。</param>
     /// <param name="length">需要读取或重复的有效输入元素数。</param>
-    private static unsafe void RepeatTwo(float[] input, float[] output, int source, int target, int length)
+    private static unsafe void RepeatTwo(float[] input, float[] output, int source, int target, int stride, int length)
     {
         fixed (float* src = input, dst = output)
         {
@@ -59,10 +61,21 @@ internal static class CpuSpatial
                 for (; j <= length - 8; j += 8)
                 {
                     var value = Avx.LoadVector256(src + source + j); var low = Avx.UnpackLow(value, value); var high = Avx.UnpackHigh(value, value);
-                    Avx.Store(dst + target + j * 2, Avx.Permute2x128(low, high, 0x20));
-                    Avx.Store(dst + target + j * 2 + 8, Avx.Permute2x128(low, high, 0x31));
+                    var first = Avx.Permute2x128(low, high, 0x20);
+                    var second = Avx.Permute2x128(low, high, 0x31);
+                    int offset = target + j * 2;
+                    Avx.Store(dst + offset, first);
+                    Avx.Store(dst + offset + 8, second);
+                    Avx.Store(dst + offset + stride, first);
+                    Avx.Store(dst + offset + stride + 8, second);
                 }
-            for (; j < length; j++) dst[target + j * 2] = dst[target + j * 2 + 1] = src[source + j];
+            for (; j < length; j++)
+            {
+                int offset = target + j * 2;
+                float value = src[source + j];
+                dst[offset] = dst[offset + 1] = value;
+                dst[offset + stride] = dst[offset + stride + 1] = value;
+            }
         }
     }
     /// <summary>为每个批次和通道计算独立卷积，优先尝试小平面填充或专用 SIMD 路径。</summary>
@@ -344,6 +357,9 @@ internal static class CpuSpatial
     public static Tensor MaxPool(Tensor x, int[] kernel, int[] stride, int[] pad, int oh, int ow)
     {
         int channels = x.Shape[0] * x.Shape[1], h = x.Shape[2], w = x.Shape[3];
+        int kh = kernel[0], kw = kernel[1];
+        int sh = stride[0], sw = stride[1], ph = pad[0], pw = pad[1];
+        int lanes = Vector<float>.Count;
         var output = Tensor.TemporaryUninitialized(x.Shape[0], x.Shape[1], oh, ow); float[] data = x.Data, target = output.Data;
         var horizontal = ArrayPool<float>.Shared.Rent(channels * h * ow);
         try
@@ -357,34 +373,36 @@ internal static class CpuSpatial
                     int xx = 0, src = (c * h + y) * w, dst = (c * h + y) * ow;
                     while (xx < ow)
                     {
-                        int sx = xx * stride[1] - pad[1];
-                        if (stride[1] == 1 && xx <= ow - Vector<float>.Count && sx >= 0 && sx + Vector<float>.Count + kernel[1] - 1 <= w)
+                        int sx = xx * sw - pw;
+                        if (sw == 1 && xx <= ow - lanes && sx >= 0 && (long)sx + lanes + kw - 1 <= w)
                         {
                             var value = new Vector<float>(float.NegativeInfinity);
-                            for (int k = 0; k < kernel[1]; k++) value = Vector.Max(value, new Vector<float>(data, src + sx + k));
-                            value.CopyTo(horizontal, dst + xx); xx += Vector<float>.Count;
+                            for (int k = 0; k < kw; k++) value = Vector.Max(value, new Vector<float>(data, src + sx + k));
+                            value.CopyTo(horizontal, dst + xx); xx += lanes;
                         }
                         else
                         {
                             float value = float.NegativeInfinity;
-                            for (int k = 0; k < kernel[1]; k++) if ((uint)(sx + k) < w) value = MathF.Max(value, data[src + sx + k]);
+                            int start = Math.Max(0, sx), end = (int)Math.Min(w, (long)sx + kw);
+                            for (int k = start; k < end; k++) value = MathF.Max(value, data[src + k]);
                             horizontal[dst + xx++] = value;
                         }
                     }
                 }
                 for (int y = 0; y < oh; y++)
                 {
-                    int sy = y * stride[0] - pad[0], xx = 0, dst = (c * oh + y) * ow;
-                    for (; xx <= ow - Vector<float>.Count; xx += Vector<float>.Count)
+                    int sy = y * sh - ph, xx = 0, dst = (c * oh + y) * ow;
+                    int start = Math.Max(0, sy), end = (int)Math.Min(h, (long)sy + kh);
+                    for (; xx <= ow - lanes; xx += lanes)
                     {
                         var value = new Vector<float>(float.NegativeInfinity);
-                        for (int k = 0; k < kernel[0]; k++) if ((uint)(sy + k) < h) value = Vector.Max(value, new Vector<float>(horizontal, (c * h + sy + k) * ow + xx));
+                        for (int k = start; k < end; k++) value = Vector.Max(value, new Vector<float>(horizontal, (c * h + k) * ow + xx));
                         value.CopyTo(target, dst + xx);
                     }
                     for (; xx < ow; xx++)
                     {
                         float value = float.NegativeInfinity;
-                        for (int k = 0; k < kernel[0]; k++) if ((uint)(sy + k) < h) value = MathF.Max(value, horizontal[(c * h + sy + k) * ow + xx]);
+                        for (int k = start; k < end; k++) value = MathF.Max(value, horizontal[(c * h + k) * ow + xx]);
                         target[dst + xx] = value;
                     }
                 }

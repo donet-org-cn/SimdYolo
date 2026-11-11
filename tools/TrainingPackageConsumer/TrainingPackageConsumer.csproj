@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <RestorePackagesPath>../../.cache/training-package-feed</RestorePackagesPath>
     <NuGetAudit>false</NuGetAudit>
+    <PackageVersionUnderTest Condition="'$(PackageVersionUnderTest)' == ''">0.10.1</PackageVersionUnderTest>
   </PropertyGroup>
-  <ItemGroup><PackageReference Include="SimdYolo.Training" Version="0.10.1" /></ItemGroup>
+  <ItemGroup><PackageReference Include="SimdYolo.Training" Version="$(PackageVersionUnderTest)" /></ItemGroup>
 </Project>

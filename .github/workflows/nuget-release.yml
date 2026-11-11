@@ -1,0 +1,140 @@
+name: NuGet release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Validate package versions
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(dotnet msbuild src/SimdYolo -getProperty:PackageVersion)
+          training=$(dotnet msbuild src/SimdYolo.Training -getProperty:PackageVersion)
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          test "$training" = "$version"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then test "$GITHUB_REF_NAME" = "v$version"; fi
+          test -s "docs/releases/v$version.md"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Build and test CPU inference and training
+        run: |
+          dotnet build SimdYolo.sln -c Release -p:ContinuousIntegrationBuild=true
+          dotnet run --project tests/SimdYolo.Tests -c Release --no-build
+          dotnet run --project tests/SimdYolo.Training.Tests -c Release --no-build
+      - name: Test Vulkan with Mesa's software device
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mesa-vulkan-drivers libvulkan1
+          export VK_DRIVER_FILES=$(find /usr/share/vulkan/icd.d -name 'lvp_icd*.json' -print -quit)
+          test -n "$VK_DRIVER_FILES"
+          SIMDYOLO_TEST_FILTER='Vulkan buffer views' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
+      - name: Pack and consume the two release packages
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          dotnet pack src/SimdYolo -c Release --no-build -o release
+          dotnet pack src/SimdYolo.Training -c Release --no-build -o release
+          consumer=tools/TrainingPackageConsumer
+          dotnet restore "$consumer" --source "$PWD/release" \
+            -p:PackageVersionUnderTest="$RELEASE_VERSION" -p:RestorePackagesPath="$RUNNER_TEMP/simdyolo-packages"
+          dotnet build "$consumer" -c Release --no-restore -p:PackageVersionUnderTest="$RELEASE_VERSION"
+          dotnet "$consumer/bin/Release/net10.0/TrainingPackageConsumer.dll" models/pt/yolov8n.pt "$RUNNER_TEMP/consumer" Cpu
+          (cd release && sha256sum "SimdYolo.$RELEASE_VERSION.nupkg" "SimdYolo.Training.$RELEASE_VERSION.nupkg" > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-${{ steps.version.outputs.version }}
+          path: release/
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: nuget-release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-${{ needs.build.outputs.version }}
+          path: release
+      - run: cd release && sha256sum -c SHA256SUMS.txt
+      - uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: Push and verify the public NuGet downloads
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          for id in SimdYolo SimdYolo.Training; do
+            dotnet nuget push "release/$id.$RELEASE_VERSION.nupkg" \
+              --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
+          done
+          python3 tools/verify-nuget-release.py release "$RELEASE_VERSION"
+
+  github-release:
+    needs: [build, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-${{ needs.build.outputs.version }}
+          path: release
+      - name: Publish GitHub Release and its verified package assets
+        run: |
+          tag="v$RELEASE_VERSION"
+          (cd release && sha256sum -c SHA256SUMS.txt)
+          if ! draft=$(gh release view "$tag" --json isDraft --jq '.isDraft'); then
+            gh release create "$tag" --verify-tag --draft --title "SimdYolo $RELEASE_VERSION" --notes-file "docs/releases/$tag.md"
+            draft=true
+          fi
+          if [ "$draft" = true ]; then
+            gh release upload "$tag" release/*.nupkg release/SHA256SUMS.txt --clobber
+            gh release edit "$tag" --draft=false --latest
+          fi
+          gh release download "$tag" --pattern '*.nupkg' --dir "$RUNNER_TEMP/github-release"
+          for package in release/*.nupkg; do
+            cmp "$package" "$RUNNER_TEMP/github-release/${package##*/}"
+          done

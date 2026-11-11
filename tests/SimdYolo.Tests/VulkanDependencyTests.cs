@@ -9,12 +9,44 @@ internal static class VulkanBufferViewsTests
     /// <exception cref="Exception">测试断言不满足预期条件时。</exception>
     internal static void Run(Action<string, Action> test)
     {
+        var type = typeof(VulkanBackend).GetInterface("SimdYolo.IDeviceBackend")!;
+        var begin = type.GetMethod("BeginFrame")!;
+        var end = type.GetMethod("EndFrame")!;
+        var materialize = type.GetMethod("MaterializeOutputs")!;
+        test("Vulkan buffer views concatenate batched host and device tensors with empty inputs", () =>
+        {
+            using var gpu = new VulkanBackend();
+            foreach (int batch in new[] { 1, 2, 4, 5 })
+            {
+                float[] left = Enumerable.Range(0, batch * 16).Select(i => (float)i).ToArray();
+                float[] right = Enumerable.Range(0, batch * 8).Select(i => -(float)i).ToArray();
+                var first = new Tensor(left, batch, 2, 2, 4);
+                var second = new Tensor(right, batch, 1, 2, 4);
+                var empty = new Tensor(batch, 0, 2, 4);
+                begin.Invoke(gpu, null);
+                try
+                {
+                    var onDevice = TensorOps.Arithmetic(first, new Tensor([2f], []), 12);
+                    var result = TensorOps.Concat([empty, onDevice, second, onDevice], 1);
+                    materialize.Invoke(gpu, [new[] { result }]);
+                    if (!result.Shape.SequenceEqual([batch, 5, 2, 4]))
+                        throw new Exception("Incorrect batched concatenation shape.");
+                    for (int b = 0; b < batch; b++)
+                    {
+                        var row = result.Data.AsSpan(b * 40, 40);
+                        for (int i = 0; i < 16; i++)
+                            if (row[i] != left[b * 16 + i] * 2 || row[24 + i] != row[i])
+                                throw new Exception($"Incorrect device slice for batch {b}.");
+                        if (!row.Slice(16, 8).SequenceEqual(right.AsSpan(b * 8, 8)))
+                            throw new Exception($"Incorrect host slice for batch {b}.");
+                    }
+                }
+                finally { end.Invoke(gpu, null); }
+            }
+        });
         test("Vulkan buffer views preserve independent branches, transfers, aliases and flushes", () =>
         {
                 using var gpu = new VulkanBackend();
-                var type = typeof(VulkanBackend).GetInterface("SimdYolo.IDeviceBackend")!;
-                var begin = type.GetMethod("BeginFrame")!; var end = type.GetMethod("EndFrame")!;
-                var materialize = type.GetMethod("MaterializeOutputs")!;
                 var offset = Constant(.25f); var scale = Constant(-.375f); var last = Constant(.125f);
                 for (int frame = 0; frame < 4; frame++)
                 {

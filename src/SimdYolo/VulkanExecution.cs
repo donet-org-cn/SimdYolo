@@ -374,14 +374,17 @@ public sealed unsafe partial class VulkanBackend
     /// <returns>属于当前后端活动帧的设备结果张量；需要在帧结束前物化主机数据。</returns>
     Tensor IDeviceBackend.DeviceConcat(IReadOnlyList<Tensor> tensors, int axis, int[] shape)
     {
-        var output = AllocateTensor(shape); int inner = Tensor.Count(shape[(axis + 1)..]), outer = Tensor.Count(shape[..axis]);
-        var destination = output.Storage!; Barrier();
+        var output = AllocateTensor(shape);
+        if (output.Length == 0) return output;
+        int inner = Tensor.Count(shape[(axis + 1)..]), outer = Tensor.Count(shape[..axis]);
+        var destination = output.Storage!;
         if (outer > 4)
         {
             if (!tensorPipelines.TryGetValue(26, out ulong concatPipeline)) { concatPipeline = CreateTensorPipeline(26); tensorPipelines[26] = concatPipeline; }
             var zero = Upload(scalarZero); uint start = 0;
             foreach (var tensor in tensors)
             {
+                if (tensor.Length == 0) continue;
                 var source = Upload(tensor);
                 var p = DeviceOps.Parameters((uint)tensor.Length, (uint)tensor.Shape[axis], (uint)shape[axis], (uint)inner, start);
                 p[28] = (uint)(source.Offset % 256 / 4); p[30] = (uint)(destination.Offset % 256 / 4);
@@ -390,20 +393,28 @@ public sealed unsafe partial class VulkanBackend
             }
             return output;
         }
-        for (int o = 0; o < outer; o++)
+        foreach (var tensor in tensors)
         {
-            ulong target = destination.Offset + (ulong)(o * shape[axis] * inner) * 4;
-            foreach (var tensor in tensors)
+            if (tensor.Length != 0) Upload(tensor);
+        }
+        // All sources are ready after one barrier. The destination slices are disjoint.
+        Barrier(4160, 2048, 6144, 4096);
+        ulong rowBytes = (ulong)shape[axis] * (ulong)inner * sizeof(float);
+        ulong target = destination.Offset;
+        ulong destinationBuffer = ((GpuBuffer)destination.Buffer).Buffer;
+        BufferCopy* regions = stackalloc BufferCopy[outer];
+        foreach (var tensor in tensors)
+        {
+            if (tensor.Length == 0) continue;
+            var source = Upload(tensor);
+            ulong bytes = (ulong)(tensor.Length / outer) * sizeof(float);
+            for (int o = 0; o < outer; o++)
             {
-                var source = Upload(tensor); ulong bytes = (ulong)(tensor.Shape[axis] * inner) * 4;
-                if (bytes > 0)
-                {
-                    // 上传拷贝已在命令流前方录制；先建立屏障，让传输写入对本次拷贝可见。
-                    Barrier(); BufferCopy copy = new() { SourceOffset = source.Offset + (ulong)o * bytes, DestinationOffset = target, Size = bytes };
-                    Vk.CopyBuffer(command, ((GpuBuffer)source.Buffer).Buffer, ((GpuBuffer)destination.Buffer).Buffer, 1, &copy); commandsRecorded++;
-                }
-                target += bytes;
+                regions[o] = new() { SourceOffset = source.Offset + (ulong)o * bytes, DestinationOffset = target + (ulong)o * rowBytes, Size = bytes };
             }
+            Vk.CopyBuffer(command, ((GpuBuffer)source.Buffer).Buffer, destinationBuffer, (uint)outer, regions);
+            commandsRecorded++;
+            target += bytes;
         }
         return output;
     }

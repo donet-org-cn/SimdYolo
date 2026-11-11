@@ -143,6 +143,22 @@ Test("Separable padded max pool vs scalar", () =>
         }
     }
 });
+Test("Nearest resize preserves samples across doubled rows, vector tails and batches", () =>
+{
+    foreach (int width in new[] { 3, 19 })
+    {
+        var input = new Tensor(Enumerable.Range(0, 2 * 3 * 7 * width).Select(i => -i * .25f).ToArray(), 2, 3, 7, width);
+        foreach (var (h, w) in new[] { (14, 2 * width), (4, width + 3) })
+        {
+            var output = TensorOps.ResizeNearest(input, h, w);
+            for (int plane = 0; plane < 6; plane++)
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                        if (output.Data[(plane * h + y) * w + x] != input.Data[(plane * 7 + y * 7 / h) * width + x * width / w])
+                            throw new Exception($"Incorrect nearest sample at {plane}/{y}/{x}.");
+        }
+    }
+});
 Test("SIMD average pool, padding and excluded samples vs scalar", () =>
 {
     var x = new Tensor(Enumerable.Range(0, 2 * 3 * 9 * 43).Select(i => MathF.Sin(i)).ToArray(), 2, 3, 9, 43);
