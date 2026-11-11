@@ -1,6 +1,6 @@
 # 加载、首次推理与会话稳定性（源码 0.11.3）
 
-0.11.3 优化 PT 元数据读取、BN 权重准备和 ONNX 执行工作区，并提供可选的快速启动发布配置。最新正式下载仍为 [v0.11.2](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)；本页描述后续源码，历史附件没有被替换。
+0.11.3 优化 PT 元数据读取、BN 权重准备和 ONNX 执行工作区，并提供可选的快速启动发布配置。[0.11.3 发布说明](releases/v0.11.3.md) · [最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest)。
 
 [优化前后实测及图表](../artifacts/startup-optimization-0.11.3.md) · [验证证据](../artifacts/validation/0.11.3/README.md)。本轮分别比较旧版与新版普通 IL，以及同一新版源码的 IL 与 ReadyToRun。PyTorch/ORT 排名使用 [0.11.2 的独立实测](../artifacts/runtime-comparison-0.11.2.md)，不能把后续源码的耗时套入历史排名。
 

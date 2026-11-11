@@ -63,6 +63,10 @@
 
 ## 下载与启动
 
+0.11.3 使用 .NET 10。[SimdYolo 推理包](https://www.nuget.org/packages/SimdYolo/0.11.3) · [SimdYolo.Training 训练包](https://www.nuget.org/packages/SimdYolo.Training/0.11.3) · [GitHub Release 与校验清单](https://github.com/donet-org-cn/SimdYolo/releases/tag/v0.11.3)。
+
+### 0.11.2 历史附件
+
 | 附件 | 内容 |
 | --- | --- |
 | [SimdYolo.0.11.2.nupkg](https://github.com/donet-org-cn/SimdYolo/releases/download/v0.11.2/SimdYolo.0.11.2.nupkg) | 推理主库、中文XML及GPU着色器 |

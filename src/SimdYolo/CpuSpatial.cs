@@ -32,7 +32,7 @@ internal static class CpuSpatial
                 for (int y = 0; y < ih; y++)
                 {
                     int src = (c * ih + y) * iw, dst = (c * h + y * 2) * w;
-                    RepeatTwo(input, output, src, dst, w, iw);
+                    RepeatTwo(input, output, src, dst, iw); Array.Copy(output, dst, output, dst + w, w);
                 }
             else
                 for (int y = 0; y < h; y++)
@@ -45,14 +45,13 @@ internal static class CpuSpatial
         else for (int c = 0; c < channels; c++) Channel(c);
         return result;
     }
-    /// <summary>将一个输入行的每个采样重复两次，并把同一组向量写入两个相邻输出行。</summary>
+    /// <summary>将一个输入行的每个采样重复两次写入输出行。</summary>
     /// <param name="input">输入张量或连续输入缓冲区。</param>
     /// <param name="output">预分配的目标张量、数组或固定写入指针。</param>
     /// <param name="source">当前读取在源数组中的起始元素偏移。</param>
     /// <param name="target">当前写入在目标数组中的起始元素偏移。</param>
-    /// <param name="stride">两个相邻输出行之间的元素距离。</param>
     /// <param name="length">需要读取或重复的有效输入元素数。</param>
-    private static unsafe void RepeatTwo(float[] input, float[] output, int source, int target, int stride, int length)
+    private static unsafe void RepeatTwo(float[] input, float[] output, int source, int target, int length)
     {
         fixed (float* src = input, dst = output)
         {
@@ -61,21 +60,10 @@ internal static class CpuSpatial
                 for (; j <= length - 8; j += 8)
                 {
                     var value = Avx.LoadVector256(src + source + j); var low = Avx.UnpackLow(value, value); var high = Avx.UnpackHigh(value, value);
-                    var first = Avx.Permute2x128(low, high, 0x20);
-                    var second = Avx.Permute2x128(low, high, 0x31);
-                    int offset = target + j * 2;
-                    Avx.Store(dst + offset, first);
-                    Avx.Store(dst + offset + 8, second);
-                    Avx.Store(dst + offset + stride, first);
-                    Avx.Store(dst + offset + stride + 8, second);
+                    Avx.Store(dst + target + j * 2, Avx.Permute2x128(low, high, 0x20));
+                    Avx.Store(dst + target + j * 2 + 8, Avx.Permute2x128(low, high, 0x31));
                 }
-            for (; j < length; j++)
-            {
-                int offset = target + j * 2;
-                float value = src[source + j];
-                dst[offset] = dst[offset + 1] = value;
-                dst[offset + stride] = dst[offset + stride + 1] = value;
-            }
+            for (; j < length; j++) dst[target + j * 2] = dst[target + j * 2 + 1] = src[source + j];
         }
     }
     /// <summary>为每个批次和通道计算独立卷积，优先尝试小平面填充或专用 SIMD 路径。</summary>

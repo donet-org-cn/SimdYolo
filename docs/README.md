@@ -1,6 +1,6 @@
 # SimdYolo 文档导航（源码0.11.3）
 
-当前源码为 **0.11.3**，最新正式NuGet/Release为 **0.11.2**。[下载正式版](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)；历史Release保持原内容。0.11.3加载/首帧及稳定性改动使用源码构建，见[实测与图](../artifacts/startup-optimization-0.11.3.md)。
+当前源码为 **0.11.3**。[最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest) · [0.11.3 发布说明](releases/v0.11.3.md) · [加载、首帧及稳定性实测](../artifacts/startup-optimization-0.11.3.md)。
 
 ## 从这里开始
 
