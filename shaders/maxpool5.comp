@@ -1,0 +1,48 @@
+#version 450
+
+layout(local_size_x = 16, local_size_y = 8) in;
+layout(set = 0, binding = 0, std430) readonly buffer Input { float inputValues[]; };
+layout(set = 0, binding = 2, std430) writeonly buffer Output { float outputValues[]; };
+layout(push_constant) uniform Params { uint values[32]; } params;
+
+// Each workgroup shares the input patch, including the two-pixel halo.
+shared float patchValues[12 * 20];
+
+void main()
+{
+    uint height = params.values[1];
+    uint width = params.values[2];
+    uint plane = gl_WorkGroupID.z * height * width;
+    ivec2 origin = ivec2(gl_WorkGroupID.xy * uvec2(16, 8));
+    float negativeInfinity = uintBitsToFloat(0xff800000u);
+
+    for (uint i = gl_LocalInvocationIndex; i < 12 * 20; i += 16 * 8)
+    {
+        ivec2 inputPosition = origin + ivec2(int(i % 20), int(i / 20)) - 2;
+        float value = negativeInfinity;
+        if (all(greaterThanEqual(inputPosition, ivec2(0))) &&
+            all(lessThan(inputPosition, ivec2(width, height))))
+        {
+            uint inputIndex = plane + uint(inputPosition.y) * width + uint(inputPosition.x);
+            value = inputValues[params.values[28] + inputIndex];
+        }
+        patchValues[i] = value;
+    }
+    barrier();
+
+    uvec2 position = gl_GlobalInvocationID.xy;
+    if (position.x >= width || position.y >= height) return;
+
+    uint offset = gl_LocalInvocationID.y * 20 + gl_LocalInvocationID.x;
+    float maximum = negativeInfinity;
+    for (uint row = 0; row < 5; ++row)
+    {
+        uint start = offset + row * 20;
+        maximum = max(maximum, patchValues[start]);
+        maximum = max(maximum, patchValues[start + 1]);
+        maximum = max(maximum, patchValues[start + 2]);
+        maximum = max(maximum, patchValues[start + 3]);
+        maximum = max(maximum, patchValues[start + 4]);
+    }
+    outputValues[params.values[30] + plane + position.y * width + position.x] = maximum;
+}

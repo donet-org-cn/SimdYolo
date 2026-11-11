@@ -1,6 +1,8 @@
-# SimdYolo 文档导航（源码0.11.3）
+# SimdYolo 文档导航（源码0.11.4）
 
-当前源码为 **0.11.3**。[最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest) · [0.11.3 发布说明](releases/v0.11.3.md) · [加载、首帧及稳定性实测](../artifacts/startup-optimization-0.11.3.md)。
+当前源码为 **0.11.4**。[最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest) · [0.11.4 中英文发布说明](releases/v0.11.4.md) · [CPU / GPU 优化实测](../artifacts/cpu-gpu-optimization-2026-11-11.md)。
+
+当前 NuGet 包：[SimdYolo 0.11.4](https://www.nuget.org/packages/SimdYolo/0.11.4) · [SimdYolo.Training 0.11.4](https://www.nuget.org/packages/SimdYolo.Training/0.11.4)。历史启动数据见[加载、首帧及稳定性实测](../artifacts/startup-optimization-0.11.3.md)。
 
 ## 从这里开始
 
@@ -16,7 +18,7 @@
 | 测试、实际PNG、程序集摘要与复现 | [0.11.1验证](../artifacts/validation/0.11.1/README.md)、[全部历史验证](../VALIDATION.md) |
 | 公众号与博客园图文 | [文章与配图](articles/README.md) |
 
-## 0.11.2 下载与启动
+## 历史 0.11.2 附件与源码启动
 
 | 内容 | 入口 |
 | --- | --- |
@@ -24,7 +26,7 @@
 | 主库0.11.2 | [SimdYolo.0.11.2.nupkg](../artifacts/SimdYolo.0.11.2.nupkg) |
 | 训练库0.11.2 | [SimdYolo.Training.0.11.2.nupkg](../artifacts/SimdYolo.Training.0.11.2.nupkg)，依赖同版主库 |
 | 33模型与原许可证 | [模型目录](../models/README.md)；权重通过Git LFS拉取，也可使用历史Release模型ZIP |
-| 当前正式发布 | [v0.11.2 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)，含本版网页、模型与文档ZIP |
+| 历史运行包 | [v0.11.2 Release](https://github.com/hnlyf168/SimdYolo/releases/tag/v0.11.2)，含该版本网页、模型与文档ZIP |
 
 ~~~powershell
 git clone https://github.com/hnlyf168/SimdYolo.git
@@ -39,6 +41,8 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 | 源码版本 | 对应能力或测量 |
 | --- | --- |
+| 0.11.4 | CPU 线程等待、SIMD 池化、检测头输出与 Vulkan Winograd 优化；[性能及适用范围](releases/v0.11.4.md) |
+| 0.11.3 | 加载与首帧、上采样、最大池化及 Vulkan 拼接优化；NuGet Trusted Publishing 流水线 |
 | 0.11.2 | 与PyTorch/ORT重新实测11模型、8配置，发布模型/网页/文档附件 |
 | 0.11.1 | 原图掩码SIMD、坐标/行缓存、多实例并行；网页RGB24二进制、有界掩码缓存；逐次置信度复用会话 |
 | 0.11.0起 | 训练验证、best.sytrain、早停、标准ONNX导出、网页检测框标注与预标注、CPU FP16混合/INT8实验模式 |

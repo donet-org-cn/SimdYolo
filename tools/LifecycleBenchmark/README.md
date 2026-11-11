@@ -13,6 +13,8 @@ python tools/compare-lifecycle.py --baseline-dir <冻结旧版CLI目录> --candi
 
 默认覆盖 11 个模型、`.pt` / ONNX、CPU / Vulkan。每轮按旧、新、新、旧的 ABBA 顺序启动独立进程，第二轮逆转模型配置顺序，共 352 个窗口。每个版本每配置有 4 个窗口。不要并行运行其他性能测试，修改被测程序集后应重新测量。
 
+Windows 可选 `--windows-high-qos`，让两个版本的测试子进程都显式请求 HighQoS，减少后台启动环境带来的调度差异。该选项不改变系统电源计划或 CPU 亲和性，也不修改主库策略；其他系统不支持此选项。报告同时保存请求设置、环境变量和每窗口的 `WindowsHighQos`，请把启用与未启用的实验分别比较。未传参数时继续继承环境，包括外部设置的 `SIMDYOLO_BENCHMARK_HIGH_QOS`。
+
 指标分别为模型与后端构造、首次 `PredictRaw`、托管 `Main` 首条语句至首次输出、预热后持续推理、每帧托管分配。准备至首次输出不包含 dotnet 宿主启动和进入 `Main` 前的入口 JIT。每帧分配不等于驻留内存；GPU 计时包含输入上传与全部输出回读。
 
 默认继承 Vulkan 应用缓存。可以用 `--cache-mode isolated` 为每个窗口建立新的应用缓存目录，或用 `disabled` 禁用应用管线缓存；两者都不会清除显卡驱动缓存和操作系统文件缓存，不能称为硬件冷启动。

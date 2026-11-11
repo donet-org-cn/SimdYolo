@@ -1,0 +1,140 @@
+{
+  "Atol": 0.003,
+  "Rtol": 0.0003,
+  "Reference": "First baseline window for each case; includes first and steady outputs from both variants",
+  "Results": [
+    {
+      "Report": ".cache/deep-final-pt.json",
+      "Model": "yolov8n.pt",
+      "Format": "pt",
+      "Backend": "Cpu",
+      "Windows": 8,
+      "OutputComparisons": 16,
+      "MaxAbsError": 0.002349853515625,
+      "MaxNormalizedError": 1.5918117205096982e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-pt.json",
+      "Model": "yolov8n.pt",
+      "Format": "pt",
+      "Backend": "Vulkan",
+      "Windows": 8,
+      "OutputComparisons": 16,
+      "MaxAbsError": 0.0,
+      "MaxNormalizedError": 0.0,
+      "AllBitIdentical": true,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-pt.json",
+      "Model": "yolo11n.pt",
+      "Format": "pt",
+      "Backend": "Cpu",
+      "Windows": 8,
+      "OutputComparisons": 16,
+      "MaxAbsError": 0.002197265625,
+      "MaxNormalizedError": 2.6367618412131257e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-pt.json",
+      "Model": "yolo11n.pt",
+      "Format": "pt",
+      "Backend": "Vulkan",
+      "Windows": 8,
+      "OutputComparisons": 16,
+      "MaxAbsError": 0.0,
+      "MaxNormalizedError": 0.0,
+      "AllBitIdentical": true,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-pt.json",
+      "Model": "yolo26n-seg.pt",
+      "Format": "pt",
+      "Backend": "Cpu",
+      "Windows": 8,
+      "OutputComparisons": 32,
+      "MaxAbsError": 0.000762939453125,
+      "MaxNormalizedError": 2.4557113647460938e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-pt.json",
+      "Model": "yolo26n-seg.pt",
+      "Format": "pt",
+      "Backend": "Vulkan",
+      "Windows": 8,
+      "OutputComparisons": 32,
+      "MaxAbsError": 0.0,
+      "MaxNormalizedError": 0.0,
+      "AllBitIdentical": true,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-onnx.json",
+      "Model": "yolov8n.onnx",
+      "Format": "onnx",
+      "Backend": "Cpu",
+      "Windows": 4,
+      "OutputComparisons": 8,
+      "MaxAbsError": 0.0014495849609375,
+      "MaxNormalizedError": 1.69815614206095e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-onnx.json",
+      "Model": "yolov8n.onnx",
+      "Format": "onnx",
+      "Backend": "Vulkan",
+      "Windows": 4,
+      "OutputComparisons": 8,
+      "MaxAbsError": 0.0,
+      "MaxNormalizedError": 0.0,
+      "AllBitIdentical": true,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-onnx-cpu-repeat.json",
+      "Model": "yolov8n.onnx",
+      "Format": "onnx",
+      "Backend": "Cpu",
+      "Windows": 8,
+      "OutputComparisons": 16,
+      "MaxAbsError": 0.0014495849609375,
+      "MaxNormalizedError": 1.6981849798934898e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-inherited.json",
+      "Model": "yolov8n.pt",
+      "Format": "pt",
+      "Backend": "Cpu",
+      "Windows": 4,
+      "OutputComparisons": 8,
+      "MaxAbsError": 0.001953125,
+      "MaxNormalizedError": 1.4028498895506221e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    },
+    {
+      "Report": ".cache/deep-final-inherited.json",
+      "Model": "yolo26n-seg.pt",
+      "Format": "pt",
+      "Backend": "Cpu",
+      "Windows": 4,
+      "OutputComparisons": 16,
+      "MaxAbsError": 0.000518798828125,
+      "MaxNormalizedError": 1.7464160919189453e-05,
+      "AllBitIdentical": false,
+      "Passed": true
+    }
+  ],
+  "Passed": true
+}

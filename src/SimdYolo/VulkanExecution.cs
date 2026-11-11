@@ -15,6 +15,7 @@ public sealed unsafe partial class VulkanBackend
     private readonly List<GpuBuffer> pendingConstants = [];
     private readonly Dictionary<Tensor, DeviceStorage> frameInputs = [];
     private readonly Dictionary<int, ulong> tensorPipelines = [];
+    private ulong maxPool5Pipeline;
     private readonly Dictionary<string, ulong> matmul32Pipelines = [];
     private readonly bool matmul32 = Environment.GetEnvironmentVariable("SIMDYOLO_MATMUL32") != "0";
     private readonly Dictionary<int, Tensor> zeros = [];
@@ -77,7 +78,7 @@ public sealed unsafe partial class VulkanBackend
                 foreach (var item in timestampTotals.OrderByDescending(t => t.Value))
                 {
                     string label = (matmul32Pipelines.FirstOrDefault(p => p.Value == item.Key).Key is { } mk ? "matmul32:" + mk : null) ?? winogradTransformPipelines.FirstOrDefault(p => p.Value == item.Key).Key ?? (winogradPipelines.FirstOrDefault(p => p.Value == item.Key).Key is { } wk ? "winograd-gemm:" + wk : convolutionPipelines.FirstOrDefault(p => p.Value == item.Key).Key ?? tensorPipelines.FirstOrDefault(p => p.Value == item.Key).Key.ToString());
-                    Console.Error.WriteLine($"GPU_TICKS {item.Value} {label}");
+                    Console.Error.WriteLine($"GPU_TICKS {item.Value} {(item.Key == maxPool5Pipeline ? "maxpool5" : label)}");
                 }
                 Console.Error.WriteLine($"GPU_FRAME_TICKS {timestampTotals.Values.Aggregate(0UL, (sum, value) => sum + value)} {timestampTotals.Count}");
             }
@@ -221,7 +222,7 @@ public sealed unsafe partial class VulkanBackend
     /// <exception cref="NotSupportedException">任一线程组数量超过可移植上限 65535。</exception>
     /// <exception cref="InvalidOperationException">Vulkan 描述符分配失败。</exception>
     /// <remarks>描述符起点向下对齐后产生的余量，由调用者编码为着色器元素偏移，不能丢弃。</remarks>
-    private void Dispatch(ulong selectedPipeline, DeviceStorage a, DeviceStorage b, DeviceStorage c, DeviceStorage d, uint[] parameters, uint gx, uint gy = 1, uint gz = 1)
+    private void Dispatch(ulong selectedPipeline, DeviceStorage a, DeviceStorage b, DeviceStorage c, DeviceStorage d, ReadOnlySpan<uint> parameters, uint gx, uint gy = 1, uint gz = 1)
     {
         if (gx == 0 || gy == 0 || gz == 0) return;
         if (gx > 65535 || gy > 65535 || gz > 65535) throw new NotSupportedException("Vulkan dispatch exceeds portable limits.");
@@ -230,11 +231,11 @@ public sealed unsafe partial class VulkanBackend
         if (gpuProfile) Vk.WriteTimestamp(command, 2048, timestampPool, (uint)timestampPipelines.Count * 2);
         DescriptorAllocateInfo allocate = new() { Type = 34, Pool = frameDescriptorPool, Count = 1, Layouts = &layout };
         Check(Vk.AllocateDescriptors(device, &allocate, &set), "AllocateDescriptorSets(frame)");
-        DeviceStorage[] bindings = [a, b, c, d];
         DescriptorBufferInfo* infos = stackalloc DescriptorBufferInfo[4]; WriteDescriptor* writes = stackalloc WriteDescriptor[4];
         for (uint i = 0; i < 4; i++)
         {
-            var s = bindings[i]; ulong aligned = s.Offset & ~255UL;
+            var s = i switch { 0 => a, 1 => b, 2 => c, _ => d };
+            ulong aligned = s.Offset & ~255UL;
             // 描述符按字节对齐，参数中的余量按 FP32 元素计数，两者单位不可混用。
             infos[i] = new() { Buffer = ((GpuBuffer)s.Buffer).Buffer, Offset = aligned, Range = Math.Max(4, (ulong)s.Length * 4 + s.Offset - aligned) };
             writes[i] = new() { Type = 35, Set = set, Binding = i, Count = 1, DescriptorType = 7, Buffers = infos + i };
@@ -258,11 +259,67 @@ public sealed unsafe partial class VulkanBackend
             return TransposeConv2x2(inputs[0], inputs[1], inputs.Length > 2 ? inputs[2] : null, shape);
         var output = AllocateTensor(shape); var a = Upload(inputs[0]); var b = Upload(inputs.Length > 1 ? inputs[1] : scalarZero);
         var d = Upload(inputs.Length > 2 ? inputs[2] : scalarZero); var c = output.Storage!;
-        parameters = (uint[])parameters.Clone(); parameters[27] = inputs.Length > 2 ? 1u : 0u;
-        parameters[28] = (uint)(a.Offset % 256 / 4); parameters[29] = (uint)(b.Offset % 256 / 4);
-        parameters[30] = (uint)(c.Offset % 256 / 4); parameters[31] = (uint)(d.Offset % 256 / 4);
-        if (!tensorPipelines.TryGetValue(operation, out ulong opPipeline)) { opPipeline = CreateTensorPipeline((uint)operation); tensorPipelines.Add(operation, opPipeline); }
-        Dispatch(opPipeline, a, b, c, d, parameters, (uint)(workItems + 255) / 256); return output;
+        Span<uint> pushConstants = stackalloc uint[32];
+        parameters.AsSpan().CopyTo(pushConstants);
+        pushConstants[27] = inputs.Length > 2 ? 1u : 0u;
+        pushConstants[28] = (uint)(a.Offset % 256 / 4); pushConstants[29] = (uint)(b.Offset % 256 / 4);
+        pushConstants[30] = (uint)(c.Offset % 256 / 4); pushConstants[31] = (uint)(d.Offset % 256 / 4);
+        if (operation == 21 && workItems > 0 &&
+            parameters[1] == parameters[3] && parameters[2] == parameters[4] &&
+            parameters[1] >= 5 && parameters[2] >= 5 &&
+            parameters[5] == 5 && parameters[6] == 5 &&
+            parameters[7] == 1 && parameters[8] == 1 && parameters[9] == 2 && parameters[10] == 2)
+        {
+            uint gx = (parameters[2] + 15) / 16, gy = (parameters[1] + 7) / 8, planes = (uint)(shape[0] * shape[1]);
+            if (gx <= 65535 && gy <= 65535 && planes <= 65535)
+            {
+                if (maxPool5Pipeline == 0) maxPool5Pipeline = CreateNamedPipeline("maxpool5.spv");
+                Dispatch(maxPool5Pipeline, a, b, c, d, pushConstants, gx, gy, planes);
+                return output;
+            }
+        }
+        Dispatch(GetTensorPipeline(operation), a, b, c, d, pushConstants, (uint)(workItems + 255) / 256);
+        return output;
+    }
+
+    /// <summary>取得算子对应的设备管线，首次使用时创建并缓存。</summary>
+    private ulong GetTensorPipeline(int operation)
+    {
+        if (!tensorPipelines.TryGetValue(operation, out ulong pipeline))
+            tensorPipelines[operation] = pipeline = CreateTensorPipeline((uint)operation);
+        return pipeline;
+    }
+
+    /// <summary>将多层检测头直接解码到同一个设备输出张量，保持原有层顺序。</summary>
+    internal Tensor DecodeHeadLevels(DetectionHeadLevel[] levels, int[] shape, int bins, bool xyxy)
+    {
+        var output = AllocateTensor(shape);
+        var destination = output.Storage!;
+        var zero = Upload(scalarZero);
+        ulong pipeline = GetTensorPipeline(30);
+        Span<uint> parameters = stackalloc uint[32];
+        parameters.Clear();
+        parameters[3] = (uint)bins;
+        parameters[4] = (uint)(shape[1] - 4);
+        parameters[6] = xyxy ? 1u : 0u;
+        parameters[7] = (uint)shape[2];
+        parameters[30] = (uint)(destination.Offset % 256 / 4);
+        foreach (var (boxes, scores, stride) in levels)
+        {
+            var regression = Upload(boxes);
+            var classification = Upload(scores);
+            uint spatial = (uint)(boxes.Shape[2] * boxes.Shape[3]);
+            uint items = spatial * (uint)shape[0];
+            parameters[0] = items;
+            parameters[1] = spatial;
+            parameters[2] = (uint)boxes.Shape[3];
+            parameters[5] = DeviceOps.Bits(stride);
+            parameters[28] = (uint)(regression.Offset % 256 / 4);
+            parameters[29] = (uint)(classification.Offset % 256 / 4);
+            Dispatch(pipeline, regression, classification, destination, zero, parameters, (items + 255) / 256);
+            parameters[8] += spatial;
+        }
+        return output;
     }
     /// <summary>按卷积形状选择深度卷积、低通道、Winograd、逐点或通用管线，并返回设备结果。</summary>
     /// <param name="x">按 [批次, 输入通道, 高, 宽] 排列的卷积输入。</param>
@@ -380,7 +437,7 @@ public sealed unsafe partial class VulkanBackend
         var destination = output.Storage!;
         if (outer > 4)
         {
-            if (!tensorPipelines.TryGetValue(26, out ulong concatPipeline)) { concatPipeline = CreateTensorPipeline(26); tensorPipelines[26] = concatPipeline; }
+            ulong concatPipeline = GetTensorPipeline(26);
             var zero = Upload(scalarZero); uint start = 0;
             foreach (var tensor in tensors)
             {
@@ -504,6 +561,7 @@ public sealed unsafe partial class VulkanBackend
         transposeWeights.Clear();
         foreach (var b in arenas.Concat(uploads)) Free(b); arenas.Clear(); uploads.Clear();
         foreach (ulong p in tensorPipelines.Values) Vk.DestroyPipeline(device, p, null); tensorPipelines.Clear();
+        if (maxPool5Pipeline != 0) Vk.DestroyPipeline(device, maxPool5Pipeline, null);
         foreach (ulong p in matmul32Pipelines.Values) Vk.DestroyPipeline(device, p, null); matmul32Pipelines.Clear();
         if (frameDescriptorPool != 0) Vk.DestroyDescriptorPool(device, frameDescriptorPool, null); frameDescriptorPool = 0;
         if (timestampPool != 0) Vk.DestroyQueryPool(device, timestampPool, null); timestampPool = 0;

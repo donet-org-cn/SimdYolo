@@ -1,0 +1,24 @@
+PASS Vulkan joined head preserves level order, odd rows and batches
+PASS Vulkan packed Winograd covers channel/K/spatial tails, both transforms and replayed inputs
+PASS ONNX routing reuse: aliases, optional inputs, dynamic shapes, exceptions and ownership (Vulkan)
+PASS YOLO26 ONNX Vulkan head preserves extra fields, dynamic batches and replay
+PASS YOLO26 Vulkan TopK keeps extra channels on device with offset views and batches
+PASS YOLO26 Vulkan single-bin regression passes raw distances and pose uses new anchors
+PASS CPU ONNX positive-zero Add fusion leaves device graph unchanged (Vulkan)
+PASS ONNX concat pointwise fusion, consumers and dynamic fallback (Vulkan)
+PASS ONNX device ReduceMax: dynamic rows, NaNs, infinities and signed zero (Vulkan)
+PASS ONNX device GatherElements: axes, negative indices, tails and bounds (Vulkan)
+PASS Vulkan lifetime: process instance, independent devices and interleaved disposal
+PASS Vulkan disk caches restore pipelines and tiles, reject corruption and tolerate unwritable paths
+PASS Vulkan command replay updates input, detaches all outputs and re-records changed shapes
+PASS Vulkan command replay rejects CPU value-dependent slice indices
+PASS Vulkan tiled 5x5 max pool matches CPU across halos, tails and batches
+PASS Vulkan buffer views concatenate batched host and device tensors with empty inputs
+PASS Vulkan buffer views preserve independent branches, transfers, aliases and flushes
+Vulkan (NVIDIA GeForce RTX 3060)
+PASS Vulkan GEMM vs double reference
+PASS Vulkan direct Conv, grouped/batched/dilated/SiLU
+19 tests passed.
+PASS Frame convolution kernel variants: channel/spatial tails, batches, bias and SiLU
+Vulkan (NVIDIA GeForce RTX 3060)
+1 tests passed.

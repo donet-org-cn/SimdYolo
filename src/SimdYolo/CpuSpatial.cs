@@ -349,56 +349,86 @@ internal static class CpuSpatial
         int sh = stride[0], sw = stride[1], ph = pad[0], pw = pad[1];
         int lanes = Vector<float>.Count;
         var output = Tensor.TemporaryUninitialized(x.Shape[0], x.Shape[1], oh, ow); float[] data = x.Data, target = output.Data;
-        var horizontal = ArrayPool<float>.Shared.Rent(channels * h * ow);
-        try
+        if (channels == 0) return output;
+        int workspaceLength = checked(h * ow);
+        var pool = ArrayPool<float>.Shared;
+
+        // Each worker reuses one plane so the vertical pass reads the data it just wrote.
+        void Channel(int c, float[] horizontal)
         {
-            // 处理一个批次/通道的独立空间平面，将结果写入其独占输出区。
-            // 参数 c：当前批次/通道平面的索引。
-            void Channel(int c)
+            for (int y = 0; y < h; y++)
             {
-                for (int y = 0; y < h; y++)
+                int xx = 0, src = (c * h + y) * w, dst = y * ow;
+                while (xx < ow)
                 {
-                    int xx = 0, src = (c * h + y) * w, dst = (c * h + y) * ow;
-                    while (xx < ow)
+                    int sx = xx * sw - pw;
+                    if (sw == 1 && xx <= ow - lanes && sx >= 0 && (long)sx + lanes + kw - 1 <= w)
                     {
-                        int sx = xx * sw - pw;
-                        if (sw == 1 && xx <= ow - lanes && sx >= 0 && (long)sx + lanes + kw - 1 <= w)
-                        {
-                            var value = new Vector<float>(float.NegativeInfinity);
-                            for (int k = 0; k < kw; k++) value = Vector.Max(value, new Vector<float>(data, src + sx + k));
-                            value.CopyTo(horizontal, dst + xx); xx += lanes;
-                        }
-                        else
-                        {
-                            float value = float.NegativeInfinity;
-                            int start = Math.Max(0, sx), end = (int)Math.Min(w, (long)sx + kw);
-                            for (int k = start; k < end; k++) value = MathF.Max(value, data[src + k]);
-                            horizontal[dst + xx++] = value;
-                        }
+                        PoolVector(data, src + sx, 1, kw).CopyTo(horizontal, dst + xx);
+                        xx += lanes;
                     }
-                }
-                for (int y = 0; y < oh; y++)
-                {
-                    int sy = y * sh - ph, xx = 0, dst = (c * oh + y) * ow;
-                    int start = Math.Max(0, sy), end = (int)Math.Min(h, (long)sy + kh);
-                    for (; xx <= ow - lanes; xx += lanes)
-                    {
-                        var value = new Vector<float>(float.NegativeInfinity);
-                        for (int k = start; k < end; k++) value = Vector.Max(value, new Vector<float>(horizontal, (c * h + k) * ow + xx));
-                        value.CopyTo(target, dst + xx);
-                    }
-                    for (; xx < ow; xx++)
+                    else
                     {
                         float value = float.NegativeInfinity;
-                        for (int k = start; k < end; k++) value = MathF.Max(value, horizontal[(c * h + k) * ow + xx]);
-                        target[dst + xx] = value;
+                        int start = Math.Max(0, sx), end = (int)Math.Min(w, (long)sx + kw);
+                        for (int k = start; k < end; k++) value = MathF.Max(value, data[src + k]);
+                        horizontal[dst + xx++] = value;
                     }
                 }
             }
-            if ((long)channels * h * ow >= 32768) CpuScheduling.For(0, channels, CpuScheduling.Options, Channel);
-            else for (int c = 0; c < channels; c++) Channel(c);
+            for (int y = 0; y < oh; y++)
+            {
+                int sy = y * sh - ph, xx = 0, dst = (c * oh + y) * ow;
+                int start = Math.Max(0, sy), end = (int)Math.Min(h, (long)sy + kh);
+                for (; xx <= ow - lanes; xx += lanes)
+                    PoolVector(horizontal, start * ow + xx, ow, end - start).CopyTo(target, dst + xx);
+                for (; xx < ow; xx++)
+                {
+                    float value = float.NegativeInfinity;
+                    for (int k = start; k < end; k++) value = MathF.Max(value, horizontal[k * ow + xx]);
+                    target[dst + xx] = value;
+                }
+            }
         }
-        finally { ArrayPool<float>.Shared.Return(horizontal); }
+
+        var parallel = CpuScheduling.Options;
+        if (channels > 1 && parallel.MaxDegreeOfParallelism != 1 && (long)channels * workspaceLength >= 32768)
+        {
+            CpuScheduling.For(0, channels, parallel, () => pool.Rent(workspaceLength), (channel, _, horizontal) =>
+            {
+                Channel(channel, horizontal);
+                return horizontal;
+            }, horizontal => pool.Return(horizontal));
+        }
+        else
+        {
+            var horizontal = pool.Rent(workspaceLength);
+            try { for (int c = 0; c < channels; c++) Channel(c, horizontal); }
+            finally { pool.Return(horizontal); }
+        }
         return output;
+    }
+
+    /// <summary>按原有顺序对多个相邻位置做向量最大值归约，展开常见的五点窗口。</summary>
+    /// <param name="source">连续输入或池化的水平中间平面。</param>
+    /// <param name="offset">第一个采样向量的元素偏移。</param>
+    /// <param name="stride">相邻采样向量之间的元素距离。</param>
+    /// <param name="count">当前窗口中参与归约的向量数。</param>
+    /// <returns>每个向量位置在窗口内的最大值。</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Vector<float> PoolVector(float[] source, int offset, int stride, int count)
+    {
+        var maximum = new Vector<float>(float.NegativeInfinity);
+        if (count == 5)
+        {
+            maximum = Vector.Max(maximum, new Vector<float>(source, offset));
+            maximum = Vector.Max(maximum, new Vector<float>(source, offset + stride));
+            maximum = Vector.Max(maximum, new Vector<float>(source, offset + 2 * stride));
+            maximum = Vector.Max(maximum, new Vector<float>(source, offset + 3 * stride));
+            return Vector.Max(maximum, new Vector<float>(source, offset + 4 * stride));
+        }
+        for (int sample = 0; sample < count; sample++)
+            maximum = Vector.Max(maximum, new Vector<float>(source, offset + sample * stride));
+        return maximum;
     }
 }

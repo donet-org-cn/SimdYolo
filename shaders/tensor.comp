@@ -82,10 +82,11 @@ void main() {
         }
         float stride=uintBitsToFloat(P(5)),cx=float(anchor%width)+.5,cy=float(anchor/width)+.5;
         float x1=(cx-distances[0])*stride,y1=(cy-distances[1])*stride,x2=(cx+distances[2])*stride,y2=(cy+distances[3])*stride;
-        uint dst=batch*(nc+4)*spatial+anchor;
-        C(dst)=P(6)==1 ? x1 : (x1+x2)*.5; C(dst+spatial)=P(6)==1 ? y1 : (y1+y2)*.5;
-        C(dst+2*spatial)=P(6)==1 ? x2 : x2-x1; C(dst+3*spatial)=P(6)==1 ? y2 : y2-y1;
-        for(uint j=0;j<nc;j++) C(dst+(4+j)*spatial)=sigmoid(B((batch*nc+j)*spatial+anchor));
+        uint outputSpatial=P(7)==0 ? spatial : P(7);
+        uint dst=batch*(nc+4)*outputSpatial+P(8)+anchor;
+        C(dst)=P(6)==1 ? x1 : (x1+x2)*.5; C(dst+outputSpatial)=P(6)==1 ? y1 : (y1+y2)*.5;
+        C(dst+2*outputSpatial)=P(6)==1 ? x2 : x2-x1; C(dst+3*outputSpatial)=P(6)==1 ? y2 : y2-y1;
+        for(uint j=0;j<nc;j++) C(dst+(4+j)*outputSpatial)=sigmoid(B((batch*nc+j)*spatial+anchor));
     } else if(operation==31) {
         uint spatial=P(1),width=P(2),dim=P(3),axis=i/spatial%dim,anchor=i%spatial;
         float value=A(i),stride=uintBitsToFloat(P(4));

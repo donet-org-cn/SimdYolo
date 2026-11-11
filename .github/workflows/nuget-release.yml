@@ -50,6 +50,8 @@ jobs:
           export VK_DRIVER_FILES=$(find /usr/share/vulkan/icd.d -name 'lvp_icd*.json' -print -quit)
           test -n "$VK_DRIVER_FILES"
           SIMDYOLO_TEST_FILTER='Vulkan buffer views' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
+          SIMDYOLO_TEST_FILTER='Vulkan tiled 5x5 max pool' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
+          SIMDYOLO_TEST_FILTER='Vulkan packed Winograd' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
       - name: Pack and consume the two release packages
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}

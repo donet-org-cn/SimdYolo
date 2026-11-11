@@ -1,0 +1,37 @@
+#version 450
+// Small spatial matrices keep adjacent lanes on adjacent tiles and read four
+// output-channel weights together. Spatial tails need no padded temporary copy.
+layout(local_size_x=32,local_size_y=4) in;
+layout(set=0,binding=0,std430) readonly buffer Weights { vec4 a[]; };
+layout(set=0,binding=1,std430) readonly buffer Input { float b[]; };
+layout(set=0,binding=2,std430) writeonly buffer Output { float c[]; };
+layout(set=0,binding=3,std430) readonly buffer Unused { float d[]; };
+layout(constant_id=0) const uint ic=1;
+layout(constant_id=1) const uint oc=1;
+layout(constant_id=2) const uint spatial=1;
+layout(constant_id=3) const uint planes=36;
+shared vec4 ta[32][4];
+shared float tb[32][32];
+void main() {
+    uint lx=gl_LocalInvocationID.x,ly=gl_LocalInvocationID.y,tid=ly*32+lx;
+    uint row=gl_WorkGroupID.y*16+ly*4,col=gl_WorkGroupID.x*32+lx,batch=gl_WorkGroupID.z;
+    uint loadedRow=gl_WorkGroupID.y*16+(tid%4)*4,loadedK=tid/4;
+    vec4 sum=vec4(0);
+    for(uint base=0;base<ic;base+=32) {
+        ta[loadedK][tid%4]=base+loadedK<ic && loadedRow<oc
+            ? a[(((batch%planes)*ic+base+loadedK)*oc+loadedRow)/4] : vec4(0);
+        for(uint r=ly;r<32;r+=4)
+            tb[r][lx]=base+r<ic && col<spatial ? b[(batch*ic+base+r)*spatial+col] : 0;
+        barrier();
+        #define MAC(k) sum=fma(ta[k][ly],vec4(tb[k][lx]),sum);
+        MAC(0) MAC(1) MAC(2) MAC(3) MAC(4) MAC(5) MAC(6) MAC(7)
+        MAC(8) MAC(9) MAC(10) MAC(11) MAC(12) MAC(13) MAC(14) MAC(15)
+        MAC(16) MAC(17) MAC(18) MAC(19) MAC(20) MAC(21) MAC(22) MAC(23)
+        MAC(24) MAC(25) MAC(26) MAC(27) MAC(28) MAC(29) MAC(30) MAC(31)
+        barrier();
+    }
+    if(col>=spatial || row>=oc) return;
+    uint target=(batch*oc+row)*spatial+col;
+    c[target]=sum.x; c[target+spatial]=sum.y;
+    c[target+2*spatial]=sum.z; c[target+3*spatial]=sum.w;
+}

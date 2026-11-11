@@ -38,10 +38,10 @@ Open [http://127.0.0.1:5188](http://127.0.0.1:5188), select a model and a CPU or
 ~~~sh
 dotnet new console -f net10.0 -o SimdYoloDemo
 cd SimdYoloDemo
-dotnet add package SimdYolo --version 0.11.3
+dotnet add package SimdYolo --version 0.11.4
 ~~~
 
-Save the [YOLOv8n weights](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.3/models/pt/yolov8n.pt) as `yolov8n.pt` in the project directory, then replace `Program.cs` with the following.
+Save the [YOLOv8n weights](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.4/models/pt/yolov8n.pt) as `yolov8n.pt` in the project directory, then replace `Program.cs` with the following.
 
 ~~~csharp
 using SimdYolo;
@@ -70,21 +70,23 @@ foreach (var instance in detector.Predict(rgb24, width, height))
 
 Use your image library to decode a picture to tightly packed RGB24 bytes in R, G, B order and save it as `image.rgb`. For a 640×480 image, run `dotnet run -- image.rgb 640 480`. Set the device to `ComputeDevice.Vulkan` to use Vulkan on a compatible system. Reuse one `YoloDetector` for successive frames.
 
-To fine-tune a detection head, run `dotnet add package SimdYolo.Training --version 0.11.3` and prepare a dataset using the [training guide](docs/training.md).
+To fine-tune a detection head, run `dotnet add package SimdYolo.Training --version 0.11.4` and prepare a dataset using the [training guide](docs/training.md).
 
 ## Performance
 
-The 0.11.3 benchmarks compare median steady-state inference latency before and after the optimizations on Windows with a Core i7-12700 and RTX 3060. Tests used FP32, 640×640 inputs, batch size 1, and up to 12 CPU threads. Vulkan measurements include output readback.
+The final optimization round before 0.11.4 measured these median steady-state latencies on Windows with a Core i7-12700 and RTX 3060. Tests used FP32, 640×640 inputs, batch size 1, 12 CPU threads and identical explicit HighQoS requests for both variants. Vulkan timing includes input upload and output readback. **The baseline already includes earlier changes in this release; this is not a full comparison against the published NuGet 0.11.3 package.**
 
 | Model | Backend | Before | After |
 | --- | --- | ---: | ---: |
-| YOLOv8n PT | CPU SIMD | 40.70 ms | 40.23 ms |
-| YOLOv8n PT | Vulkan | 6.42 ms | 5.94 ms |
-| YOLO11n dynamic ONNX | CPU SIMD | 37.57 ms | 29.04 ms |
-| YOLO11n dynamic ONNX | Vulkan | 6.15 ms | 6.88 ms |
-| YOLO11n dynamic ONNX, separate retest | Vulkan | 6.16 ms | 5.71 ms |
+| YOLOv8n PT | CPU SIMD | 23.036 ms | 23.164 ms |
+| YOLO11n PT | CPU SIMD | 21.928 ms | 21.844 ms |
+| YOLO26n-seg PT | CPU SIMD | 30.705 ms | 30.544 ms |
+| YOLOv8n PT | Vulkan | 4.204 ms | 3.768 ms |
+| YOLO11n PT | Vulkan | 4.270 ms | 4.076 ms |
+| YOLO26n-seg PT | Vulkan | 6.157 ms | 5.846 ms |
+| YOLOv8n ONNX | Vulkan | 4.126 ms | 3.684 ms |
 
-On the same machine, the single-threaded 5×5 max-pooling benchmark took about **12% less time**, and 2× nearest-neighbor upsampling allocated **488 fewer managed bytes** per call. YOLOv8n PT latency on Vulkan fell by about **7.5%**. The two dynamic ONNX Vulkan runs moved in opposite directions, so the end-to-end improvement remains uncertain. [Methodology, output checks, and limitations](docs/releases/v0.11.3.md)
+Vulkan latency fell by **4.55–10.70%** in these cases. CPU PT medians were essentially unchanged, with **3.07–4.04%** fewer managed bytes allocated per frame. ONNX CPU initially regressed by 5.45% and improved by 1.56% in a longer repeat, so no stable speedup is claimed. A separate CPU test under this machine's inherited background launch environment reduced latency by 42.84–45.81%; that result is specific to those scheduling conditions. GPU process working sets increased by approximately 48–75 MiB. FP32 remains the default. [Release notes](docs/releases/v0.11.4.md) · [Full measurements, output checks and limitations](artifacts/cpu-gpu-optimization-2026-11-11.md)
 
 [0.11.2 comparison with PyTorch and ONNX Runtime across 11 models](artifacts/runtime-comparison-0.11.2.md) · [Startup and first inference](artifacts/startup-optimization-0.11.3.md) · [Image and mask performance](artifacts/image-pipeline-optimization-0.11.1.md) · [Training performance](artifacts/training-optimization-0.10.1.md)
 

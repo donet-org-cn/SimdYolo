@@ -1,0 +1,12 @@
+PASS 训练转置点积微内核覆盖奇数行、列尾和归约尾
+PASS SGD SIMD 检查拒绝各位置的 NaN 和无穷
+PASS 卷积工作区复用保持梯度累加并隔离前向输出
+PASS 卷积权重和输入梯度的独立有限差分
+PASS 分组及深度卷积的权重、偏置和输入独立有限差分
+PASS YOLO26 损失调度首轮、中间轮、末轮和延长训练边界
+PASS SiLU 极值和有限差分
+PASS BatchNorm 参数和输入反向、运行方差
+PASS SGD 动量和权重衰减
+PASS 空标签背景样本仍产生分类梯度
+PASS 数据集拒绝坏标签和配置
+11 training tests passed.

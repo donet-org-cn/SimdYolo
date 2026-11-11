@@ -441,17 +441,59 @@ internal sealed partial class PtModel : IModel
         if (p.Type.Name == "TripleDDetect") { inputs = inputs[^nl..]; boxKey = "cv6"; classKey = "cv7"; }
         bool end2end = ModelInfo.IsEndToEnd(p);
         if (end2end) { boxKey = "one2one_cv2"; classKey = "one2one_cv3"; }
-        var boxes = p.Child(boxKey).Children; var classes = p.Child(classKey).Children; int nc = p.Int("nc"), bins = p.Int("reg_max", 16), batch = inputs[0].Shape[0];
+        var boxes = p.Child(boxKey).Children; var classes = p.Child(classKey).Children; int nc = p.Int("nc"), bins = p.Int("reg_max", 16);
         if (inputs.Length != boxes.Length || classes.Length != boxes.Length) throw new InvalidDataException("Detection branches mismatch.");
         var stride = p.Get("stride") as Tensor ?? throw new InvalidDataException("Detect stride missing.");
-        if (ops.Backend is IDeviceBackend { FrameActive: true })
+        var cpu = ops.Backend as CpuBackend;
+        bool deviceActive = ops.Backend is IDeviceBackend { FrameActive: true };
+        var vulkan = deviceActive ? ops.Backend as VulkanBackend : null;
+        DetectionHeadLevel[]? levels = null;
+        if (cpu is not null && inputs.Length > 1 && nc >= 0 && bins > 0 &&
+            inputs.All(feature => feature.Rank == 4 && feature.Shape[0] == inputs[0].Shape[0] &&
+                feature.Shape[2] > 0 && feature.Shape[3] > 0))
         {
-            var levels = inputs.Select((feature, i) => DeviceOps.DecodeHead(F(boxes[i], feature), F(classes[i], feature), bins, stride.Data[i], end2end)).ToArray();
-            var decoded = TensorOps.Concat(levels, 2); return end2end && selectEndToEnd ? EndToEndTopK(decoded, p.Int("max_det", 300), nc) : decoded;
+            int batch = inputs[0].Shape[0];
+            long total = inputs.Sum(feature => (long)feature.Shape[2] * feature.Shape[3]);
+            if (total <= int.MaxValue && (nc + 4L) * total <= int.MaxValue / Math.Max(1, batch))
+            {
+                var result = Tensor.TemporaryUninitialized(batch, checked(nc + 4), (int)total);
+                levels = new DetectionHeadLevel[inputs.Length];
+                int start = 0;
+                bool compatible = true;
+                for (int i = 0; i < levels.Length; i++)
+                {
+                    var level = RunLevel(i);
+                    levels[i] = level;
+                    if (!compatible) continue;
+                    int height = inputs[i].Shape[2], width = inputs[i].Shape[3];
+                    compatible = level.HasLayout(batch, nc, bins, height, width);
+                    if (!compatible) continue;
+                    CpuHead.DecodeInto(level.Boxes, level.Scores, bins, level.Stride, end2end, cpu.Parallel, result, start);
+                    start += height * width;
+                }
+                if (compatible) return Finish(result);
+            }
         }
-        var decodedLevels = inputs.Select((feature, i) => CpuHead.Decode(F(boxes[i], feature), F(classes[i], feature), bins, stride.Data[i], end2end, ops.Backend is CpuBackend cpuHead ? cpuHead.Parallel : null)).ToArray();
-        var output = TensorOps.Concat(decodedLevels, 2);
-        return end2end && selectEndToEnd ? EndToEndTopK(output, p.Int("max_det", 300), nc) : output;
+        else if (vulkan is not null && inputs.Length > 1)
+        {
+            levels = new DetectionHeadLevel[inputs.Length];
+            for (int i = 0; i < levels.Length; i++) levels[i] = RunLevel(i);
+            if (DetectionHeadLevel.JoinedShape(levels, bins) is { } shape)
+                return Finish(vulkan.DecodeHeadLevels(levels, shape, bins, end2end));
+        }
+        // 非标准检测头的实际形状可能不同于输入网格，复用已计算的原始输出。
+        var decoded = new Tensor[inputs.Length];
+        for (int i = 0; i < decoded.Length; i++)
+        {
+            var (regression, scores, step) = levels is null ? RunLevel(i) : levels[i];
+            decoded[i] = deviceActive
+                ? DeviceOps.DecodeHead(regression, scores, bins, step, end2end)
+                : CpuHead.Decode(regression, scores, bins, step, end2end, cpu?.Parallel);
+        }
+        return Finish(TensorOps.Concat(decoded, 2));
+
+        DetectionHeadLevel RunLevel(int i) => new(F(boxes[i], inputs[i]), F(classes[i], inputs[i]), stride.Data[i]);
+        Tensor Finish(Tensor output) => end2end && selectEndToEnd ? EndToEndTopK(output, p.Int("max_det", 300), nc) : output;
     }
     /// <summary>先筛选最大类别分数最高的锚点，再筛选锚点与类别组合，保持确定的相同分数顺序。</summary>
     /// <param name="x">参与计算的输入张量。</param>

@@ -102,6 +102,7 @@ internal sealed class CpuExecutor : IDisposable
             try
             {
                 job.Participate();
+                job.Close();
                 job.Wait();
             }
             finally
@@ -231,7 +232,10 @@ internal sealed class CpuExecutor : IDisposable
         /// <summary>下一个可领取任务块的起点，由原子加法推进。</summary>
         private long next = from;
         /// <summary>尚未结束的参与线程数量。</summary>
-        private int remaining = participants;
+        // 最高位关闭新参与者，其余位只统计实际进入当前作业的线程。
+        // 已完成全部工作后，不再等待仍未被操作系统调度到的空闲线程。
+        private const int Closed = int.MinValue;
+        private int participation;
         /// <summary>最后参与者完成事件 Set 后发布的标记，保证事件释放时序。</summary>
         private int completionPublished;
         /// <summary>已有线程失败的标记；阻止继续领取任务。</summary>
@@ -239,7 +243,7 @@ internal sealed class CpuExecutor : IDisposable
         /// <summary>所有参与线程结束时设置的完成事件。</summary>
         private readonly ManualResetEventSlim completed = new(false, 0);
         /// <summary>参与线程执行异常的并发汇总队列。</summary>
-        private readonly ConcurrentQueue<Exception> errors = new();
+        private ConcurrentQueue<Exception>? errors;
 
         /// <summary>以原子加法领取下一个不重叠任务块；失败、取消或区间耗尽时停止领取。</summary>
         /// <param name="start">返回本线程领取区间的起点，包含此索引。</param>
@@ -260,22 +264,38 @@ internal sealed class CpuExecutor : IDisposable
         protected abstract void Execute();
         /// <summary>保存线程执行异常并发布失败标记，使其他线程停止领取新任务。</summary>
         /// <param name="error">需要传播给调用方的执行错误。</param>
-        protected void Report(Exception error) { errors.Enqueue(error); Volatile.Write(ref failed, 1); }
+        protected void Report(Exception error)
+        {
+            LazyInitializer.EnsureInitialized(ref errors).Enqueue(error);
+            Volatile.Write(ref failed, 1);
+        }
         /// <summary>执行一个参与线程的工作，捕获错误，并由最后参与者发布完成事件与完成标记。</summary>
         internal void Participate()
         {
+            int state = Volatile.Read(ref participation);
+            while (true)
+            {
+                if (state < 0) return;
+                int observed = Interlocked.CompareExchange(ref participation, state + 1, state);
+                if (observed == state) break;
+                state = observed;
+            }
             try { Execute(); }
             catch (Exception error) { Report(error); }
             finally
             {
-                if (Interlocked.Decrement(ref remaining) == 0)
-                {
-                    completed.Set();
-                    // 最后工作线程的 Set 可能仍在执行。
-                    // 调用方必须等完成标记发布后才能释放完成事件。
-                    Volatile.Write(ref completionPublished, 1);
-                }
+                if (Interlocked.Decrement(ref participation) == Closed) PublishCompletion();
             }
+        }
+        internal void Close()
+        {
+            if (Interlocked.Or(ref participation, Closed) == 0) PublishCompletion();
+        }
+        private void PublishCompletion()
+        {
+            completed.Set();
+            // 最后工作线程的 Set 返回后，才允许调用线程释放完成事件。
+            Volatile.Write(ref completionPublished, 1);
         }
         /// <summary>等待所有参与线程完成且最后一次事件 Set 已返回，防止事件被过早释放。</summary>
         internal void Wait()
@@ -293,7 +313,7 @@ internal sealed class CpuExecutor : IDisposable
         /// <exception cref="OperationCanceledException">当前并行选项或作业的取消令牌已请求取消。</exception>
         internal void ThrowErrors()
         {
-            if (errors.IsEmpty) return;
+            if (errors is null || errors.IsEmpty) return;
             var failures = errors.ToArray();
             if (cancellation.IsCancellationRequested && failures.All(error => error is OperationCanceledException canceled && canceled.CancellationToken == cancellation))
                 throw new OperationCanceledException(cancellation);

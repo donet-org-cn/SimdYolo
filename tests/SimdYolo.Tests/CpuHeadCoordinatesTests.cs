@@ -6,7 +6,8 @@ internal static class CpuHeadCoordinatesTests
 {
     /// <summary>注册独立标量坐标参考和输入存储保护测试。</summary>
     /// <param name="test">执行命名断言的测试回调。</param>
-    internal static void Run(Action<string, Action> test)
+    /// <param name="vulkan">是否在 Vulkan 设备上验证多层输出。</param>
+    internal static void Run(Action<string, Action> test, bool vulkan)
     {
         test("CPU head coordinates: bins1/16, batches, row tails and XYXY/XYWH match scalar", () =>
         {
@@ -54,5 +55,72 @@ internal static class CpuHeadCoordinatesTests
                 }
             }
         });
+        test("CPU joined head preserves level order, odd rows and batches", () => CheckJoined(null));
+        if (vulkan) test("Vulkan joined head preserves level order, odd rows and batches", () =>
+        {
+            using var backend = new VulkanBackend();
+            CheckJoined(backend);
+        });
+    }
+
+    private static void CheckJoined(VulkanBackend? backend)
+    {
+        var assembly = typeof(Tensor).Assembly;
+        var levelType = assembly.GetType("SimdYolo.DetectionHeadLevel")!;
+        var cpu = assembly.GetType("SimdYolo.CpuHead")!;
+        var single = backend is null ? cpu.GetMethod("Decode")! : assembly.GetType("SimdYolo.DeviceOps")!.GetMethod("DecodeHead")!;
+        var joined = backend is null ? cpu.GetMethod("DecodeInto", BindingFlags.NonPublic | BindingFlags.Static)! :
+            typeof(VulkanBackend).GetMethod("DecodeHeadLevels", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var parallel = new ParallelOptions { MaxDegreeOfParallelism = 2 };
+        foreach (int bins in new[] { 1, 16 }) foreach (bool xyxy in new[] { false, true })
+        {
+            void Compare()
+            {
+                const int batch = 2, classes = 5, height = 3;
+                var inputs = new (Tensor Boxes, Tensor Scores, float Stride)[2];
+                var outputs = new Tensor[inputs.Length];
+                int total = 0;
+                for (int i = 0; i < inputs.Length; i++)
+                {
+                    int width = 19 - 2 * i;
+                    float stride = 8 << i;
+                    var boxes = new Tensor(batch, 4 * bins, height, width);
+                    var scores = new Tensor(batch, classes, height, width);
+                    for (int j = 0; j < boxes.Length; j++) boxes.Data[j] = MathF.Sin(j * .17f + i);
+                    for (int j = 0; j < scores.Length; j++) scores.Data[j] = MathF.Cos(j * .13f - i);
+                    inputs[i] = (boxes, scores, stride);
+                    outputs[i] = (Tensor)single.Invoke(null, backend is null
+                        ? [boxes, scores, bins, stride, xyxy, parallel] : [boxes, scores, bins, stride, xyxy])!;
+                    total += height * width;
+                }
+                var expected = TensorOps.Concat(outputs, 2);
+                int[] shape = [batch, classes + 4, total];
+                Tensor actual;
+                if (backend is null)
+                {
+                    actual = new Tensor(shape);
+                    int start = 0;
+                    foreach (var (boxes, scores, stride) in inputs)
+                    {
+                        joined.Invoke(null, [boxes, scores, bins, stride, xyxy, parallel, actual, start]);
+                        start += boxes.Shape[2] * boxes.Shape[3];
+                    }
+                }
+                else
+                {
+                    var levels = Array.CreateInstance(levelType, inputs.Length);
+                    for (int i = 0; i < inputs.Length; i++)
+                    {
+                        var (boxes, scores, stride) = inputs[i];
+                        levels.SetValue(Activator.CreateInstance(levelType, boxes, scores, stride), i);
+                    }
+                    actual = (Tensor)joined.Invoke(backend, [levels, shape, bins, xyxy])!;
+                }
+                if (!actual.Shape.SequenceEqual(expected.Shape) || !actual.Data.AsSpan().SequenceEqual(expected.Data))
+                    throw new Exception($"Joined head differs for bins={bins}, xyxy={xyxy}.");
+            }
+            if (backend is null) Compare();
+            else GpuTopKTests.WithFrame(backend, Compare);
+        }
     }
 }

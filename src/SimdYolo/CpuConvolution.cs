@@ -35,26 +35,22 @@ internal static class CpuConvolution
             ConvAligned(backend, x, w, bias, output, stride, pads, dilation, silu, packedWeights);
             return;
         }
+        float[]? biasValues = bias?.Data;
         for (int b = 0; b < batch; b++)
         {
-            float[] batchTarget = batch == 1 ? target : ArrayPool<float>.Shared.Rent(oc * spatial);
-            try
-            {
-                CpuScheduling.For(0, panels, backend.Parallel,
-                    () => ArrayPool<float>.Shared.Rent(checked(k * 16)),
-                    (panel, _, packed) =>
-                    {
-                        int start = panel * 16, take = Math.Min(16, spatial - start);
-                        Pack(input, packed, b * ic * ih * iw, ic, ih, iw, kh, kw, ow, start, take, stride, pads, dilation);
-                        if (packedWeights is not null) CpuPackedGemm.Multiply(packedWeights, packed, batchTarget, spatial, start, take);
-                        else CpuGemm.MultiplyAvx(weights, packed, batchTarget, oc, spatial, k, start, take);
-                        Epilogue(batchTarget, bias?.Data, oc, spatial, start, take, silu);
-                        return packed;
-                    },
-                    packed => ArrayPool<float>.Shared.Return(packed));
-                if (batch != 1) Array.Copy(batchTarget, 0, target, b * oc * spatial, oc * spatial);
-            }
-            finally { if (batch != 1) ArrayPool<float>.Shared.Return(batchTarget); }
+            int inputOffset = b * ic * ih * iw, outputOffset = b * oc * spatial;
+            CpuScheduling.For(0, panels, backend.Parallel,
+                () => ArrayPool<float>.Shared.Rent(checked(k * 16)),
+                (panel, _, packed) =>
+                {
+                    int start = panel * 16, take = Math.Min(16, spatial - start);
+                    Pack(input, packed, inputOffset, ic, ih, iw, kh, kw, ow, start, take, stride, pads, dilation);
+                    if (packedWeights is not null) CpuPackedGemm.Multiply(packedWeights, packed, target, spatial, start, take, cOffset: outputOffset);
+                    else CpuGemm.MultiplyAvx(weights, packed, target, oc, spatial, k, start, take, cOffset: outputOffset);
+                    Epilogue(target, biasValues, oc, spatial, start, take, silu, outputOffset);
+                    return packed;
+                },
+                packed => ArrayPool<float>.Shared.Return(packed));
         }
     }
 
@@ -176,13 +172,14 @@ internal static class CpuConvolution
     /// <param name="start">当前空间面板的起始位置；out 参数返回领取区间的起点。</param>
     /// <param name="take">当前面板中实际有效的位置数。</param>
     /// <param name="silu">是否在输出上融合 SiLU 激活。</param>
-    private static unsafe void Epilogue(float[] output, float[]? bias, int channels, int spatial, int start, int take, bool silu)
+    /// <param name="outputOffset">当前批次在目标数组中的起始元素偏移。</param>
+    private static unsafe void Epilogue(float[] output, float[]? bias, int channels, int spatial, int start, int take, bool silu, int outputOffset = 0)
     {
         if (bias is null && !silu) return;
         fixed (float* ptr = output)
             for (int c = 0; c < channels; c++)
             {
-                float* dst = ptr + c * spatial + start; float bv = bias?[c] ?? 0;
+                float* dst = ptr + outputOffset + c * spatial + start; float bv = bias?[c] ?? 0;
                 if (take == 16)
                 {
                     var vb = Vector256.Create(bv); var low = Avx.LoadVector256(dst) + vb; var high = Avx.LoadVector256(dst + 8) + vb;

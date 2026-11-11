@@ -23,7 +23,9 @@ DEFAULT_MODELS = ["yolov8n", "yolov9t", "yolov10n", "yolo11n", "yolo26n",
                   "yolov8n-seg", "yolo11n-seg", "yolo26n-seg",
                   "yolov8n-pose", "yolo11n-pose", "yolo26n-pose"]
 ENVIRONMENT_FLAGS = ["SIMDYOLO_VULKAN_CACHE", "SIMDYOLO_VULKAN_CACHE_DIR",
-                     "SIMDYOLO_VULKAN_REPLAY", "SIMDYOLO_CPU_EXECUTOR",
+                     "SIMDYOLO_VULKAN_REPLAY", "SIMDYOLO_WINOGRAD_PACKED", "SIMDYOLO_CPU_EXECUTOR",
+                     "SIMDYOLO_CPU_EXECUTOR_GRAIN", "SIMDYOLO_CPU_EXECUTOR_SPINS",
+                     "SIMDYOLO_BENCHMARK_HIGH_QOS",
                      "DOTNET_ReadyToRun", "DOTNET_TieredPGO",
                      "DOTNET_TieredCompilation", "DOTNET_PROCESSOR_COUNT"]
 METRICS = ["ModelLoadMs", "FirstInferenceMs", "ReadyToFirstOutputMs", "MedianMs",
@@ -142,6 +144,7 @@ def main():
     parser.add_argument("--warmup", type=int, default=30, help="Total premeasurement frames, including the measured first frame")
     parser.add_argument("--size", type=int, default=640)
     parser.add_argument("--threads", type=int, default=12)
+    parser.add_argument("--windows-high-qos", action="store_true", help="Opt each Windows worker into HighQoS; does not change the system power plan or affinity")
     parser.add_argument("--min-frames", type=int, default=40)
     parser.add_argument("--input", type=Path, required=True, help="Preprocessed little-endian FP32 NCHW RGB input shared by every worker")
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/lifecycle-comparison.json")
@@ -150,6 +153,8 @@ def main():
     parser.add_argument("--overwrite", action="store_true", help="Replace the report; earlier raw-output directories remain intact")
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs and print the schedule without building or measuring")
     args = parser.parse_args()
+    if args.windows_high_qos and os.name != "nt":
+        parser.error("--windows-high-qos requires Windows")
     if (args.repeats < 1 or args.warmup < 1 or args.duration < 0 or not args.duration < float("inf")
             or args.size < 32 or args.size % 32 or args.threads < 1 or args.min_frames < 1
             or not 0 < args.timeout < float("inf")):
@@ -207,7 +212,8 @@ def main():
               "Models": [{"Path": str(path), "Sha256": sha256(path)} for path in dict.fromkeys(case[3] for case in cases)],
               "ToolSources": [{"Path": str(path.relative_to(ROOT)), "Sha256": sha256(path)} for path in sources],
               "WorkerSha256": sha256(template / "SimdYolo.LifecycleBenchmark.dll"), "CacheMode": args.cache_mode,
-              "Settings": {"Size": args.size, "Threads": args.threads, "WarmupFrames": args.warmup, "DurationSeconds": args.duration, "MinimumFrames": args.min_frames, "Repeats": args.repeats},
+              "Settings": {"Size": args.size, "Threads": args.threads, "WindowsHighQosRequested": args.windows_high_qos,
+                           "WarmupFrames": args.warmup, "DurationSeconds": args.duration, "MinimumFrames": args.min_frames, "Repeats": args.repeats},
               "Definitions": {
                   "ModelLoadMs": "YoloDetector construction, including backend creation, model parsing and weight preparation.",
                   "FirstInferenceMs": "First PredictRaw, including GPU upload/compute/output materialization when applicable.",
@@ -228,6 +234,8 @@ def main():
                     sequence += 1
                     prefix = directory / f"{sequence:04}-{model}-{fmt}-{backend}-{variant}"
                     environment = os.environ.copy()
+                    if args.windows_high_qos:
+                        environment["SIMDYOLO_BENCHMARK_HIGH_QOS"] = "1"
                     if args.cache_mode == "disabled":
                         environment["SIMDYOLO_VULKAN_CACHE"] = "0"
                     elif args.cache_mode == "isolated":

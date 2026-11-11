@@ -13,6 +13,26 @@ internal static class VulkanBufferViewsTests
         var begin = type.GetMethod("BeginFrame")!;
         var end = type.GetMethod("EndFrame")!;
         var materialize = type.GetMethod("MaterializeOutputs")!;
+        test("Vulkan tiled 5x5 max pool matches CPU across halos, tails and batches", () =>
+        {
+            using var gpu = new VulkanBackend();
+            foreach (var (height, width) in new[] { (5, 5), (9, 17), (20, 20), (24, 32) })
+            {
+                const int batch = 2, channels = 3;
+                var input = new Tensor(Enumerable.Range(0, batch * channels * height * width)
+                    .Select(i => -1 - MathF.Sin(i * .17f)).ToArray(), batch, channels, height, width);
+                var expected = TensorOps.Pool(input, [5, 5], [1, 1], [2, 2, 2, 2]);
+                begin.Invoke(gpu, null);
+                try
+                {
+                    var actual = TensorOps.Pool(input, [5, 5], [1, 1], [2, 2, 2, 2]);
+                    materialize.Invoke(gpu, [new[] { actual }]);
+                    if (!actual.Shape.SequenceEqual(expected.Shape) || !actual.Data.AsSpan().SequenceEqual(expected.Data))
+                        throw new Exception($"Tiled max pool mismatch for {height}x{width}.");
+                }
+                finally { end.Invoke(gpu, null); }
+            }
+        });
         test("Vulkan buffer views concatenate batched host and device tensors with empty inputs", () =>
         {
             using var gpu = new VulkanBackend();

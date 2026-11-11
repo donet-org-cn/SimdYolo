@@ -38,10 +38,10 @@ dotnet run --project examples/SimdYolo.Web -c Release
 ~~~sh
 dotnet new console -f net10.0 -o SimdYoloDemo
 cd SimdYoloDemo
-dotnet add package SimdYolo --version 0.11.3
+dotnet add package SimdYolo --version 0.11.4
 ~~~
 
-把 [YOLOv8n 权重](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.3/models/pt/yolov8n.pt) 保存为项目目录里的 `yolov8n.pt`，然后替换 `Program.cs`：
+把 [YOLOv8n 权重](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.4/models/pt/yolov8n.pt) 保存为项目目录里的 `yolov8n.pt`，然后替换 `Program.cs`：
 
 ~~~csharp
 using SimdYolo;
@@ -70,21 +70,23 @@ foreach (var instance in detector.Predict(rgb24, width, height))
 
 用图像库将图片解码为紧密排列的 RGB24 字节，每个像素三个字节，按 R、G、B 顺序保存为 `image.rgb`。例如原图为 640×480 时，运行 `dotnet run -- image.rgb 640 480`。将设备设为 `ComputeDevice.Vulkan` 可在支持的设备上启用 Vulkan。处理连续帧时可复用同一个 `YoloDetector`。
 
-需要微调时安装 `dotnet add package SimdYolo.Training --version 0.11.3`，并按[训练指南](docs/training.md)准备检测数据集。
+需要微调时安装 `dotnet add package SimdYolo.Training --version 0.11.4`，并按[训练指南](docs/training.md)准备检测数据集。
 
 ## 性能
 
-0.11.3 在 Windows、Core i7-12700 和 RTX 3060 上对比优化前后的稳态推理中位耗时。使用 FP32、640×640、batch 1，CPU 上限 12 线程，Vulkan 计时包含输出回读。
+0.11.4 发布前最后一轮优化，在 Windows、Core i7-12700 和 RTX 3060 上测得如下稳态中位耗时。使用 FP32、640×640、batch 1、12 CPU 线程，两版本测试进程均请求 HighQoS；Vulkan 计时包含输入上传和输出回读。**基线已含本版前期优化，下面不是与 NuGet 0.11.3 原包的完整版本对照。**
 
 | 模型 | 后端 | 优化前 | 优化后 |
 | --- | --- | ---: | ---: |
-| YOLOv8n PT | CPU SIMD | 40.70 ms | 40.23 ms |
-| YOLOv8n PT | Vulkan | 6.42 ms | 5.94 ms |
-| YOLO11n 动态 ONNX | CPU SIMD | 37.57 ms | 29.04 ms |
-| YOLO11n 动态 ONNX | Vulkan | 6.15 ms | 6.88 ms |
-| YOLO11n 动态 ONNX，单独复测 | Vulkan | 6.16 ms | 5.71 ms |
+| YOLOv8n PT | CPU SIMD | 23.036 ms | 23.164 ms |
+| YOLO11n PT | CPU SIMD | 21.928 ms | 21.844 ms |
+| YOLO26n-seg PT | CPU SIMD | 30.705 ms | 30.544 ms |
+| YOLOv8n PT | Vulkan | 4.204 ms | 3.768 ms |
+| YOLO11n PT | Vulkan | 4.270 ms | 4.076 ms |
+| YOLO26n-seg PT | Vulkan | 6.157 ms | 5.846 ms |
+| YOLOv8n ONNX | Vulkan | 4.126 ms | 3.684 ms |
 
-同机单线程测试中，5×5 最大池化耗时下降约 **12%**，2 倍最近邻上采样每次少分配 **488 字节**。YOLOv8n PT 的 Vulkan 推理耗时下降约 **7.5%**。动态 ONNX 的 Vulkan 两次测量方向不同，端到端收益仍不确定。[测量口径、输出校验与限制](docs/releases/v0.11.3.md)
+这些配置的 Vulkan 耗时降低 **4.55%～10.70%**。常规 CPU PT 中位数基本持平，每帧托管分配减少 **3.07%～4.04%**；ONNX CPU 初测慢 5.45%、加长复测快 1.56%，未确认稳定提速。继承本机后台启动环境的另一组 CPU 测试耗时降低 42.84%～45.81%，该比例仅适用于该调度条件。GPU 进程工作集增加约 48～75 MiB，默认仍为 FP32。[发布说明](docs/releases/v0.11.4.md) · [完整数据、输出核对与限制](artifacts/cpu-gpu-optimization-2026-11-11.md)
 
 [0.11.2 的 11 模型 PyTorch / ONNX Runtime 对照](artifacts/runtime-comparison-0.11.2.md) · [加载与首帧性能](artifacts/startup-optimization-0.11.3.md) · [图片与掩码性能](artifacts/image-pipeline-optimization-0.11.1.md) · [训练性能](artifacts/training-optimization-0.10.1.md)
 

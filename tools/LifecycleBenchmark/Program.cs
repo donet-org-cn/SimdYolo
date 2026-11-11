@@ -40,6 +40,7 @@ internal static class Program
             MemoryMarshal.Cast<byte, float>(inputBytes).CopyTo(values);
             var input = new Tensor(values, 1, 3, size, size);
             using var process = Process.GetCurrentProcess();
+            bool highQos = ConfigureWindowsQos(process);
             long baselineWorkingSet = process.WorkingSet64;
             long loadAllocatedStart = GC.GetTotalAllocatedBytes(precise: true), loadStart = Stopwatch.GetTimestamp();
             using var detector = new YoloDetector(model, new() { Device = requested, CpuThreads = threads, Width = size, Height = size });
@@ -82,7 +83,8 @@ internal static class Program
             {
                 Version = typeof(YoloDetector).Assembly.GetName().Version!.ToString(3), Model = Path.GetFileName(model), ModelPath = model,
                 RequestedBackend = requested.ToString(), Backend = detector.BackendName, detector.FallbackReason,
-                Size = size, CpuThreads = threads, LogicalProcessors = Environment.ProcessorCount, WarmupFrames = warmup, MinimumFrames = minFrames, DurationSeconds = duration,
+                Size = size, CpuThreads = threads, LogicalProcessors = Environment.ProcessorCount, WindowsHighQos = highQos,
+                WarmupFrames = warmup, MinimumFrames = minFrames, DurationSeconds = duration,
                 ModelLoadMs = loadMs, FirstInferenceMs = firstMs, ReadyToFirstOutputMs = readyMs,
                 LoadManagedBytes = loadAllocated, FirstInferenceManagedBytes = firstAllocated,
                 MedianMs = median, MeanMs = samples.Average(), P95Ms = ordered[(int)Math.Ceiling(.95 * (ordered.Length - 1))], Frames = samples.Count, Seconds = seconds,
@@ -99,6 +101,25 @@ internal static class Program
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }
     }
+
+    // Only the benchmark worker opts into HighQoS. The library keeps the caller's
+    // OS scheduling policy; this option neither changes the system power plan nor CPU affinity.
+    private static bool ConfigureWindowsQos(Process process)
+    {
+        if (Environment.GetEnvironmentVariable("SIMDYOLO_BENCHMARK_HIGH_QOS") != "1") return false;
+        if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("HighQoS benchmarking requires Windows.");
+        PowerThrottling state = new() { Version = 1, ControlMask = 1, StateMask = 0 };
+        if (!SetProcessInformation(process.Handle, 4, ref state, 12))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastPInvokeError(), "Could not set benchmark HighQoS.");
+        return true;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct PowerThrottling { internal uint Version, ControlMask, StateMask; }
+
+    [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetProcessInformation(nint process, int informationClass, ref PowerThrottling state, uint bytes);
 
     /// <summary>保存首帧或稳态原始输出，并核对有限数值；文件写入和哈希不计入性能窗口。</summary>
     /// <param name="outputs">已经 materialize 且可持有的公开输出张量。</param>

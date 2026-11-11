@@ -19,6 +19,31 @@ internal static class CpuExecutorTests
     /// <exception cref="InvalidOperationException">测试所需的状态或作用域约束不满足时。</exception>
     internal static void Run(Action<string, Action> test)
     {
+        test("CPU executor: completed work does not wait for late workers or admit them after disposal", () =>
+        {
+            Type executor = Library.GetType("SimdYolo.CpuExecutor")!;
+            Type actionJob = executor.GetNestedType("ActionJob", BindingFlags.NonPublic)!;
+            Type job = actionJob.BaseType!;
+            MethodInfo participate = job.GetMethod("Participate", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            MethodInfo close = job.GetMethod("Close", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            MethodInfo wait = job.GetMethod("Wait", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var hits = new int[67];
+            object work = Activator.CreateInstance(actionJob, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                binder: null, args: [0, hits.Length, 12, 1, CancellationToken.None, (Action<int>)(i => hits[i]++)], culture: null)!;
+            var completed = Task.Run(() =>
+            {
+                participate.Invoke(work, null);
+                close.Invoke(work, null);
+                wait.Invoke(work, null);
+                ((IDisposable)work).Dispose();
+            });
+            if (!completed.Wait(TimeSpan.FromSeconds(5))) throw new Exception("Completed work waited for workers which had not joined.");
+            completed.GetAwaiter().GetResult();
+            // 工作线程可能已读取旧作业引用，但在关闭和释放之后才恢复运行。
+            // 它必须直接退出，既不能重复执行回调，也不能访问已释放的完成事件。
+            Parallel.For(0, 11, _ => participate.Invoke(work, null));
+            if (hits.Any(hit => hit != 1)) throw new Exception("A late worker repeated completed work.");
+        });
         test("CPU executor: 20k forced-park epochs with changing participants and Task caller", () => Enabled(() =>
         {
             string? previousSpins = Environment.GetEnvironmentVariable("SIMDYOLO_CPU_EXECUTOR_SPINS");

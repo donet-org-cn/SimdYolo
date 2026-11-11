@@ -70,7 +70,7 @@ public sealed unsafe partial class VulkanBackend
         {
             if (!zeros.TryGetValue(oc, out bias)) { bias = new Tensor(oc) { IsConstant = true }; zeros.Add(oc, bias); }
         }
-        var input = Upload(x); var weights = Upload(weight); var bv = Upload(bias); var zero = Upload(scalarZero);
+        var input = Upload(x); var bv = Upload(bias); var zero = Upload(scalarZero);
         bool cacheInput = cacheWinogradInputs && x.Storage is { } source && ReferenceEquals(source.Owner, this) && source.FrameId == frameId;
         var cacheKey = new WinogradInputKey((GpuBuffer)input.Buffer, input.Offset, batch, ic, h, width, tile);
         if (!cacheInput || !winogradInputs.TryGetValue(cacheKey, out var transformed))
@@ -83,53 +83,57 @@ public sealed unsafe partial class VulkanBackend
             if (cacheInput) winogradInputs[cacheKey] = transformed;
         }
         var products = AllocateTensor([batch * planes, oc, 1, tiles]); var output = AllocateTensor([batch, oc, h, width]);
-        uint[] mp = [0, (uint)ic, 1, (uint)tiles, (uint)oc, 1, (uint)tiles, 1, 1, 1, 1, 0, 0, 1, 1, 1, (uint)planes];
-        if (!zeros.TryGetValue(oc, out var middleBias)) { middleBias = new Tensor(oc) { IsConstant = true }; zeros.Add(oc, middleBias); }
-        uint columns = oc <= 16 ? 64u : 32u, rows = oc <= 16 ? 16u : 32u;
-        var middleBiasStorage = Upload(middleBias);
-        bool wideColumnsEligible = oc >= 64 && oc % 64 == 0 && tiles >= 64 && batch > 0;
-        if (winogradColumnMode == "1" && wideColumnsEligible)
+        if (!TryPackedWinogradMiddle(weight, transformed, products, zero, batch, planes, ic, oc, tiles))
         {
-            rows = columns = 64;
-        }
-        else if (oc >= 64 && oc % 64 == 0 && tiles > 0 && batch > 0 && winogradRegisterTile != "0")
-        {
-            if (winogradRegisterTile == "256") rows = 64;
-            else
+            var weights = Upload(weight);
+            uint[] mp = [0, (uint)ic, 1, (uint)tiles, (uint)oc, 1, (uint)tiles, 1, 1, 1, 1, 0, 0, 1, 1, 1, (uint)planes];
+            if (!zeros.TryGetValue(oc, out var middleBias)) { middleBias = new Tensor(oc) { IsConstant = true }; zeros.Add(oc, middleBias); }
+            uint columns = oc <= 16 ? 64u : 32u, rows = oc <= 16 ? 16u : 32u;
+            var middleBiasStorage = Upload(middleBias);
+            bool wideColumnsEligible = oc >= 64 && oc % 64 == 0 && tiles >= 64 && batch > 0;
+            if (winogradColumnMode == "1" && wideColumnsEligible)
             {
-                string dimensions = string.Join(',', mp);
-                if (!winogradMiddleTiles.TryGetValue(dimensions, out uint choice) || choice is not (32 or 64 or 128)
-                    || choice == 128 && (!wideColumnsEligible || !winogradColumns64))
-                {
-                    uint[] candidates = wideColumnsEligible && winogradColumns64 ? [32u, 64u, 128u] : [32u, 64u];
-                    ulong[] pipelines = candidates.Select(candidate => WinogradMiddlePipeline(tile, planes, mp,
-                        candidate == 32 ? 32u : 64u, candidate == 128 ? 64u : 32u)).ToArray();
-                    // 候选计时前先完成输入变换和常量上传。帧内变换缓冲区在这些
-                    // 同步提交之间保持有效，计时只比较中间乘法候选。
-                    FlushFrame();
-                    for (int index = 0; index < candidates.Length; index++)
-                    {
-                        uint candidateRows = candidates[index] == 32 ? 32u : 64u, candidateColumns = candidates[index] == 128 ? 64u : 32u;
-                        Dispatch(pipelines[index], weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp,
-                            ((uint)tiles + candidateColumns - 1) / candidateColumns, ((uint)oc + candidateRows - 1) / candidateRows, (uint)(batch * planes));
-                    }
-                    FlushFrame();
-                    ulong fastest = ulong.MaxValue; choice = 32;
-                    for (int round = 0; round < 2; round++) for (int index = 0; index < candidates.Length; index++)
-                    {
-                        uint candidateRows = candidates[index] == 32 ? 32u : 64u, candidateColumns = candidates[index] == 128 ? 64u : 32u;
-                        ulong elapsed = MeasureConvolution(pipelines[index], weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp,
-                            ((uint)tiles + candidateColumns - 1) / candidateColumns, ((uint)oc + candidateRows - 1) / candidateRows, (uint)(batch * planes));
-                        if (elapsed < fastest) { fastest = elapsed; choice = candidates[index]; }
-                    }
-                    winogradMiddleTiles[dimensions] = choice;
-                }
-                rows = choice == 128 ? 64u : choice;
-                columns = choice == 128 ? 64u : 32u;
+                rows = columns = 64;
             }
+            else if (oc >= 64 && oc % 64 == 0 && tiles > 0 && batch > 0 && winogradRegisterTile != "0")
+            {
+                if (winogradRegisterTile == "256") rows = 64;
+                else
+                {
+                    string dimensions = string.Join(',', mp);
+                    if (!winogradMiddleTiles.TryGetValue(dimensions, out uint choice) || choice is not (32 or 64 or 128)
+                        || choice == 128 && (!wideColumnsEligible || !winogradColumns64))
+                    {
+                        uint[] candidates = wideColumnsEligible && winogradColumns64 ? [32u, 64u, 128u] : [32u, 64u];
+                        ulong[] pipelines = candidates.Select(candidate => WinogradMiddlePipeline(tile, planes, mp,
+                            candidate == 32 ? 32u : 64u, candidate == 128 ? 64u : 32u)).ToArray();
+                        // 候选计时前先完成输入变换和常量上传。帧内变换缓冲区在这些
+                        // 同步提交之间保持有效，计时只比较中间乘法候选。
+                        FlushFrame();
+                        for (int index = 0; index < candidates.Length; index++)
+                        {
+                            uint candidateRows = candidates[index] == 32 ? 32u : 64u, candidateColumns = candidates[index] == 128 ? 64u : 32u;
+                            Dispatch(pipelines[index], weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp,
+                                ((uint)tiles + candidateColumns - 1) / candidateColumns, ((uint)oc + candidateRows - 1) / candidateRows, (uint)(batch * planes));
+                        }
+                        FlushFrame();
+                        ulong fastest = ulong.MaxValue; choice = 32;
+                        for (int round = 0; round < 2; round++) for (int index = 0; index < candidates.Length; index++)
+                        {
+                            uint candidateRows = candidates[index] == 32 ? 32u : 64u, candidateColumns = candidates[index] == 128 ? 64u : 32u;
+                            ulong elapsed = MeasureConvolution(pipelines[index], weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp,
+                                ((uint)tiles + candidateColumns - 1) / candidateColumns, ((uint)oc + candidateRows - 1) / candidateRows, (uint)(batch * planes));
+                            if (elapsed < fastest) { fastest = elapsed; choice = candidates[index]; }
+                        }
+                        winogradMiddleTiles[dimensions] = choice;
+                    }
+                    rows = choice == 128 ? 64u : choice;
+                    columns = choice == 128 ? 64u : 32u;
+                }
+            }
+            ulong middle = WinogradMiddlePipeline(tile, planes, mp, rows, columns);
+            Dispatch(middle, weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp, ((uint)tiles + columns - 1) / columns, ((uint)oc + rows - 1) / rows, (uint)(batch * planes));
         }
-        ulong middle = WinogradMiddlePipeline(tile, planes, mp, rows, columns);
-        Dispatch(middle, weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp, ((uint)tiles + columns - 1) / columns, ((uint)oc + rows - 1) / rows, (uint)(batch * planes));
         uint[] op = DeviceOps.Parameters((uint)(batch * oc * tiles), (uint)oc, (uint)h, (uint)width, (uint)tw, (uint)th, silu ? 1u : 0u);
         string outputKey = planes + ":output:" + string.Join(',', op.Take(7)) + (vectorIo ? ":vec" : "");
         if (!winogradTransformPipelines.TryGetValue(outputKey, out ulong outputTransform)) { outputTransform = CreateNamedPipeline(vectorIo ? "winograd4_output_vec.spv" : tile == 4 ? "winograd4_output.spv" : "winograd_output.spv", op); winogradTransformPipelines[outputKey] = outputTransform; }
@@ -213,6 +217,7 @@ public sealed unsafe partial class VulkanBackend
     {
         foreach (ulong p in winogradPipelines.Values) Vk.DestroyPipeline(device, p, null); winogradPipelines.Clear(); winogradWeights.Clear();
         winogradMiddleTiles.Clear();
+        winogradPackedWeights.Clear();
         foreach (ulong p in winogradTransformPipelines.Values) Vk.DestroyPipeline(device, p, null); winogradTransformPipelines.Clear();
         winogradInputs.Clear();
         pointwisePackedWeights.Clear();
