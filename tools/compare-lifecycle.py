@@ -24,7 +24,7 @@ DEFAULT_MODELS = ["yolov8n", "yolov9t", "yolov10n", "yolo11n", "yolo26n",
                   "yolov8n-pose", "yolo11n-pose", "yolo26n-pose"]
 ENVIRONMENT_FLAGS = ["SIMDYOLO_VULKAN_CACHE", "SIMDYOLO_VULKAN_CACHE_DIR",
                      "SIMDYOLO_VULKAN_REPLAY", "SIMDYOLO_WINOGRAD_PACKED", "SIMDYOLO_CPU_EXECUTOR",
-                     "SIMDYOLO_CPU_EXECUTOR_GRAIN", "SIMDYOLO_CPU_EXECUTOR_SPINS",
+                     "SIMDYOLO_CPU_EXECUTOR_GRAIN", "SIMDYOLO_CPU_EXECUTOR_SPINS", "SIMDYOLO_CPU_AVX512",
                      "SIMDYOLO_BENCHMARK_HIGH_QOS",
                      "DOTNET_ReadyToRun", "DOTNET_TieredPGO",
                      "DOTNET_TieredCompilation", "DOTNET_PROCESSOR_COUNT"]

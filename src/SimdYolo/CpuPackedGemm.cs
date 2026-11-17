@@ -95,6 +95,11 @@ internal static class CpuPackedGemm
         fixed (float* aStart = weights.Data, bStart = input, cStart = output)
         {
             float* bp = bStart + bOffset, cp = cStart + cOffset;
+            if (take == 16 && CpuGemm512.Enabled)
+            {
+                CpuGemm512.Multiply(aStart, bp, cp + column, m, n, k, packedRows: true);
+                return;
+            }
             int depth = take == 16 && k >= 256 && m >= 32 ? 128 : k;
             for (int begin = 0; begin < k; begin += depth)
             {

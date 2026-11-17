@@ -139,6 +139,10 @@ ONNX 支持普通 `ai.onnx` 域、opset 11–21 中已实现的算子；主要�
 
 CPU 的 GEMM 使用 AVX/FMA 寄存器分块、连续列块打包和分批调度，其他硬件使用 `System.Numerics.Vector<float>` 路径。适用的 3×3 卷积采用 F(2×2,3×3) / F(4×4,3×3) Winograd，并对输入和输出变换使用 SIMD；普通卷积按 16 个空间位置生成计算块，减少完整 im2col 的分配和内存往返。depthwise、池化、上采样、Softmax 和 2×2 转置卷积也有专用 SIMD / GEMM 路径。会话按计算图的存活引用及时回收中间数组，缓存保留上限为 256 MiB；返回的公开输出脱离池管理，后续推理和调用方修改输出不会覆盖模型常量。
 
+AVX-512 内核默认关闭。在支持 512 位向量的运行时上，启动进程前设置 `SIMDYOLO_CPU_AVX512=1` 可启用完整 16 列 GEMM 面板的 AVX-512 FP32 FMA，以及受支持的 512 位 INT8 路径。ARM64 使用 NEON 处理普通卷积和逐点卷积的分块输入及后处理。CPU INT8 根据硬件选择 AVX-VNNI、AVX2、Arm DotProd 或 NEON，也可在显式启用 AVX-512 时使用受支持的 512 位指令。指令检测由 .NET 运行时完成，默认推理使用 FP32。
+
+ONNX `MaxPool` 和 PyTorch `MaxPool2d` 支持 `ceil_mode`，尾部窗口只取输入内的值。需要在车牌项目使用 `chinese-plate-recognition` 的 PlateNet 字符 `.pth` 时，调用 `ModelExporter.ExportPlateRecognizerOnnx(Stream)`，将返回的 ONNX 交给 OCR 运行时。该入口使用检查点中的 `cfg` 和 `state_dict` 生成字符分支，输入为 `[1,3,48,168]` 的 BGR FP32（范围 `[-1,1]`），输出 CTC 概率加一个 Paddle OCR 保留字符。检测权重仍由 `YoloDetector` 加载。
+
 固定权重可缓存 GEMM 的 A 矩阵寄存器布局，减少内层循环寻址；普通 packed-A 路径对少于 6 个输出行、无 AVX/FMA 或可变权重保留回退。可用 `SIMDYOLO_CPU_PACKED_A=0` 关闭，线程上限仍由调用方指定。
 
 0.5 的逐点卷积使用 4 行×24 列 AVX/FMA 计算块，适用时缓存固定权重布局，并融合 bias / SiLU；不满足硬件/形状/权重条件时回退。Winograd 在同一线程池任务的局部计算块中完成输入变换、通道归约和逆变换，避免整幅中间结果和重复打包，较小深层仍用原路径。CPU 使用 backend 专属执行器，调用线程参与计算并计入 CpuThreads 上限，空闲线程在有界自旋后休眠。请使用 using 或 Dispose 释放 detector/backend 持有的工作线程。发布任务和休眠交接使用完整内存屏障，并有强制休眠压力回归；其他路径可使用常规 .NET 线程池回退。

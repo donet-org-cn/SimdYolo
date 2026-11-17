@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 
 namespace SimdYolo;
@@ -7,6 +8,7 @@ namespace SimdYolo;
 /// <summary>通过按需打包空间面板实现通用卷积，避免为整幅图像分配 im2col 缓冲区。</summary>
 internal static class CpuConvolution
 {
+    internal static bool Supported => (Avx2.IsSupported && Fma.IsSupported) || AdvSimd.Arm64.IsSupported;
     /// <summary>是否按实际输出地址对齐卷积任务的缓存行。</summary>
     private static readonly bool AlignOutput = Environment.GetEnvironmentVariable("SIMDYOLO_CPU_CONV_ALIGNED") != "0";
     /// <summary>是否以较窄 SIMD 向量处理空间面板尾部。</summary>
@@ -46,7 +48,7 @@ internal static class CpuConvolution
                     int start = panel * 16, take = Math.Min(16, spatial - start);
                     Pack(input, packed, inputOffset, ic, ih, iw, kh, kw, ow, start, take, stride, pads, dilation);
                     if (packedWeights is not null) CpuPackedGemm.Multiply(packedWeights, packed, target, spatial, start, take, cOffset: outputOffset);
-                    else CpuGemm.MultiplyAvx(weights, packed, target, oc, spatial, k, start, take, cOffset: outputOffset);
+                    else CpuGemm.MultiplyPanel(weights, packed, target, oc, spatial, k, start, take, cOffset: outputOffset);
                     Epilogue(target, biasValues, oc, spatial, start, take, silu, outputOffset);
                     return packed;
                 },
@@ -131,7 +133,6 @@ internal static class CpuConvolution
         Span<int> ys = stackalloc int[16]; Span<int> xs = stackalloc int[16];
         for (int j = 0; j < take; j++) { ys[j] = (start + j) / ow * stride[0] - pad[0]; xs[j] = (start + j) % ow * stride[1] - pad[1]; }
         bool row = take == 16 && start / ow == (start + 15) / ow;
-        var order = Vector256.Create(0, 1, 4, 5, 2, 3, 6, 7);
         fixed (float* src = input, dst = packed)
         {
             int r = 0;
@@ -142,11 +143,19 @@ internal static class CpuConvolution
                 {
                     float* source = src + batchStart + (ci * ih + sy) * iw + sx;
                     if (stride[1] == 1)
+                        CpuGemm.CopyFullPanel(source, p);
+                    else if (AdvSimd.Arm64.IsSupported)
                     {
-                        Avx.Store(p, Avx.LoadVector256(source)); Avx.Store(p + 8, Avx.LoadVector256(source + 8));
+                        for (int j = 0; j < 16; j += 4)
+                        {
+                            var lo = Vector128.Load(source + 2 * j);
+                            var hi = Vector128.Load(source + 2 * j + 4);
+                            AdvSimd.Arm64.UnzipEven(lo, hi).Store(p + j);
+                        }
                     }
                     else
                     {
+                        var order = Vector256.Create(0, 1, 4, 5, 2, 3, 6, 7);
                         var left = Avx.Shuffle(Avx.LoadVector256(source), Avx.LoadVector256(source + 8), 0x88);
                         var right = Avx.Shuffle(Avx.LoadVector256(source + 16), Avx.LoadVector256(source + 24), 0x88);
                         Avx.Store(p, Avx2.PermuteVar8x32(left, order)); Avx.Store(p + 8, Avx2.PermuteVar8x32(right, order));
@@ -176,6 +185,11 @@ internal static class CpuConvolution
     private static unsafe void Epilogue(float[] output, float[]? bias, int channels, int spatial, int start, int take, bool silu, int outputOffset = 0)
     {
         if (bias is null && !silu) return;
+        if (AdvSimd.Arm64.IsSupported)
+        {
+            CpuEpilogue.ApplyNeonPanel(output, bias, channels, spatial, start, take, silu, outputOffset);
+            return;
+        }
         fixed (float* ptr = output)
             for (int c = 0; c < channels; c++)
             {

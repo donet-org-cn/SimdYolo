@@ -212,8 +212,13 @@ internal sealed partial class OnnxModel : IModel
                 return One(a.Length > 2 && a[2] is not null ? TensorOps.Arithmetic(gemm, TensorOps.Scale(X(2), n.Float("beta", 1)), 10) : gemm);
             case "MaxPool":
             case "AveragePool":
-                if (n.Int("ceil_mode") != 0 || n.Text("auto_pad", "NOTSET") != "NOTSET" || n.Ints("dilations", [1, 1]).Any(d => d != 1) || n.Outputs.Length != 1) throw new NotSupportedException("Pool variant unsupported.");
-                return One(TensorOps.Pool(X(), n.Ints("kernel_shape"), n.Ints("strides", [1, 1]), n.Ints("pads", [0, 0, 0, 0]), n.Op == "AveragePool", n.Int("count_include_pad") != 0));
+                long ceilMode = n.Int("ceil_mode");
+                bool average = n.Op == "AveragePool";
+                if (ceilMode is not (0 or 1) || (average && ceilMode != 0) || n.Text("auto_pad", "NOTSET") != "NOTSET" ||
+                    n.Ints("dilations", [1, 1]).Any(d => d != 1) || n.Outputs.Length != 1)
+                    throw new NotSupportedException("Pool variant unsupported.");
+                return One(TensorOps.Pool(X(), n.Ints("kernel_shape"), n.Ints("strides", [1, 1]),
+                    n.Ints("pads", [0, 0, 0, 0]), average, n.Int("count_include_pad") != 0, ceilMode == 1));
             case "GlobalAveragePool": return One(TensorOps.Pool(X(), X().Shape[2..], [1, 1], [0, 0, 0, 0], true));
             case "Concat": return One(TensorOps.Concat(a.Select(t => t!).ToArray(), (int)n.Int("axis")));
             case "Split":

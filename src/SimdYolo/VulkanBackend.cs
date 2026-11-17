@@ -696,7 +696,8 @@ public sealed unsafe partial class VulkanBackend : IComputeBackend, IConvolution
     /// <summary>保存 Vulkan 原生函数指针；调用者负责传递有效句柄、缓冲区容量和指针生命周期。</summary>
     private static partial class Vk
     {
-        private static readonly nint Library = NativeLibrary.Load(OperatingSystem.IsWindows() ? "vulkan-1.dll" : "libvulkan.so.1");
+        private static readonly nint Library = NativeLibrary.Load(
+            OperatingSystem.IsWindows() ? "vulkan-1.dll" : OperatingSystem.IsAndroid() ? "libvulkan.so" : "libvulkan.so.1");
         /// <summary>从已加载的 Vulkan 库取得指定 vk 入口的原生函数地址。</summary>
         /// <param name="name">Vulkan 导出入口的名称后缀，实际查找时添加 vk 前缀。</param>
         /// <returns>对应 Vulkan 原生入口的函数指针。</returns>

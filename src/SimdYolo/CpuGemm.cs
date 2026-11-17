@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 
 namespace SimdYolo;
@@ -154,10 +155,7 @@ internal static class CpuGemm
             float* source = sourceStart + offset;
             if (take == 16)
                 for (int p = 0; p < k; p++)
-                {
-                    Avx.Store(target + p * 16, Avx.LoadVector256(source + p * n + column));
-                    Avx.Store(target + p * 16 + 8, Avx.LoadVector256(source + p * n + column + 8));
-                }
+                    CopyFullPanel(source + p * n + column, target + p * 16);
             else
                 for (int p = 0; p < k; p++)
                 {
@@ -165,6 +163,32 @@ internal static class CpuGemm
                     for (int j = take; j < 16; j++) target[p * 16 + j] = 0;
                 }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static unsafe void CopyFullPanel(float* source, float* target)
+    {
+        if (CpuGemm512.Enabled) Vector512.Load(source).Store(target);
+        else if (Avx.IsSupported)
+        {
+            Avx.Store(target, Avx.LoadVector256(source));
+            Avx.Store(target + 8, Avx.LoadVector256(source + 8));
+        }
+        else
+        {
+            Vector128.Load(source).Store(target);
+            Vector128.Load(source + 4).Store(target + 4);
+            Vector128.Load(source + 8).Store(target + 8);
+            Vector128.Load(source + 12).Store(target + 12);
+        }
+    }
+
+    internal static void MultiplyPanel(float[] a, float[] b, float[] c, int m, int n, int k, int column, int take,
+                                       int cOffset = 0)
+    {
+        if (AdvSimd.Arm64.IsSupported)
+            CpuGemmPortable.MultiplyPanel16(a, b, c, m, n, k, column, take, cOffset);
+        else MultiplyAvx(a, b, c, m, n, k, column, take, cOffset: cOffset);
     }
 
     /// <summary>使用 6×16 AVX/FMA 微内核计算当前空间面板，深 K 按 128 项分块并保持递增 K 的累积次序。</summary>
@@ -192,6 +216,11 @@ internal static class CpuGemm
         fixed (float* aStart = a, bStart = b, cStart = c)
         {
             float* ap = aStart + aOffset, bp = bStart + bOffset, cp = cStart + cOffset;
+            if (take == 16 && CpuGemm512.Enabled)
+            {
+                CpuGemm512.Multiply(ap, bp, cp + column, m, n, k, packedRows: false);
+                return;
+            }
             int depth = take == 16 && k >= 256 && m >= 32 ? 128 : k;
             for (int begin = 0; begin < k; begin += depth)
             {

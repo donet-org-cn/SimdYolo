@@ -33,6 +33,7 @@ Test("Main library is managed IL and references only .NET framework assemblies",
         if (reference.Name is not ("netstandard" or "mscorlib" or "Microsoft.CSharp") && reference.Name?.StartsWith("System", StringComparison.Ordinal) != true) throw new Exception("External library dependency: " + reference.Name);
 });
 Test("SIMD GEMM, tails and changing buffers", () => Gemm(cpu));
+CpuWideGemmTests.Run(Test);
 CpuConcatTests.Run(Test);
 CpuWinogradPanelTests.Run(Test);
 CpuPackedGemmTests.Run(Test);
@@ -62,6 +63,7 @@ CpuPointwiseAlignedTests.Run(Test);
 CpuConvolutionPackTests.Run(Test);
 CpuConvolutionAlignedTests.Run(Test);
 CpuAverageTwoTests.Run(Test);
+MaxPoolCeilTests.Run(Test, FixtureDevices());
 OnnxCpuZeroAddTests.Run(Test, FixtureDevices());
 OnnxConcatConvRegression.Run(Test, FixtureDevices());
 GpuConvolutionKernelTests.Run(Test, FixtureDevices());

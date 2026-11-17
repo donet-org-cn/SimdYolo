@@ -38,10 +38,10 @@ Open [http://127.0.0.1:5188](http://127.0.0.1:5188), select a model and a CPU or
 ~~~sh
 dotnet new console -f net10.0 -o SimdYoloDemo
 cd SimdYoloDemo
-dotnet add package SimdYolo --version 0.11.4
+dotnet add package SimdYolo --version 0.11.5
 ~~~
 
-Save the [YOLOv8n weights](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.4/models/pt/yolov8n.pt) as `yolov8n.pt` in the project directory, then replace `Program.cs` with the following.
+Save the [YOLOv8n weights](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.5/models/pt/yolov8n.pt) as `yolov8n.pt` in the project directory, then replace `Program.cs` with the following.
 
 ~~~csharp
 using SimdYolo;
@@ -70,9 +70,11 @@ foreach (var instance in detector.Predict(rgb24, width, height))
 
 Use your image library to decode a picture to tightly packed RGB24 bytes in R, G, B order and save it as `image.rgb`. For a 640×480 image, run `dotnet run -- image.rgb 640 480`. Set the device to `ComputeDevice.Vulkan` to use Vulkan on a compatible system. Reuse one `YoloDetector` for successive frames.
 
-To fine-tune a detection head, run `dotnet add package SimdYolo.Training --version 0.11.4` and prepare a dataset using the [training guide](docs/training.md).
+To fine-tune a detection head, run `dotnet add package SimdYolo.Training --version 0.11.5` and prepare a dataset using the [training guide](docs/training.md).
 
 ## Performance
+
+Version 0.11.5 adds tiled NEON convolution on ARM64 and disables AVX-512 by default. See the Xeon on/off comparison in the [0.11.5 release notes](docs/releases/v0.11.5.md).
 
 The final optimization round before 0.11.4 measured these median steady-state latencies on Windows with a Core i7-12700 and RTX 3060. Tests used FP32, 640×640 inputs, batch size 1, 12 CPU threads and identical explicit HighQoS requests for both variants. Vulkan timing includes input upload and output readback. **The baseline already includes earlier changes in this release; this is not a full comparison against the published NuGet 0.11.3 package.**
 

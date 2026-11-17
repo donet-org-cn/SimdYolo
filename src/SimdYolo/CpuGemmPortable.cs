@@ -47,7 +47,8 @@ internal static class CpuGemmPortable
             void Tile(int tile)
             {
                 int panel = tile % panels, row = tile / panels * 4, column = panel * columns;
-                MultiplyRows(a, packed, c, m, n, k, row, column, panel * k * columns, 0, 0);
+                MultiplyRows(a, packed, c, m, n, k, row, column, panel * k * columns, 0, 0,
+                    columns, Math.Min(columns, n - column));
             }
             int tiles = ((m + 3) / 4) * panels;
             if ((long)m * n * k > 262144) CpuScheduling.For(0, tiles, parallel, Tile);
@@ -85,7 +86,7 @@ internal static class CpuGemmPortable
                 if (take < columns) Array.Clear(packed, p * columns + take, columns - take);
             }
             for (int row = 0; row < m; row += 4)
-                MultiplyRows(a, packed, c, m, n, k, row, column, 0, aOffsets[batch], batch * mn);
+                MultiplyRows(a, packed, c, m, n, k, row, column, 0, aOffsets[batch], batch * mn, columns, take);
         }
         if ((long)aOffsets.Length * m * n * k > 262144 && parallel.MaxDegreeOfParallelism != 1)
             CpuScheduling.For(0, work, parallel, () => ArrayPool<float>.Shared.Rent(checked(k * columns)),
@@ -97,6 +98,18 @@ internal static class CpuGemmPortable
             try { for (int index = 0; index < work; index++) Panel(index, packed); }
             finally { ArrayPool<float>.Shared.Return(packed); }
         }
+    }
+
+    // Reuse the portable FMA microkernel on the 16-column panels from pointwise and im2col.
+    // Arm64 processes two 8-column subpanels while keeping the original K stride.
+    internal static void MultiplyPanel16(float[] a, float[] packed, float[] c, int m, int n, int k,
+                                         int column, int take, int cOffset)
+    {
+        int columns = Vector<float>.Count * 2;
+        for (int first = 0; first < take; first += columns)
+            for (int row = 0; row < m; row += 4)
+                MultiplyRows(a, packed, c, m, n, k, row, column + first, first, 0, cOffset,
+                    16, Math.Min(columns, take - first));
     }
 
     /// <summary>计算一个最多四行的输出块；逐 K 的 SIMD 乘加及尾部写入顺序与原有可移植内核相同。</summary>
@@ -111,10 +124,12 @@ internal static class CpuGemmPortable
     /// <param name="packedOffset">当前右矩阵面板在打包数组中的起始偏移。</param>
     /// <param name="aOffset">当前左矩阵在源数组中的起始偏移。</param>
     /// <param name="cOffset">当前输出矩阵在目标数组中的起始偏移。</param>
+    /// <param name="packedStride">打包缓冲区中相邻 K 行之间的元素数。</param>
+    /// <param name="take">当前列块实际写出的元素数。</param>
     private static void MultiplyRows(float[] a, float[] packed, float[] c, int m, int n, int k, int row, int column,
-                                     int packedOffset, int aOffset, int cOffset)
+                                     int packedOffset, int aOffset, int cOffset, int packedStride, int take)
     {
-        int width = Vector<float>.Count, columns = width * 2, rows = Math.Min(4, m - row);
+        int width = Vector<float>.Count, rows = Math.Min(4, m - row);
         ref float ar = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(a), aOffset);
         ref float br = ref MemoryMarshal.GetArrayDataReference(packed);
         ref float cr = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(c), cOffset);
@@ -124,8 +139,8 @@ internal static class CpuGemmPortable
         {
             for (int p = 0; p < k; p++)
             {
-                var b0 = Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * columns));
-                var b1 = Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * columns + width));
+                var b0 = Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * packedStride));
+                var b1 = Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * packedStride + width));
                 var a0 = new Vector<float>(Unsafe.Add(ref ar, row * k + p));
                 var a1 = new Vector<float>(Unsafe.Add(ref ar, (row + 1) * k + p));
                 var a2 = new Vector<float>(Unsafe.Add(ref ar, (row + 2) * k + p));
@@ -135,10 +150,10 @@ internal static class CpuGemmPortable
                 c20 = Vector.MultiplyAddEstimate(a2, b0, c20); c21 = Vector.MultiplyAddEstimate(a2, b1, c21);
                 c30 = Vector.MultiplyAddEstimate(a3, b0, c30); c31 = Vector.MultiplyAddEstimate(a3, b1, c31);
             }
-            Store(c00, c01, ref cr, row * n + column, n - column);
-            Store(c10, c11, ref cr, (row + 1) * n + column, n - column);
-            Store(c20, c21, ref cr, (row + 2) * n + column, n - column);
-            Store(c30, c31, ref cr, (row + 3) * n + column, n - column);
+            Store(c00, c01, ref cr, row * n + column, take);
+            Store(c10, c11, ref cr, (row + 1) * n + column, take);
+            Store(c20, c21, ref cr, (row + 2) * n + column, take);
+            Store(c30, c31, ref cr, (row + 3) * n + column, take);
         }
         else for (int r = 0; r < rows; r++)
         {
@@ -146,10 +161,10 @@ internal static class CpuGemmPortable
             for (int p = 0; p < k; p++)
             {
                 var av = new Vector<float>(Unsafe.Add(ref ar, (row + r) * k + p));
-                s0 = Vector.MultiplyAddEstimate(av, Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * columns)), s0);
-                s1 = Vector.MultiplyAddEstimate(av, Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * columns + width)), s1);
+                s0 = Vector.MultiplyAddEstimate(av, Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * packedStride)), s0);
+                s1 = Vector.MultiplyAddEstimate(av, Vector.LoadUnsafe(ref br, (nuint)(packedOffset + p * packedStride + width)), s1);
             }
-            Store(s0, s1, ref cr, (row + r) * n + column, n - column);
+            Store(s0, s1, ref cr, (row + r) * n + column, take);
         }
     }
     /// <summary>仅将当前 SIMD 向量中的有效通道写入目标缓冲区。</summary>

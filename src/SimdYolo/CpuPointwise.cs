@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 
 namespace SimdYolo;
@@ -11,9 +12,9 @@ internal static class CpuPointwise
     internal static readonly bool ConcatEnabled = Environment.GetEnvironmentVariable("SIMDYOLO_CPU_CONCAT") != "0";
     /// <summary>是否启用点卷积面板融合。</summary>
     internal static readonly bool FusionEnabled = Environment.GetEnvironmentVariable("SIMDYOLO_CPU_POINTWISE_FUSION") != "0";
-    /// <summary>当前处理器是否具备此路径需要的 AVX 与 FMA。</summary>
+    /// <summary>当前处理器是否具备点卷积面板需要的 AVX/FMA 或 Arm64 NEON。</summary>
     /// <value>当前处理器是否具备此路径需要的 AVX 与 FMA。</value>
-    internal static bool Supported => Avx.IsSupported && Fma.IsSupported;
+    internal static bool Supported => (Avx.IsSupported && Fma.IsSupported) || AdvSimd.Arm64.IsSupported;
 
     // 各源张量按顺序贡献连续输入通道。
     // K 轴打包保留该顺序，使 GEMM 的归约与先物化 NCHW 通道拼接完全一致。
@@ -45,7 +46,7 @@ internal static class CpuPointwise
             int column = panel * 16, take = Math.Min(16, n - column);
             Pack(sources, channels, packed, n, column, take);
             if (packedWeights is not null) CpuPackedGemm.Multiply(packedWeights, packed, c, n, column, take);
-            else CpuGemm.MultiplyAvx(a, packed, c, m, n, k, column, take);
+            else CpuGemm.MultiplyPanel(a, packed, c, m, n, k, column, take);
             Epilogue(c, d, m, n, column, take, silu);
         }
         if ((long)m * n * k > 262144 && backend.Parallel.MaxDegreeOfParallelism != 1)
@@ -79,7 +80,7 @@ internal static class CpuPointwise
                         float* src = source + ci * n + column; float* dst = target + row * 16;
                         if (take == 16)
                         {
-                            Avx.Store(dst, Avx.LoadVector256(src)); Avx.Store(dst + 8, Avx.LoadVector256(src + 8));
+                            CpuGemm.CopyFullPanel(src, dst);
                         }
                         else
                         {
@@ -100,6 +101,11 @@ internal static class CpuPointwise
     private static unsafe void Epilogue(float[] output, float[]? bias, int channels, int n, int column, int take, bool silu)
     {
         if (bias is null && !silu) return;
+        if (AdvSimd.Arm64.IsSupported)
+        {
+            CpuEpilogue.ApplyNeonPanel(output, bias, channels, n, column, take, silu);
+            return;
+        }
         fixed (float* ptr = output)
             for (int c = 0; c < channels; c++)
             {

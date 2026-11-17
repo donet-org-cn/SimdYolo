@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 
 namespace SimdYolo;
@@ -59,7 +60,8 @@ public sealed class CpuBackend : IComputeBackend
     }
     /// <summary>可读的后端名称及当前 SIMD 位宽。</summary>
     /// <value>可读的后端名称及当前 SIMD 位宽。</value>
-    public string Name => $"CPU SIMD ({Vector<float>.Count * 32} bits)";
+    public string Name => CpuGemm512.Enabled ? "CPU SIMD (AVX-512 GEMM)" :
+        AdvSimd.Arm64.IsSupported ? "CPU SIMD (Arm64 NEON)" : $"CPU SIMD ({Vector<float>.Count * 32} bits)";
     /// <summary>等待 CPU 内核结束后释放专用工作线程，并解除调度注册；可重复调用。</summary>
     /// <exception cref="InvalidOperationException">试图在本后端自己的内核回调中释放它，会导致线程自等待。</exception>
     public void Dispose()
@@ -222,7 +224,7 @@ public sealed class TensorOps(IComputeBackend backend)
         {
             convolution.Conv(x, w, bias, y, strides, pads, dilations, groups, silu); return y;
         }
-        if (Backend is CpuBackend cpuImplicit && groups == 1 && Avx2.IsSupported && Fma.IsSupported)
+        if (Backend is CpuBackend cpuImplicit && groups == 1 && CpuConvolution.Supported)
         {
             CpuConvolution.Conv(cpuImplicit, x, w, bias, y, strides, pads, dilations, silu);
             return y;
@@ -628,17 +630,39 @@ public sealed class TensorOps(IComputeBackend backend)
     /// <exception cref="NotSupportedException">输入张量的秩或布局不属于此算子支持的形式。</exception>
     /// <exception cref="OverflowException">形状或缓冲区元素数量的受检查整数运算超出支持范围。</exception>
     public static Tensor Pool(Tensor x, int[] kernel, int[] strides, int[] pads, bool average = false, bool countIncludePad = true)
+        => Pool(x, kernel, strides, pads, average, countIncludePad, ceilMode: false);
+
+    internal static Tensor Pool(Tensor x, int[] kernel, int[] strides, int[] pads, bool average, bool countIncludePad, bool ceilMode)
     {
         ValidateShape(x);
         if (x.Rank != 4) throw new NotSupportedException("Pool requires NCHW.");
         if (kernel.Length != 2 || strides.Length != 2 || pads.Length != 4 || kernel.Any(k => k <= 0) || strides.Any(s => s <= 0) || pads.Any(p => p < 0) || x.Shape[2] <= 0 || x.Shape[3] <= 0) throw new ArgumentException("Invalid pooling parameters.");
-        int h = x.Shape[2], w = x.Shape[3]; long hn = (long)h + pads[0] + pads[2] - kernel[0], wn = (long)w + pads[1] + pads[3] - kernel[1];
-        if (hn < 0 || wn < 0) throw new ArgumentException("Pooling kernel exceeds the padded input dimensions.");
-        int oh = checked((int)(hn / strides[0] + 1)), ow = checked((int)(wn / strides[1] + 1));
+        int h = x.Shape[2], w = x.Shape[3];
+        int oh = PoolOutputSize(h, kernel[0], strides[0], pads[0], pads[2], ceilMode);
+        int ow = PoolOutputSize(w, kernel[1], strides[1], pads[1], pads[3], ceilMode);
         if (DeviceScope.For(x) is { } owner)
-            return owner.Compute(average ? 22 : 21, [x], [x.Shape[0], x.Shape[1], oh, ow], DeviceOps.Parameters((uint)(x.Shape[0] * x.Shape[1] * oh * ow), (uint)h, (uint)w, (uint)oh, (uint)ow, (uint)kernel[0], (uint)kernel[1], (uint)strides[0], (uint)strides[1], (uint)pads[0], (uint)pads[1], countIncludePad ? 1u : 0u), x.Shape[0] * x.Shape[1] * oh * ow);
+        {
+            int[] shape = [x.Shape[0], x.Shape[1], oh, ow];
+            int length = Tensor.Count(shape);
+            // GPU 内核已按输出形状裁剪每个窗口。额外槽位仅用于保留导出几何。
+            var parameters = DeviceOps.Parameters((uint)length, (uint)h, (uint)w, (uint)oh, (uint)ow,
+                (uint)kernel[0], (uint)kernel[1], (uint)strides[0], (uint)strides[1], (uint)pads[0], (uint)pads[1],
+                countIncludePad ? 1u : 0u, (uint)pads[2], (uint)pads[3], ceilMode ? 1u : 0u);
+            return owner.Compute(average ? 22 : 21, [x], shape, parameters, length);
+        }
         if (!average) return CpuSpatial.MaxPool(x, kernel, strides, pads, oh, ow);
         return CpuSpatial.AveragePool(x, kernel, strides, pads, oh, ow, countIncludePad);
+    }
+
+    internal static int PoolOutputSize(int length, int kernel, int stride, int before, int after, bool ceilMode)
+    {
+        long numerator = (long)length + before + after - kernel;
+        if (ceilMode) numerator += stride - 1;
+        if (numerator < 0) throw new ArgumentException("Pooling kernel exceeds the padded input dimensions.");
+        long size = numerator / stride + 1;
+        // 向上取整允许部分窗口覆盖边缘，但窗口起点不能落在右侧填充中。
+        if (ceilMode) size = Math.Min(size, ((long)length + before + stride - 1) / stride);
+        return checked((int)size);
     }
     /// <summary>以最近邻采样将 NCHW 张量缩放到指定空间尺寸。</summary>
     /// <param name="x">输入张量；空间算子使用 NCHW 布局。</param>

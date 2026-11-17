@@ -1,8 +1,8 @@
-# SimdYolo 文档导航（源码0.11.4）
+# SimdYolo 文档导航（源码 0.11.5）
 
-当前源码为 **0.11.4**。[最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest) · [0.11.4 中英文发布说明](releases/v0.11.4.md) · [CPU / GPU 优化实测](../artifacts/cpu-gpu-optimization-2026-11-11.md)。
+当前源码为 **0.11.5**。[最新正式版](https://github.com/donet-org-cn/SimdYolo/releases/latest) · [0.11.5 中英文发布说明](releases/v0.11.5.md) · [0.11.4 CPU / GPU 优化实测](../artifacts/cpu-gpu-optimization-2026-11-11.md)
 
-当前 NuGet 包：[SimdYolo 0.11.4](https://www.nuget.org/packages/SimdYolo/0.11.4) · [SimdYolo.Training 0.11.4](https://www.nuget.org/packages/SimdYolo.Training/0.11.4)。历史启动数据见[加载、首帧及稳定性实测](../artifacts/startup-optimization-0.11.3.md)。
+当前 NuGet 包为 `SimdYolo` 和 `SimdYolo.Training`，版本均为 0.11.5。[SimdYolo](https://www.nuget.org/packages/SimdYolo/0.11.5) · [SimdYolo.Training](https://www.nuget.org/packages/SimdYolo.Training/0.11.5) · [历史加载、首帧及稳定性实测](../artifacts/startup-optimization-0.11.3.md)
 
 ## 从这里开始
 
@@ -41,6 +41,7 @@ dotnet run --project examples/SimdYolo.Web -c Release
 
 | 源码版本 | 对应能力或测量 |
 | --- | --- |
+| 0.11.5 | ARM64 NEON 卷积、MaxPool 向上取整、PlateNet 导出与 Android Vulkan 加载。[发布说明](releases/v0.11.5.md) |
 | 0.11.4 | CPU 线程等待、SIMD 池化、检测头输出与 Vulkan Winograd 优化；[性能及适用范围](releases/v0.11.4.md) |
 | 0.11.3 | 加载与首帧、上采样、最大池化及 Vulkan 拼接优化；NuGet Trusted Publishing 流水线 |
 | 0.11.2 | 与PyTorch/ORT重新实测11模型、8配置，发布模型/网页/文档附件 |

@@ -38,10 +38,10 @@ dotnet run --project examples/SimdYolo.Web -c Release
 ~~~sh
 dotnet new console -f net10.0 -o SimdYoloDemo
 cd SimdYoloDemo
-dotnet add package SimdYolo --version 0.11.4
+dotnet add package SimdYolo --version 0.11.5
 ~~~
 
-把 [YOLOv8n 权重](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.4/models/pt/yolov8n.pt) 保存为项目目录里的 `yolov8n.pt`，然后替换 `Program.cs`：
+把 [YOLOv8n 权重](https://media.githubusercontent.com/media/donet-org-cn/SimdYolo/v0.11.5/models/pt/yolov8n.pt) 保存为项目目录里的 `yolov8n.pt`，然后替换 `Program.cs`：
 
 ~~~csharp
 using SimdYolo;
@@ -70,9 +70,11 @@ foreach (var instance in detector.Predict(rgb24, width, height))
 
 用图像库将图片解码为紧密排列的 RGB24 字节，每个像素三个字节，按 R、G、B 顺序保存为 `image.rgb`。例如原图为 640×480 时，运行 `dotnet run -- image.rgb 640 480`。将设备设为 `ComputeDevice.Vulkan` 可在支持的设备上启用 Vulkan。处理连续帧时可复用同一个 `YoloDetector`。
 
-需要微调时安装 `dotnet add package SimdYolo.Training --version 0.11.4`，并按[训练指南](docs/training.md)准备检测数据集。
+需要微调时安装 `dotnet add package SimdYolo.Training --version 0.11.5`，并按[训练指南](docs/training.md)准备检测数据集。
 
 ## 性能
+
+0.11.5 为 ARM64 卷积增加 NEON 分块计算，并默认关闭 AVX-512。Xeon 实机的 AVX-512 开关对照和适用范围见 [0.11.5 发布说明](docs/releases/v0.11.5.md)。
 
 0.11.4 发布前最后一轮优化，在 Windows、Core i7-12700 和 RTX 3060 上测得如下稳态中位耗时。使用 FP32、640×640、batch 1、12 CPU 线程，两版本测试进程均请求 HighQoS；Vulkan 计时包含输入上传和输出回读。**基线已含本版前期优化，下面不是与 NuGet 0.11.3 原包的完整版本对照。**
 

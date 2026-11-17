@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -73,7 +74,14 @@ internal sealed class PrecisionCpuBackend : IComputeBackend
     private int convolutionIndex;
     internal long Convolutions { get; private set; }
     internal long Matrices { get; private set; }
-    public string Name => collector is not null ? "CPU FP32 calibration" : precision == InferencePrecision.Float16 ? "CPU FP16 operands / FP32 SIMD accumulation" : $"CPU INT8 {(Avx2.IsSupported ? "AVX2" : "managed scalar")} / INT32 accumulation ({(profile is null ? "dynamic" : "calibrated")})";
+    public string Name => collector is not null ? "CPU FP32 calibration" : precision == InferencePrecision.Float16 ? "CPU FP16 operands / FP32 SIMD accumulation" : $"CPU INT8 {Int8InstructionSet} / INT32 accumulation ({(profile is null ? "dynamic" : "calibrated")})";
+
+    private static string Int8InstructionSet =>
+        CpuGemm512.Enabled && AvxVnniInt8.V512.IsSupported ? "AVX-VNNI-INT8 (512 bits)" :
+        AvxVnniInt8.IsSupported ? "AVX-VNNI-INT8" :
+        CpuGemm512.Enabled && Avx512BW.IsSupported ? "AVX-512BW" :
+        AvxVnni.IsSupported ? "AVX-VNNI" : Avx2.IsSupported ? "AVX2" :
+        Dp.IsSupported ? "Arm DotProd" : AdvSimd.IsSupported ? "Arm NEON" : "managed scalar";
     internal PrecisionCpuBackend(InferencePrecision precision, int threads, CalibrationProfile? profile, CalibrationProfile? collector)
     { this.precision = precision; this.profile = profile; this.collector = collector; Cpu = new(threads); }
     internal void Begin(int[] shape)
@@ -168,13 +176,73 @@ internal sealed class PrecisionCpuBackend : IComputeBackend
         {
             while (offset < length)
             {
-                int end = Math.Min(length, offset + 4096); var sum = Vector256<int>.Zero;
-                if (Avx2.IsSupported) for (; offset <= end - 16; offset += 16)
-                    sum = Avx2.Add(sum, Avx2.MultiplyAddAdjacent(Avx2.ConvertToVector256Int16(Sse2.LoadVector128(ap + ao + offset)), Avx2.ConvertToVector256Int16(Sse2.LoadVector128(bp + bo + offset))));
-                for (int i = 0; i < 8; i++) total += sum.GetElement(i);
-                for (; offset < end; offset++) total += (int)ap[ao + offset] * bp[bo + offset];
+                int count = Math.Min(length - offset, 4096);
+                total += DotBlock(ap + ao + offset, bp + bo + offset, count);
+                offset += count;
             }
         }
         return total;
+    }
+
+    // At most 4096 signed-byte products fit in Int32 even at the maximum magnitude.
+    // Widen when the available VNNI instruction expects pairs of signed Int16 operands.
+    private static unsafe int DotBlock(sbyte* a, sbyte* b, int count)
+    {
+        int i = 0, result = 0;
+        if (CpuGemm512.Enabled && AvxVnniInt8.V512.IsSupported)
+        {
+            var sum = Vector512<int>.Zero;
+            for (; i <= count - 64; i += 64)
+                sum = AvxVnniInt8.V512.MultiplyWideningAndAdd(sum, Vector512.Load(a + i), Vector512.Load(b + i));
+            result = Vector512.Sum(sum);
+        }
+        if (AvxVnniInt8.IsSupported)
+        {
+            var sum = Vector256<int>.Zero;
+            for (; i <= count - 32; i += 32)
+                sum = AvxVnniInt8.MultiplyWideningAndAdd(sum, Vector256.Load(a + i), Vector256.Load(b + i));
+            result += Vector256.Sum(sum);
+        }
+        else if (CpuGemm512.Enabled && Avx512BW.IsSupported)
+        {
+            var sum = Vector512<int>.Zero;
+            for (; i <= count - 32; i += 32)
+            {
+                var left = Avx512BW.ConvertToVector512Int16(Vector256.Load(a + i));
+                var right = Avx512BW.ConvertToVector512Int16(Vector256.Load(b + i));
+                sum += Avx512BW.MultiplyAddAdjacent(left, right);
+            }
+            result += Vector512.Sum(sum);
+        }
+        if (Avx2.IsSupported)
+        {
+            var sum = Vector256<int>.Zero;
+            for (; i <= count - 16; i += 16)
+            {
+                var left = Avx2.ConvertToVector256Int16(Vector128.Load(a + i));
+                var right = Avx2.ConvertToVector256Int16(Vector128.Load(b + i));
+                sum = AvxVnni.IsSupported ? AvxVnni.MultiplyWideningAndAdd(sum, left, right)
+                    : sum + Avx2.MultiplyAddAdjacent(left, right);
+            }
+            result += Vector256.Sum(sum);
+        }
+        else if (Dp.IsSupported || AdvSimd.IsSupported)
+        {
+            var sum = Vector128<int>.Zero;
+            for (; i <= count - 16; i += 16)
+            {
+                var left = Vector128.Load(a + i);
+                var right = Vector128.Load(b + i);
+                if (Dp.IsSupported) sum = Dp.DotProduct(sum, left, right);
+                else
+                {
+                    sum = AdvSimd.AddPairwiseWideningAndAdd(sum, AdvSimd.MultiplyWideningLower(left.GetLower(), right.GetLower()));
+                    sum = AdvSimd.AddPairwiseWideningAndAdd(sum, AdvSimd.MultiplyWideningUpper(left, right));
+                }
+            }
+            result += Vector128.Sum(sum);
+        }
+        for (; i < count; i++) result += a[i] * b[i];
+        return result;
     }
 }

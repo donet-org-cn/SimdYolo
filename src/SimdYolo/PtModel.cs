@@ -294,7 +294,9 @@ internal sealed partial class PtModel : IModel
                 float[] factors = p.Get("scale_factor") is object?[] pair ? pair.Select(Convert.ToSingle).ToArray() : [p.Float("scale_factor", 2), p.Float("scale_factor", 2)];
                 var size = p.Get("size") is object?[] fixedSize ? fixedSize.Select(Convert.ToInt32).ToArray() : new[] { (int)(X().Shape[2] * factors[0]), (int)(X().Shape[3] * factors[1]) };
                 return TensorOps.ResizeNearest(X(), size[0], size[1]);
-            case "MaxPool2d": if (p.Bool("ceil_mode") || p.Pair("dilation").Any(d => d != 1)) throw new NotSupportedException("PT pool variant unsupported."); return Pool(p, X());
+            case "MaxPool2d":
+                if (p.Bool("return_indices") || p.Pair("dilation").Any(d => d != 1)) throw new NotSupportedException("PT pool variant unsupported.");
+                return Pool(p, X());
             case "Bottleneck":
             case "RepBottleneck":
             case "RepNBottleneck":
@@ -414,7 +416,13 @@ internal sealed partial class PtModel : IModel
     /// <param name="x">参与计算的输入张量。</param>
     /// <returns>池化后的张量。</returns>
     private static Tensor Pool(PyObject p, Tensor x)
-    { var pads = p.Pair("padding", 0); return TensorOps.Pool(x, p.Pair("kernel_size"), p.Pair("stride"), [pads[0], pads[1], pads[0], pads[1]]); }
+    {
+        var pads = p.Pair("padding", 0);
+        var kernel = p.Pair("kernel_size");
+        var strides = p.Get("stride") is null ? kernel : p.Pair("stride");
+        return TensorOps.Pool(x, kernel, strides, [pads[0], pads[1], pads[0], pads[1]],
+            average: false, countIncludePad: false, ceilMode: p.Bool("ceil_mode"));
+    }
     /// <summary>计算多头 Q/K/V 注意力、位置编码残差和输出投影。</summary>
     /// <param name="p">当前符号模块的参数与状态。</param>
     /// <param name="x">参与计算的输入张量。</param>

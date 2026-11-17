@@ -52,6 +52,7 @@ jobs:
           SIMDYOLO_TEST_FILTER='Vulkan buffer views' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
           SIMDYOLO_TEST_FILTER='Vulkan tiled 5x5 max pool' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
           SIMDYOLO_TEST_FILTER='Vulkan packed Winograd' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
+          SIMDYOLO_TEST_FILTER='MaxPool ceil mode' dotnet run --project tests/SimdYolo.Tests -c Release --no-build -- --vulkan
       - name: Pack and consume the two release packages
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}

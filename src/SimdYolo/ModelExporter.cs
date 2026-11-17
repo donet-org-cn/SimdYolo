@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace SimdYolo;
 
 /// <summary>纯.NET模型导出；生成标准ONNX算子与嵌入权重，不需要Python或protobuf包。</summary>
-public static class ModelExporter
+public static partial class ModelExporter
 {
     /// <summary>将完整PT或实际训练快照导出为静态batch=1、opset17的ONNX。</summary>
     /// <param name="modelPath">PT/PTH/SYTRAIN路径。</param><param name="outputPath">目标ONNX路径。</param>
@@ -112,13 +112,15 @@ internal sealed class OnnxTraceBackend : IComputeBackend, IDeviceBackend
 
     public Tensor DeviceConv(Tensor x, Tensor w, Tensor? bias, int[] shape, int[] stride, int[] pads, int[] dilation, int groups, bool silu)
     {
-        string value = Node("Conv", bias is null ? [NameOf(x), NameOf(w)] : [NameOf(x), NameOf(w), NameOf(bias)], ("strides", stride), ("pads", pads), ("dilations", dilation), ("group", groups));
+        string value = Node("Conv", bias is null ? [NameOf(x), NameOf(w)] : [NameOf(x), NameOf(w), NameOf(bias)],
+            ("kernel_shape", w.Shape[2..]), ("strides", stride), ("pads", pads), ("dilations", dilation), ("group", groups));
         if (silu) value = Binary("Mul", value, Node("Sigmoid", [value])); return Wrap(value, shape);
     }
     public Tensor DeviceMatMul(Tensor a, Tensor b, int[] shape) => Wrap(Node("MatMul", [NameOf(a), NameOf(b)]), shape);
     public Tensor DeviceConcat(IReadOnlyList<Tensor> tensors, int axis, int[] shape) => Wrap(Cat(axis, tensors.Select(NameOf).ToArray()), shape);
     public Tensor DeviceSlice(Tensor x, int[] shape, int axis, int start) => Wrap(Slice(NameOf(x), axis, start, start + shape[axis]), shape);
     internal Tensor Transpose(Tensor x, int[] perm, int[] shape) => Wrap(Node("Transpose", [NameOf(x)], ("perm", perm)), shape);
+    internal Tensor Squeeze(Tensor x, int axis, int[] shape) => Wrap(Node("Squeeze", [NameOf(x), Ints(axis)]), shape);
 
     public Tensor Compute(int operation, Tensor[] inputs, int[] shape, uint[] p, int workItems)
     {
@@ -136,8 +138,14 @@ internal sealed class OnnxTraceBackend : IComputeBackend, IDeviceBackend
             case >= 10 and <= 13: value = Binary(new[] { "Add", "Sub", "Mul", "Div" }[operation - 10], x, NameOf(inputs[1])); break;
             case 20: value = Node("Resize", [x, "", "", Ints(shape)], ("mode", "nearest"), ("coordinate_transformation_mode", "asymmetric"), ("nearest_mode", "floor")); break;
             case 21: case 22:
-                value = Node(operation == 21 ? "MaxPool" : "AveragePool", [x], ("kernel_shape", new[] { (int)p[5], (int)p[6] }), ("strides", new[] { (int)p[7], (int)p[8] }), ("pads", new[] { (int)p[9], (int)p[10], (int)p[9], (int)p[10] }),
-                    operation == 22 ? ("count_include_pad", (object)(int)p[11]) : ("ceil_mode", (object)0)); break;
+                int[] kernel = [(int)p[5], (int)p[6]], strides = [(int)p[7], (int)p[8]];
+                int[] padding = [(int)p[9], (int)p[10], (int)p[12], (int)p[13]];
+                value = operation == 21
+                    ? Node("MaxPool", [x], ("kernel_shape", kernel), ("strides", strides), ("pads", padding),
+                        ("dilations", new[] { 1, 1 }), ("ceil_mode", (int)p[14]))
+                    : Node("AveragePool", [x], ("kernel_shape", kernel), ("strides", strides), ("pads", padding),
+                        ("count_include_pad", (int)p[11]));
+                break;
             case 25:
                 int inner = (int)p[2], axis = inputs[0].Rank - 1;
                 while (axis > 0 && Tensor.Count(inputs[0].Shape[(axis + 1)..]) != inner) axis--;
@@ -207,13 +215,18 @@ internal sealed class OnnxTraceBackend : IComputeBackend, IDeviceBackend
 
     internal byte[] Serialize(Tensor[] outputs, IModel model, string sourcePath)
     {
-        string[] outputNames = outputs.Select(NameOf).ToArray(); var graph = new Wire();
-        foreach (byte[] node in nodes) graph.Bytes(1, node); graph.Text(2, "SimdYolo"); foreach (byte[] constant in constants) graph.Bytes(5, constant);
-        graph.Bytes(11, ValueInfo("images", inputShape)); for (int i = 0; i < outputs.Length; i++) graph.Bytes(12, ValueInfo(outputNames[i], outputs[i].Shape));
-        var result = new Wire(); result.Int(1, 9); result.Text(2, "SimdYolo.NET"); result.Text(3, typeof(ModelExporter).Assembly.GetName().Version!.ToString(3)); result.Bytes(7, graph.Data()); var opset = new Wire(); opset.Int(2, 17); result.Bytes(8, opset.Data());
         var metadata = new Dictionary<string, string> { ["names"] = JsonSerializer.Serialize(model.Names), ["task"] = model.Task switch { YoloTask.Segmentation => "segment", YoloTask.Pose => "pose", _ => "detect" },
             ["imgsz"] = JsonSerializer.Serialize(inputShape[2..]), ["end2end"] = model.EndToEnd ? "True" : "False", ["simdyolo.source_sha256"] = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(sourcePath))), ["simdyolo.export"] = "pure-dotnet/opset17/static-batch1" };
         if (model.Task == YoloTask.Pose) metadata["kpt_shape"] = JsonSerializer.Serialize(model.KeypointShape);
+        return Serialize(outputs, "SimdYolo", metadata);
+    }
+
+    internal byte[] Serialize(Tensor[] outputs, string graphName, IReadOnlyDictionary<string, string> metadata)
+    {
+        string[] outputNames = outputs.Select(NameOf).ToArray(); var graph = new Wire();
+        foreach (byte[] node in nodes) graph.Bytes(1, node); graph.Text(2, graphName); foreach (byte[] constant in constants) graph.Bytes(5, constant);
+        graph.Bytes(11, ValueInfo("images", inputShape)); for (int i = 0; i < outputs.Length; i++) graph.Bytes(12, ValueInfo(outputNames[i], outputs[i].Shape));
+        var result = new Wire(); result.Int(1, 9); result.Text(2, "SimdYolo.NET"); result.Text(3, typeof(ModelExporter).Assembly.GetName().Version!.ToString(3)); result.Bytes(7, graph.Data()); var opset = new Wire(); opset.Int(2, 17); result.Bytes(8, opset.Data());
         foreach (var pair in metadata) { var entry = new Wire(); entry.Text(1, pair.Key); entry.Text(2, pair.Value); result.Bytes(14, entry.Data()); }
         return result.Data();
     }

@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.Intrinsics;
 
 namespace SimdYolo;
 
@@ -30,5 +31,29 @@ internal static class CpuEpilogue
         }
         if ((long)channels * spatial >= 32768 && channels > 1) CpuScheduling.For(0, channels, parallel, Channel);
         else for (int c = 0; c < channels; c++) Channel(c);
+    }
+
+    internal static unsafe void ApplyNeonPanel(float[] output, float[]? bias, int channels, int spatial,
+                                               int column, int take, bool silu, int outputOffset = 0)
+    {
+        fixed (float* start = output)
+            for (int c = 0; c < channels; c++)
+            {
+                float* dst = start + outputOffset + c * spatial + column;
+                float scalarBias = bias?[c] ?? 0;
+                var vectorBias = Vector128.Create(scalarBias);
+                int j = 0;
+                for (; j <= take - 4; j += 4)
+                {
+                    var value = Vector128.Load(dst + j) + vectorBias;
+                    if (silu) value = CpuActivation.Silu(value);
+                    value.Store(dst + j);
+                }
+                for (; j < take; j++)
+                {
+                    float value = dst[j] + scalarBias;
+                    dst[j] = silu ? value * TensorOps.Sigmoid(value) : value;
+                }
+            }
     }
 }
