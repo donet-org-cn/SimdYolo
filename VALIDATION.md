@@ -1,6 +1,10 @@
 # 验证记录
 
-当前源码为 **0.11.3**，最新正式NuGet/Release仍为 **0.11.2**。[文档导航与下载](docs/README.md) · [加载/首帧优化](artifacts/startup-optimization-0.11.3.md)。各版本原始测试、程序集与包摘要继续保留，文档更新不表示重新测量历史性能。
+当前源码为 **0.11.6**。[文档导航与下载](docs/README.md) · [0.11.6 中英文发布说明](docs/releases/v0.11.6.md)
+
+## 0.11.6 CPU 与 Vulkan 推理
+
+Winograd 工作区扩容与重放、通用 GPU TopK 同分排序、PT 分割和姿态附加字段、CPU 张量分块以及推理输出的跨帧所有权均有回归覆盖。136 项 CPU/Vulkan 测试和 11 项训练测试通过。对比 NuGet 0.11.5、上一轮候选及本版推理代码，共 90 个测量窗口与 17,832 次稳态推理，352 项首帧和末帧输出核对通过。[完整报告](artifacts/inference-forward-performance-2026-11-18.md) · [指标与输出校验汇总](artifacts/validation/forward-perf-2026-11-18/summary.json)
 
 ## 0.11.3 加载、首次推理与会话稳定性
 

@@ -25,11 +25,13 @@ DEFAULT_MODELS = ["yolov8n", "yolov9t", "yolov10n", "yolo11n", "yolo26n",
 ENVIRONMENT_FLAGS = ["SIMDYOLO_VULKAN_CACHE", "SIMDYOLO_VULKAN_CACHE_DIR",
                      "SIMDYOLO_VULKAN_REPLAY", "SIMDYOLO_WINOGRAD_PACKED", "SIMDYOLO_CPU_EXECUTOR",
                      "SIMDYOLO_CPU_EXECUTOR_GRAIN", "SIMDYOLO_CPU_EXECUTOR_SPINS", "SIMDYOLO_CPU_AVX512",
-                     "SIMDYOLO_BENCHMARK_HIGH_QOS",
+                     "SIMDYOLO_BENCHMARK_HIGH_QOS", "SIMDYOLO_BENCHMARK_AFFINITY",
                      "DOTNET_ReadyToRun", "DOTNET_TieredPGO",
                      "DOTNET_TieredCompilation", "DOTNET_PROCESSOR_COUNT"]
 METRICS = ["ModelLoadMs", "FirstInferenceMs", "ReadyToFirstOutputMs", "MedianMs",
-           "MeanMs", "P95Ms", "AllocatedBytesPerFrame", "WorkingSetMiB", "CpuPercent"]
+           "MeanMs", "P95Ms", "AllocatedBytesPerFrame", "WorkingSetMiB", "PeakWorkingSetMiB",
+           "PrivateMemoryMiB", "CpuPercent", "CpuMillisecondsPerFrame", "Gen2Collections",
+           "VulkanFrameBufferCapacityMiB"]
 
 
 def sha256(path):
@@ -100,7 +102,8 @@ def summarize(records):
         groups.setdefault(key, []).append(record)
     output = []
     for key, windows in groups.items():
-        values = {metric: statistics.median(item[metric] for item in windows) for metric in METRICS}
+        values = {metric: statistics.median(item[metric] for item in windows)
+                  for metric in METRICS if all(item.get(metric) is not None for item in windows)}
         output.append({"Model": key[0], "Format": key[1], "Backend": key[2], "Variant": key[3],
                        "Windows": len(windows), **values})
     return output
@@ -119,6 +122,8 @@ def compare_summaries(summary):
         before, after = rows["baseline"], rows["candidate"]
         metrics = {}
         for metric in METRICS:
+            if metric not in before or metric not in after:
+                continue
             value_before, value_after = before[metric], after[metric]
             metrics[metric] = {"Baseline": value_before, "Candidate": value_after,
                                "BaselineOverCandidate": value_before / value_after if value_after else None,
@@ -145,16 +150,20 @@ def main():
     parser.add_argument("--size", type=int, default=640)
     parser.add_argument("--threads", type=int, default=12)
     parser.add_argument("--windows-high-qos", action="store_true", help="Opt each Windows worker into HighQoS; does not change the system power plan or affinity")
+    parser.add_argument("--windows-affinity", type=lambda mask: int(mask, 16), help="Hexadecimal CPU affinity mask for each Windows worker")
     parser.add_argument("--min-frames", type=int, default=40)
-    parser.add_argument("--input", type=Path, required=True, help="Preprocessed little-endian FP32 NCHW RGB input shared by every worker")
+    parser.add_argument("--input", type=Path, required=True, help="Preprocessed FP32 NCHW input, or raw RGB24 bytes with --rgb-size")
+    parser.add_argument("--rgb-size", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"), help="Time the complete Predict call on tightly packed RGB24 pixels")
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/lifecycle-comparison.json")
     parser.add_argument("--cache-mode", choices=["inherited", "disabled", "isolated"], default="inherited", help="inherited preserves environment/defaults; disabled turns application caches off; isolated uses a fresh per-window cache directory")
     parser.add_argument("--timeout", type=float, default=600, help="Timeout for each isolated worker, in seconds")
     parser.add_argument("--overwrite", action="store_true", help="Replace the report; earlier raw-output directories remain intact")
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs and print the schedule without building or measuring")
     args = parser.parse_args()
-    if args.windows_high_qos and os.name != "nt":
-        parser.error("--windows-high-qos requires Windows")
+    if (args.windows_high_qos or args.windows_affinity is not None) and os.name != "nt":
+        parser.error("HighQoS and hexadecimal affinity options require Windows")
+    if args.windows_affinity is not None and not 0 < args.windows_affinity < 2**64:
+        parser.error("Invalid Windows affinity mask")
     if (args.repeats < 1 or args.warmup < 1 or args.duration < 0 or not args.duration < float("inf")
             or args.size < 32 or args.size % 32 or args.threads < 1 or args.min_frames < 1
             or not 0 < args.timeout < float("inf")):
@@ -164,7 +173,11 @@ def main():
     for path in [*variants.values(), args.input.resolve()]:
         if not path.is_file():
             parser.error(f"Required file does not exist: {path}")
-    if args.input.stat().st_size != 3 * args.size * args.size * 4:
+    if args.rgb_size:
+        width, height = args.rgb_size
+        if min(width, height) < 1 or args.input.stat().st_size != 3 * width * height:
+            parser.error("Input RGB24 byte count does not match --rgb-size")
+    elif args.input.stat().st_size != 3 * args.size * args.size * 4:
         parser.error("Input FP32 byte count does not match --size")
     cases = []
     for model in args.models:
@@ -193,7 +206,8 @@ def main():
     directory.mkdir(parents=True)
     template = directory / "host-common"
     build = ["dotnet", "build", str(ROOT / "tools/LifecycleBenchmark/LifecycleBenchmark.csproj"),
-             "-c", "Release", "-o", str(template), f"-p:SimdYoloLibraryPath={variants['baseline']}"]
+             "-c", "Release", "--disable-build-servers", "-m:1", "-p:UseSharedCompilation=false",
+             "-o", str(template), f"-p:SimdYoloLibraryPath={variants['baseline']}"]
     subprocess.run(build, cwd=ROOT, check=True)
     hosts = {}
     variant_info = {}
@@ -213,14 +227,19 @@ def main():
               "ToolSources": [{"Path": str(path.relative_to(ROOT)), "Sha256": sha256(path)} for path in sources],
               "WorkerSha256": sha256(template / "SimdYolo.LifecycleBenchmark.dll"), "CacheMode": args.cache_mode,
               "Settings": {"Size": args.size, "Threads": args.threads, "WindowsHighQosRequested": args.windows_high_qos,
+                           "WindowsAffinity": args.windows_affinity, "RgbSize": args.rgb_size,
                            "WarmupFrames": args.warmup, "DurationSeconds": args.duration, "MinimumFrames": args.min_frames, "Repeats": args.repeats},
               "Definitions": {
                   "ModelLoadMs": "YoloDetector construction, including backend creation, model parsing and weight preparation.",
-                  "FirstInferenceMs": "First PredictRaw, including GPU upload/compute/output materialization when applicable.",
-                  "ReadyToFirstOutputMs": "From the first managed Main statement through input reading, construction and first PredictRaw; excludes dotnet host startup and entry-method JIT before Main executes.",
+                  "FirstInferenceMs": "First PredictRaw (FP32 input) or Predict (RGB24 input), including GPU upload and readback when applicable.",
+                  "ReadyToFirstOutputMs": "From the first managed Main statement through input reading, construction and first result; excludes dotnet host startup and entry-method JIT before Main executes.",
                   "ProcessTotalMs": "Controller wall time for the complete worker, including dotnet startup, warmup, steady window, output/hashes/JSON and disposal; this is not process-to-first-output latency.",
                   "AllocatedBytesPerFrame": "Precise total managed allocation over the steady loop minus measured telemetry-list growth, divided by frames; input/model preparation and output writing are outside this interval.",
                   "CpuPercent": "Process CPU seconds / steady wall seconds / worker Environment.ProcessorCount * 100; includes managed controller-loop work in the worker.",
+                  "CpuMillisecondsPerFrame": "Process user and kernel CPU time summed across threads during the steady window, divided by completed frames.",
+                  "WorkingSetMiB": "Resident process memory sampled at steady-window end. PeakWorkingSetMiB also covers startup and warmup. Neither measures GPU VRAM.",
+                  "PrivateMemoryMiB": "Process private bytes sampled at steady-window end, including private nonresident committed memory.",
+                  "VulkanFrameBufferCapacityMiB": "Logical capacities of the device intermediate arenas and Winograd workspaces. Excludes constant weights, uploads, downloads, and driver overhead.",
                   "PipelineCacheLoaded": "Actual application Vulkan pipeline cache restoration, not a claim about driver or filesystem coldness.",
                   "Summary": "Median of individual window metrics; all raw samples and independent outputs are preserved; no statistical significance or accuracy claim is inferred."},
               "Records": [], "Summary": [], "Comparisons": []}
@@ -236,6 +255,8 @@ def main():
                     environment = os.environ.copy()
                     if args.windows_high_qos:
                         environment["SIMDYOLO_BENCHMARK_HIGH_QOS"] = "1"
+                    if args.windows_affinity is not None:
+                        environment["SIMDYOLO_BENCHMARK_AFFINITY"] = f"{args.windows_affinity:x}"
                     if args.cache_mode == "disabled":
                         environment["SIMDYOLO_VULKAN_CACHE"] = "0"
                     elif args.cache_mode == "isolated":
@@ -245,6 +266,8 @@ def main():
                     command = ["dotnet", str(hosts[variant] / "SimdYolo.LifecycleBenchmark.dll"),
                                str(path), str(args.input.resolve()), backend, str(prefix), str(args.warmup),
                                str(args.duration), str(args.size), str(args.threads), str(args.min_frames)]
+                    if args.rgb_size:
+                        command.extend(map(str, args.rgb_size))
                     print(f"[{sequence}/{len(cases) * args.repeats * 4}] {model} {fmt} {backend} {variant}", flush=True)
                     started = time.perf_counter()
                     worker = subprocess.run(command, cwd=ROOT, env=environment, capture_output=True, text=True,

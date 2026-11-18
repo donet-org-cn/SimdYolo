@@ -9,6 +9,25 @@ internal static class CpuConcatTests
     /// <exception cref="Exception">测试断言不满足预期条件时。</exception>
     internal static void Run(Action<string, Action> test)
     {
+        test("CPU tensor memory blocks: partial copies, empty inputs and arithmetic tails", () =>
+        {
+            Tensor[] inputs = [Make(1, 5, 113, 401, .1f), Make(1, 0, 113, 401, .2f), Make(1, 1, 113, 401, .3f)];
+            var expected = TensorOps.Concat(inputs, 1);
+            var operand = Make(1, 6, 113, 401, .4f);
+            var operations = Enumerable.Range(10, 4).Select(op => TensorOps.Arithmetic(expected, operand, op)).ToArray();
+            WithPool(true, (_, _) =>
+            {
+                var actual = TensorOps.Concat(inputs, 1);
+                if (!actual.Shape.SequenceEqual(expected.Shape) || !actual.Data.AsSpan().SequenceEqual(expected.Data))
+                    throw new Exception("Block copy did not preserve tensor layout.");
+                for (int i = 0; i < operations.Length; i++)
+                {
+                    var result = TensorOps.Arithmetic(actual, operand, 10 + i);
+                    if (!result.Data.AsSpan().SequenceEqual(operations[i].Data))
+                        throw new Exception($"Block arithmetic differs for operator {10 + i}.");
+                }
+            });
+        });
         test("CPU ConvConcat vs scalar: channel/panel/K tails, aliases, bias and SiLU", () =>
         {
             foreach (bool scoped in new[] { false, true }) WithPool(scoped, (pool, poolType) =>

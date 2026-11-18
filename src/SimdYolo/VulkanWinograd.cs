@@ -5,11 +5,14 @@ namespace SimdYolo;
 /// <summary>实现 Vulkan Winograd 卷积的输入/权重变换、中间乘法、输出变换与调优。</summary>
 public sealed unsafe partial class VulkanBackend
 {
-    private readonly Dictionary<(Tensor Weight, int Tile), Tensor> winogradWeights = [];
+    private readonly Dictionary<(Tensor Weight, int Tile, bool Packed), Tensor> winogradWeights = [];
     private readonly Dictionary<string, ulong> winogradPipelines = [];
     private readonly Dictionary<string, uint> winogradMiddleTiles = [];
     private readonly Dictionary<string, ulong> winogradTransformPipelines = [];
-    private readonly Dictionary<WinogradInputKey, Tensor> winogradInputs = [];
+    private readonly WinogradInputSlot[] winogradInputSlots = [new(), new()];
+    private int nextWinogradInput;
+    private GpuBuffer? winogradProducts;
+    private readonly List<GpuBuffer> retiredWinogradWorkspaces = [];
     private readonly bool cacheWinogradInputs = Environment.GetEnvironmentVariable("SIMDYOLO_WINOGRAD_INPUT_CACHE") != "0";
     /// <summary>按缓冲区身份、字节偏移、输入形状和输出块大小区分帧内 Winograd 输入变换。</summary>
     /// <param name="Buffer">后端持有的设备缓冲区对象；此视图不取得独立所有权。</param>
@@ -20,6 +23,12 @@ public sealed unsafe partial class VulkanBackend
     /// <param name="Width">输入特征图宽度。</param>
     /// <param name="Tile">Winograd 每块的输出边长。</param>
     private readonly record struct WinogradInputKey(GpuBuffer Buffer, ulong Offset, int Batch, int Channels, int Height, int Width, int Tile);
+    private sealed class WinogradInputSlot
+    {
+        internal GpuBuffer? Buffer;
+        internal WinogradInputKey? Key;
+        internal DeviceStorage? Transform;
+    }
     private readonly bool enableWinograd4 = Environment.GetEnvironmentVariable("SIMDYOLO_WINOGRAD4") != "0";
     private readonly string? winogradRegisterTile = Environment.GetEnvironmentVariable("SIMDYOLO_WINOGRAD_REGISTER_TILE");
     private readonly bool winogradVectorIo = Environment.GetEnvironmentVariable("SIMDYOLO_WINOGRAD_VECTOR_IO") != "0";
@@ -41,30 +50,13 @@ public sealed unsafe partial class VulkanBackend
         int tile = enableWinograd4 && h >= Winograd4Minimum && width >= Winograd4Minimum ? 4 : 2, planes = tile == 4 ? 36 : 16;
         int th = (h + tile - 1) / tile, tw = (width + tile - 1) / tile, tiles = th * tw;
         bool vectorIo = winogradVectorIo && tile == 4 && h % 4 == 0 && width % 4 == 0;
-        if (!winogradWeights.TryGetValue((w, tile), out var weight))
+        bool packed = CanPackWinogradMiddle(oc, tiles);
+        if (!winogradWeights.TryGetValue((w, tile, packed), out var weight))
         {
-            weight = new Tensor(planes, oc, ic) { IsConstant = true };
-            if (tile == 4) PackWinograd4Weights(w, weight, oc, ic);
-            else
-            {
-            Span<float> temp = stackalloc float[12];
-            for (int co = 0; co < oc; co++) for (int ci = 0; ci < ic; ci++)
-            {
-                int offset = (co * ic + ci) * 9;
-                for (int c = 0; c < 3; c++)
-                {
-                    float a = w.Data[offset + c], b = w.Data[offset + 3 + c], d = w.Data[offset + 6 + c];
-                    temp[c] = a; temp[3 + c] = (a + b + d) * .5f; temp[6 + c] = (a - b + d) * .5f; temp[9 + c] = d;
-                }
-                for (int r = 0; r < 4; r++)
-                {
-                    float a = temp[r * 3], b = temp[r * 3 + 1], c = temp[r * 3 + 2]; int index = co * ic + ci;
-                    weight.Data[(r * 4) * oc * ic + index] = a; weight.Data[(r * 4 + 1) * oc * ic + index] = (a + b + c) * .5f;
-                    weight.Data[(r * 4 + 2) * oc * ic + index] = (a - b + c) * .5f; weight.Data[(r * 4 + 3) * oc * ic + index] = c;
-                }
-            }
-            }
-            if (w.IsConstant) winogradWeights[(w, tile)] = weight;
+            weight = new Tensor(planes, packed ? ic : oc, packed ? oc : ic) { IsConstant = true };
+            if (tile == 4) PackWinograd4Weights(w.Data, weight.Data, oc, ic, packed);
+            else PackWinograd2Weights(w.Data, weight.Data, oc, ic, packed);
+            winogradWeights[(w, tile, packed)] = weight;
         }
         if (bias is null)
         {
@@ -72,18 +64,11 @@ public sealed unsafe partial class VulkanBackend
         }
         var input = Upload(x); var bv = Upload(bias); var zero = Upload(scalarZero);
         bool cacheInput = cacheWinogradInputs && x.Storage is { } source && ReferenceEquals(source.Owner, this) && source.FrameId == frameId;
-        var cacheKey = new WinogradInputKey((GpuBuffer)input.Buffer, input.Offset, batch, ic, h, width, tile);
-        if (!cacheInput || !winogradInputs.TryGetValue(cacheKey, out var transformed))
-        {
-            transformed = AllocateTensor([batch * planes, ic, 1, tiles]);
-            uint[] ip = DeviceOps.Parameters((uint)(batch * ic * tiles), (uint)ic, (uint)h, (uint)width, (uint)tw, (uint)th);
-            string inputKey = planes + ":input:" + string.Join(',', ip.Take(7)) + (vectorIo ? ":vec" : "");
-            if (!winogradTransformPipelines.TryGetValue(inputKey, out ulong inputTransform)) { inputTransform = CreateNamedPipeline(vectorIo ? "winograd4_input_vec.spv" : tile == 4 ? "winograd4_input.spv" : "winograd_input.spv", ip); winogradTransformPipelines[inputKey] = inputTransform; }
-            Dispatch(inputTransform, input, zero, transformed.Storage!, zero, ip, (uint)(batch * ic * tiles + 127) / 128);
-            if (cacheInput) winogradInputs[cacheKey] = transformed;
-        }
-        var products = AllocateTensor([batch * planes, oc, 1, tiles]); var output = AllocateTensor([batch, oc, h, width]);
-        if (!TryPackedWinogradMiddle(weight, transformed, products, zero, batch, planes, ic, oc, tiles))
+        var transformed = TransformWinogradInput(input, zero, batch, ic, h, width, tw, th, tile, planes, vectorIo, cacheInput);
+        var products = GetWinogradWorkspace(ref winogradProducts, checked(batch * planes * oc * tiles));
+        var output = AllocateTensor([batch, oc, h, width]);
+        if (packed) DispatchPackedWinogradMiddle(weight, transformed, products, zero, batch, planes, ic, oc, tiles);
+        else
         {
             var weights = Upload(weight);
             uint[] mp = [0, (uint)ic, 1, (uint)tiles, (uint)oc, 1, (uint)tiles, 1, 1, 1, 1, 0, 0, 1, 1, 1, (uint)planes];
@@ -113,7 +98,7 @@ public sealed unsafe partial class VulkanBackend
                         for (int index = 0; index < candidates.Length; index++)
                         {
                             uint candidateRows = candidates[index] == 32 ? 32u : 64u, candidateColumns = candidates[index] == 128 ? 64u : 32u;
-                            Dispatch(pipelines[index], weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp,
+                            Dispatch(pipelines[index], weights, transformed, products, middleBiasStorage, mp,
                                 ((uint)tiles + candidateColumns - 1) / candidateColumns, ((uint)oc + candidateRows - 1) / candidateRows, (uint)(batch * planes));
                         }
                         FlushFrame();
@@ -121,7 +106,7 @@ public sealed unsafe partial class VulkanBackend
                         for (int round = 0; round < 2; round++) for (int index = 0; index < candidates.Length; index++)
                         {
                             uint candidateRows = candidates[index] == 32 ? 32u : 64u, candidateColumns = candidates[index] == 128 ? 64u : 32u;
-                            ulong elapsed = MeasureConvolution(pipelines[index], weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp,
+                            ulong elapsed = MeasureConvolution(pipelines[index], weights, transformed, products, middleBiasStorage, mp,
                                 ((uint)tiles + candidateColumns - 1) / candidateColumns, ((uint)oc + candidateRows - 1) / candidateRows, (uint)(batch * planes));
                             if (elapsed < fastest) { fastest = elapsed; choice = candidates[index]; }
                         }
@@ -132,13 +117,77 @@ public sealed unsafe partial class VulkanBackend
                 }
             }
             ulong middle = WinogradMiddlePipeline(tile, planes, mp, rows, columns);
-            Dispatch(middle, weights, transformed.Storage!, products.Storage!, middleBiasStorage, mp, ((uint)tiles + columns - 1) / columns, ((uint)oc + rows - 1) / rows, (uint)(batch * planes));
+            Dispatch(middle, weights, transformed, products, middleBiasStorage, mp, ((uint)tiles + columns - 1) / columns, ((uint)oc + rows - 1) / rows, (uint)(batch * planes));
         }
         uint[] op = DeviceOps.Parameters((uint)(batch * oc * tiles), (uint)oc, (uint)h, (uint)width, (uint)tw, (uint)th, silu ? 1u : 0u);
         string outputKey = planes + ":output:" + string.Join(',', op.Take(7)) + (vectorIo ? ":vec" : "");
         if (!winogradTransformPipelines.TryGetValue(outputKey, out ulong outputTransform)) { outputTransform = CreateNamedPipeline(vectorIo ? "winograd4_output_vec.spv" : tile == 4 ? "winograd4_output.spv" : "winograd_output.spv", op); winogradTransformPipelines[outputKey] = outputTransform; }
-        Dispatch(outputTransform, products.Storage!, bv, output.Storage!, zero, op, (uint)(batch * oc * tiles + 127) / 128);
+        Dispatch(outputTransform, products, bv, output.Storage!, zero, op, (uint)(batch * oc * tiles + 127) / 128);
         return output;
+    }
+
+    private DeviceStorage TransformWinogradInput(DeviceStorage input, DeviceStorage zero, int batch, int ic, int height,
+                                                   int width, int tw, int th, int tile, int planes, bool vectorIo, bool cacheInput)
+    {
+        var key = new WinogradInputKey((GpuBuffer)input.Buffer, input.Offset, batch, ic, height, width, tile);
+        if (cacheInput)
+            for (int index = 0; index < winogradInputSlots.Length; index++)
+            {
+                var cached = winogradInputSlots[index];
+                if (cached.Key != key || cached.Transform is not { } transform) continue;
+                nextWinogradInput = (index + 1) % winogradInputSlots.Length;
+                return transform;
+            }
+
+        var slot = winogradInputSlots[cacheWinogradInputs ? nextWinogradInput : 0];
+        int positions = checked(batch * ic * tw * th);
+        var output = GetWinogradWorkspace(ref slot.Buffer, checked(planes * positions));
+        uint[] parameters = DeviceOps.Parameters((uint)positions, (uint)ic, (uint)height, (uint)width, (uint)tw, (uint)th);
+        string pipelineKey = planes + ":input:" + string.Join(',', parameters.Take(7)) + (vectorIo ? ":vec" : "");
+        if (!winogradTransformPipelines.TryGetValue(pipelineKey, out ulong pipeline))
+            winogradTransformPipelines[pipelineKey] = pipeline = CreateNamedPipeline(vectorIo ? "winograd4_input_vec.spv"
+                : tile == 4 ? "winograd4_input.spv" : "winograd_input.spv", parameters);
+        // Dispatch separates the prior consumers of this slot from the overwrite.
+        Dispatch(pipeline, input, zero, output, zero, parameters, ((uint)positions + 127) / 128);
+        slot.Key = cacheInput ? key : null;
+        slot.Transform = output;
+        nextWinogradInput = (nextWinogradInput + 1) % winogradInputSlots.Length;
+        return output;
+    }
+
+    private void ResetWinogradInputs()
+    {
+        nextWinogradInput = 0;
+        foreach (var slot in winogradInputSlots) { slot.Key = null; slot.Transform = null; }
+    }
+
+    private DeviceStorage GetWinogradWorkspace(ref GpuBuffer? workspace, int length)
+    {
+        ulong bytes = Math.Max(4UL, (ulong)length * sizeof(float));
+        if (workspace is { } current && current.Capacity >= bytes)
+            return new(this, current, 0, length, frameId);
+
+        var next = new GpuBuffer();
+        try
+        {
+            Ensure(next, bytes, host: false);
+            if (workspace is { } previous)
+            {
+                // Recorded dispatches still reference the previous buffer. Keep it until
+                // the frame has completed and capture a replay only with the final buffer.
+                retiredWinogradWorkspaces.Add(previous);
+                replayCandidate = false;
+            }
+        }
+        catch { Free(next); throw; }
+        workspace = next;
+        return new(this, next, 0, length, frameId);
+    }
+
+    private void FreeRetiredWinogradWorkspaces()
+    {
+        foreach (var buffer in retiredWinogradWorkspaces) Free(buffer);
+        retiredWinogradWorkspaces.Clear();
     }
     /// <summary>按 Winograd 变换平面、输出通道行块和空间列块创建或复用中间矩阵乘管线。</summary>
     /// <param name="tile">Winograd 每块输出边长，值为 2 或 4。</param>
@@ -158,32 +207,55 @@ public sealed unsafe partial class VulkanBackend
         }
         return pipeline;
     }
-    /// <summary>把 3×3 常量权重变换为 F(4,3) 的 36 个平面，并写入平面优先的权重张量。</summary>
-    /// <param name="w">卷积权重张量。</param>
-    /// <param name="weight">接收 F(4,3) 变换结果的权重张量。</param>
-    /// <param name="oc">输出通道数。</param>
-    /// <param name="ic">输入通道数。</param>
-    private static void PackWinograd4Weights(Tensor w, Tensor weight, int oc, int ic)
+    // F(2,3) writes 16 transform planes directly in the selected GEMM layout.
+    private static void PackWinograd2Weights(float[] source, float[] weight, int oc, int ic, bool packed)
     {
-        Span<float> temp = stackalloc float[18];
+        Span<float> temp = stackalloc float[12];
+        int stride = oc * ic;
         for (int co = 0; co < oc; co++) for (int ci = 0; ci < ic; ci++)
         {
             int offset = (co * ic + ci) * 9;
+            int index = packed ? ci * oc + co : co * ic + ci;
             for (int c = 0; c < 3; c++)
             {
-                float a = w.Data[offset + c], b = w.Data[offset + 3 + c], d = w.Data[offset + 6 + c];
+                float a = source[offset + c], b = source[offset + 3 + c], d = source[offset + 6 + c];
+                temp[c] = a; temp[3 + c] = (a + b + d) * .5f; temp[6 + c] = (a - b + d) * .5f; temp[9 + c] = d;
+            }
+            for (int r = 0; r < 4; r++)
+            {
+                float a = temp[r * 3], b = temp[r * 3 + 1], c = temp[r * 3 + 2];
+                int row = r * 4 * stride + index;
+                weight[row] = a; weight[row + stride] = (a + b + c) * .5f;
+                weight[row + 2 * stride] = (a - b + c) * .5f; weight[row + 3 * stride] = c;
+            }
+        }
+    }
+
+    // F(4,3) uses the same two weight layouts with 36 transform planes.
+    private static void PackWinograd4Weights(float[] source, float[] weight, int oc, int ic, bool packed)
+    {
+        Span<float> temp = stackalloc float[18];
+        int stride = oc * ic;
+        for (int co = 0; co < oc; co++) for (int ci = 0; ci < ic; ci++)
+        {
+            int offset = (co * ic + ci) * 9;
+            int index = packed ? ci * oc + co : co * ic + ci;
+            for (int c = 0; c < 3; c++)
+            {
+                float a = source[offset + c], b = source[offset + 3 + c], d = source[offset + 6 + c];
                 temp[c] = a * .25f; temp[3 + c] = -(a + b + d) / 6; temp[6 + c] = -(a - b + d) / 6;
                 temp[9 + c] = a / 24 + b / 12 + d / 6; temp[12 + c] = a / 24 - b / 12 + d / 6; temp[15 + c] = d;
             }
             for (int r = 0; r < 6; r++)
             {
-                float a = temp[r * 3], b = temp[r * 3 + 1], d = temp[r * 3 + 2]; int index = co * ic + ci;
-                weight.Data[(r * 6) * oc * ic + index] = a * .25f;
-                weight.Data[(r * 6 + 1) * oc * ic + index] = -(a + b + d) / 6;
-                weight.Data[(r * 6 + 2) * oc * ic + index] = -(a - b + d) / 6;
-                weight.Data[(r * 6 + 3) * oc * ic + index] = a / 24 + b / 12 + d / 6;
-                weight.Data[(r * 6 + 4) * oc * ic + index] = a / 24 - b / 12 + d / 6;
-                weight.Data[(r * 6 + 5) * oc * ic + index] = d;
+                float a = temp[r * 3], b = temp[r * 3 + 1], d = temp[r * 3 + 2];
+                int row = r * 6 * stride + index;
+                weight[row] = a * .25f;
+                weight[row + stride] = -(a + b + d) / 6;
+                weight[row + 2 * stride] = -(a - b + d) / 6;
+                weight[row + 3 * stride] = a / 24 + b / 12 + d / 6;
+                weight[row + 4 * stride] = a / 24 - b / 12 + d / 6;
+                weight[row + 5 * stride] = d;
             }
         }
     }
@@ -217,9 +289,12 @@ public sealed unsafe partial class VulkanBackend
     {
         foreach (ulong p in winogradPipelines.Values) Vk.DestroyPipeline(device, p, null); winogradPipelines.Clear(); winogradWeights.Clear();
         winogradMiddleTiles.Clear();
-        winogradPackedWeights.Clear();
+        FreeRetiredWinogradWorkspaces();
+        if (winogradProducts is { } products) { Free(products); winogradProducts = null; }
         foreach (ulong p in winogradTransformPipelines.Values) Vk.DestroyPipeline(device, p, null); winogradTransformPipelines.Clear();
-        winogradInputs.Clear();
+        ResetWinogradInputs();
+        foreach (var slot in winogradInputSlots)
+            if (slot.Buffer is { } buffer) { Free(buffer); slot.Buffer = null; }
         pointwisePackedWeights.Clear();
     }
 }

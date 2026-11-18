@@ -77,6 +77,31 @@ internal static class Yolo26Tests
                 for (int c = 0; c < extra; c++) Near(output.Data[target + 6 + c], source.Data[offset + (classes + 4 + c) * anchors + item.Anchor]);
             }
         }
+
+        var detection = new Tensor(batch, 4 + classes, anchors);
+        var payload = new Tensor(batch, extra, anchors);
+        for (int b = 0; b < batch; b++)
+        {
+            int start = b * source.Shape[1] * anchors;
+            Array.Copy(source.Data, start, detection.Data, b * (4 + classes) * anchors, (4 + classes) * anchors);
+            Array.Copy(source.Data, start + (4 + classes) * anchors, payload.Data, b * extra * anchors, extra * anchors);
+        }
+        Tensor splitOutput;
+        if (backend is null)
+        {
+            var levels = TensorOps.Split(payload, 2, [11, anchors - 11]);
+            var cpu = typeof(Tensor).Assembly.GetType("SimdYolo.CpuEndToEnd")!
+                .GetMethod("SelectPtWithExtras", BindingFlags.NonPublic | BindingFlags.Static)!;
+            splitOutput = (Tensor)cpu.Invoke(null, [detection, maximum, classes, levels])!;
+        }
+        else
+        {
+            var gpu = typeof(VulkanBackend).GetMethod("TryEndToEndTopKWithExtras", BindingFlags.NonPublic | BindingFlags.Instance)!;
+            splitOutput = (Tensor)gpu.Invoke(backend, [GpuTopKTests.DeviceTensor(backend, detection.Data, detection.Shape, 5),
+                GpuTopKTests.DeviceTensor(backend, payload.Data, payload.Shape, 11), maximum, classes])!;
+        }
+        if (!splitOutput.Shape.SequenceEqual(output.Shape) || !splitOutput.Data.AsSpan().SequenceEqual(output.Data))
+            throw new Exception("Separate instance payloads changed TopK placement or scores.");
     }
 
     /// <summary>检查 FP32 值在绝对容差内接近独立参考值。</summary>

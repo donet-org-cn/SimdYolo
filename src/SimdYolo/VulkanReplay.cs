@@ -91,11 +91,12 @@ public sealed unsafe partial class VulkanBackend
     /// <summary>按固定形状更新上传区并重新提交已录制命令；同步后为本次结果分配独立主机数组。</summary>
     /// <param name="input">由主机数组支持的可变输入，形状须与录制命令匹配。</param>
     /// <param name="outputs">成功重放时返回的主机结果数组；条件不匹配时为空数组。</param>
+    /// <param name="outputPool">同步解码返回前归还的主机数组池。</param>
     /// <returns>成功提交重放并生成输出时为 true；条件不匹配时为 false。</returns>
     /// <exception cref="ObjectDisposedException">后端已经释放。</exception>
     /// <exception cref="InvalidOperationException">重放栅栏重置、命令提交或等待失败；失败会同时清除重放计划。</exception>
     /// <remarks>每次推理的公开输出使用独立主机数组；后续帧复用上传/下载区不会改写已返回的数据。</remarks>
-    internal bool TryReplay(Tensor input, out Tensor[] outputs)
+    internal bool TryReplay(Tensor input, out Tensor[] outputs, CpuTensorPool? outputPool)
     {
         lock (gate)
         {
@@ -115,7 +116,7 @@ public sealed unsafe partial class VulkanBackend
                 {
                     var description = plan.Outputs[i];
                     if (description.Alias != i) { outputs[i] = outputs[description.Alias]; continue; }
-                    float[] values = GC.AllocateUninitializedArray<float>(description.Length);
+                    float[] values = outputPool?.Rent(description.Length, clear: false) ?? GC.AllocateUninitializedArray<float>(description.Length);
                     fixed (float* target = values)
                         Buffer.MemoryCopy((byte*)staging[2].Mapped + description.Offset, target, (long)values.Length * sizeof(float), (long)values.Length * sizeof(float));
                     outputs[i] = new(values, description.Shape);

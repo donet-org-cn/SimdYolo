@@ -42,6 +42,14 @@ public sealed class Tensor
         if (Count(shape) != data.Length) throw new ArgumentException("Tensor shape does not match data.");
         this.data = data; Shape = (int[])shape.Clone(); Length = data.Length;
     }
+
+    private Tensor(float[]? data, DeviceStorage? storage, int[] ownedShape, int length)
+    {
+        this.data = data;
+        Storage = storage;
+        Shape = ownedShape;
+        Length = length;
+    }
     /// <summary>按指定形状创建张量；传入数据或设备存储时共享其元素存储，仅复制维度数组。</summary>
     /// <param name="storage">当前后端拥有的设备存储。</param>
     /// <param name="shape">按行优先顺序声明的张量维度。</param>
@@ -61,18 +69,31 @@ public sealed class Tensor
     /// <param name="shape">按行优先顺序声明的非负张量维度。</param>
     /// <exception cref="ArgumentException">形状包含负维度。</exception>
     /// <exception cref="OverflowException">维度乘积超出 Int32 范围。</exception>
-    public Tensor(params int[] shape) : this(new float[Count(shape)], shape) { }
+    public Tensor(params int[] shape)
+    {
+        Shape = (int[])shape.Clone();
+        Length = Count(Shape);
+        data = new float[Length];
+    }
     /// <summary>按形状申请 CPU 临时张量，优先复用当前会话缓冲区池。</summary>
     /// <param name="shape">按行优先顺序声明的张量维度。</param>
     /// <returns>未保证清零的临时张量；内核应在读取之前写满逻辑元素。</returns>
     internal static Tensor Temporary(params int[] shape)
-    { int count = Count(shape); return new(CpuTensorPool.Current?.Rent(count, clear: false) ?? new float[count], shape); }
+    {
+        int count = Count(shape);
+        float[] values = CpuTensorPool.Current?.Rent(count, clear: false) ?? new float[count];
+        return new(values, null, (int[])shape.Clone(), count);
+    }
     // 仅供会在首次读取前完整覆盖每个逻辑元素的内核使用。
     /// <summary>申请不保证清零的临时张量；仅供会完整覆盖输出的内核使用。</summary>
     /// <param name="shape">按行优先顺序声明的张量维度。</param>
     /// <returns>来自当前池或未初始化数组的张量。</returns>
     internal static Tensor TemporaryUninitialized(params int[] shape)
-    { int count = Count(shape); return new(CpuTensorPool.Current?.Rent(count, clear: false) ?? GC.AllocateUninitializedArray<float>(count), shape); }
+    {
+        int count = Count(shape);
+        float[] values = CpuTensorPool.Current?.Rent(count, clear: false) ?? GC.AllocateUninitializedArray<float>(count);
+        return new(values, null, (int[])shape.Clone(), count);
+    }
     /// <summary>创建维度数量为 0、元素数量为 1 的 FP32 标量张量。</summary>
     /// <param name="x">标量的 FP32 值。</param>
     /// <returns>包含指定值的标量张量。</returns>
@@ -85,6 +106,15 @@ public sealed class Tensor
     public static int Count(IEnumerable<int> shape)
     {
         int count = 1;
+        if (shape is int[] dimensions)
+        {
+            foreach (int d in dimensions)
+            {
+                if (d < 0) throw new ArgumentException("Negative tensor dimension.");
+                count = checked(count * d);
+            }
+            return count;
+        }
         foreach (int d in shape) { if (d < 0) throw new ArgumentException("Negative tensor dimension."); count = checked(count * d); }
         return count;
     }
@@ -106,7 +136,8 @@ public sealed class Tensor
             shape[inferred] = Length / count;
         }
         if (Count(shape) != Length) throw new ArgumentException("Tensor shape does not match data.");
-        return Storage is { } storage ? new Tensor(storage, shape) { IsConstant = IsConstant } : new Tensor(Data, shape) { IsConstant = IsConstant };
+        return Storage is { } storage ? new Tensor(null, storage, shape, Length) { IsConstant = IsConstant }
+            : new Tensor(Data, null, shape, Length) { IsConstant = IsConstant };
     }
     /// <summary>将负轴编号规范为非负轴编号，并检查是否处于张量维度范围。</summary>
     /// <param name="axis">操作轴；负数表示从最后一维反向计数。</param>

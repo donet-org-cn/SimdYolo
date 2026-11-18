@@ -1,3 +1,6 @@
+using System.Numerics;
+using System.Runtime.CompilerServices;
+
 namespace SimdYolo;
 
 /// <summary>统一 PT、ONNX 与原生训练归档的输入元数据和前向推理接口。</summary>
@@ -154,10 +157,13 @@ public sealed class YoloDetector : IDisposable
     private readonly IModel model;
     /// <summary>加载时确认的预处理、推理与解码配置。</summary>
     private readonly DetectorOptions options;
+    private readonly DetectorOptions decodeOptions;
     /// <summary>协调推理和释放操作的会话锁。</summary>
     private readonly object gate = new();
     /// <summary>仅属于本会话的 CPU 临时张量池。</summary>
     private readonly CpuTensorPool tensorPool = new();
+    // Image APIs reuse private storage while holding the session lock through decoding.
+    private Tensor? imageInput;
     /// <summary>会话是否已经释放。</summary>
     private bool disposed;
     /// <summary>标记当前正在执行推理，用于拒绝回调触发的重入。</summary>
@@ -229,6 +235,7 @@ public sealed class YoloDetector : IDisposable
             var ops = new TensorOps(backend);
             model = Path.GetExtension(path).ToLowerInvariant() switch { ".onnx" => new OnnxModel(path, ops, this.options.LayerCompleted), ".pt" or ".pth" => new PtModel(path, ops, this.options.LayerCompleted), ".sytrain" => LoadTrainingModel(path, ops, this.options.LayerCompleted), _ => throw new NotSupportedException("Use .pt/.pth, .onnx or .sytrain.") };
             Info = new(Path.GetExtension(path).ToLowerInvariant() switch { ".onnx" => "ONNX", ".sytrain" => "SYTRAIN", _ => "PT" }, model.Names, model.ClassCount, model.Task, model.EndToEnd, model.InputShape, model.KeypointShape);
+            decodeOptions = EffectiveOptions();
         }
         catch { backend.Dispose(); throw; }
     }
@@ -254,40 +261,54 @@ public sealed class YoloDetector : IDisposable
     /// <exception cref="OverflowException">输入维度乘积、运行时形状或索引转换超过受支持整数范围。</exception>
     public Tensor[] PredictRaw(Tensor nchw)
     {
-        lock (gate)
+        lock (gate) return RunInference(nchw, borrowOutputs: false);
+    }
+
+    private void CheckPredictionState()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        if (inferenceRunning) throw new InvalidOperationException("Reentrant inference on the same session is not supported.");
+    }
+
+    private Tensor[] RunInference(Tensor nchw, bool borrowOutputs)
+    {
+        CheckPredictionState();
+        if (Tensor.Count(nchw.Shape) != nchw.Length) throw new ArgumentException("Input tensor shape does not match its storage.", nameof(nchw));
+        var outerPool = CpuTensorPool.Current;
+        var outerDevice = DeviceScope.Current;
+        inferenceRunning = true;
+        try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (Tensor.Count(nchw.Shape) != nchw.Length) throw new ArgumentException("Input tensor shape does not match its storage.", nameof(nchw));
-            if (inferenceRunning) throw new InvalidOperationException("Reentrant inference on the same session is not supported.");
-            inferenceRunning = true;
+            if (backend is PrecisionCpuBackend low) low.Begin(nchw.Shape);
+            if (backend is not IDeviceBackend device)
+            {
+                CpuTensorPool.Current = tensorPool;
+                DeviceScope.Current = null;
+                var outputs = model.Run(nchw);
+                return borrowOutputs ? outputs : tensorPool.DetachOutputs(outputs);
+            }
+
+            CpuTensorPool.Current = null;
+            var outputPool = borrowOutputs ? tensorPool : null;
+            var replay = options.LayerCompleted is null ? backend as VulkanBackend : null;
+            if (replay is not null && replay.TryReplay(nchw, out var cached, outputPool)) return cached;
+            device.BeginFrame();
             try
             {
-                if (backend is PrecisionCpuBackend low) low.Begin(nchw.Shape);
-                if (backend is not IDeviceBackend device)
-                {
-                    var previous = CpuTensorPool.Current; var previousDevice = DeviceScope.Current;
-                    CpuTensorPool.Current = tensorPool; DeviceScope.Current = null;
-                    // 把模型输出从临时池中分离后交给调用方；帧结束只能回收中间值。
-                    try { return tensorPool.DetachOutputs(model.Run(nchw)); }
-                    finally { CpuTensorPool.Current = previous; DeviceScope.Current = previousDevice; tensorPool.ReturnAll(); }
-                }
-                var outerPool = CpuTensorPool.Current; var outerDevice = DeviceScope.Current;
-                CpuTensorPool.Current = null;
-                try
-                {
-                    // 只有无逐层回调且输入约定匹配时才能重放已验证的 Vulkan 命令。
-                    if (backend is VulkanBackend replay && options.LayerCompleted is null && replay.TryReplay(nchw, out var cached)) return cached;
-                    device.BeginFrame();
-                    try
-                    {
-                        if (backend is VulkanBackend capture && options.LayerCompleted is null) capture.BeginReplayCapture(nchw);
-                        var outputs = model.Run(nchw); device.MaterializeOutputs(outputs); return outputs;
-                    }
-                    finally { device.EndFrame(); }
-                }
-                finally { CpuTensorPool.Current = outerPool; DeviceScope.Current = outerDevice; }
+                replay?.BeginReplayCapture(nchw);
+                var outputs = model.Run(nchw);
+                if (outputPool is not null && backend is VulkanBackend vulkan) vulkan.DownloadFrameOutputs(outputs, outputPool);
+                else device.MaterializeOutputs(outputs);
+                return outputs;
             }
-            finally { inferenceRunning = false; }
+            finally { device.EndFrame(); }
+        }
+        finally
+        {
+            CpuTensorPool.Current = outerPool;
+            DeviceScope.Current = outerDevice;
+            inferenceRunning = false;
+            if (!borrowOutputs && backend is not IDeviceBackend) tensorPool.ReturnAll();
         }
     }
     /// <summary>对 RGB24 或 BGR24 图像进行填边、推理和检测框解码。</summary>
@@ -304,13 +325,7 @@ public sealed class YoloDetector : IDisposable
     /// <exception cref="InvalidDataException">模型路由或节点执行失败。</exception>
     /// <exception cref="OverflowException">图像缓冲区尺寸、运行时形状或类别编号超过受支持整数范围。</exception>
     public IReadOnlyList<Detection> Detect(ReadOnlySpan<byte> pixels, int width, int height, bool bgr = false, int rowStride = 0)
-    {
-        int tw = model.InputShape.ElementAtOrDefault(3) > 0 ? model.InputShape[3] : options.Width;
-        int th = model.InputShape.ElementAtOrDefault(2) > 0 ? model.InputShape[2] : options.Height;
-        var (input, transform) = ImagePreprocessor.Letterbox(pixels, width, height, tw, th, bgr, rowStride);
-        var outputs = PredictRaw(input);
-        return VisionDecoder.Decode(outputs, transform, EffectiveOptions(outputs), decodeMasks: false).Select(i => i.Box).ToArray();
-    }
+        => PredictImage(pixels, width, height, options.Confidence, bgr, rowStride, decodeMasks: false).Select(i => i.Box).ToArray();
     /// <summary>对图像执行完整推理，并解码检测框、分割掩码或姿态关键点。</summary>
     /// <param name="pixels">按行排列的 RGB24 或 BGR24 三通道字节数据。</param>
     /// <param name="width">原图宽度，以像素计。</param>
@@ -340,19 +355,30 @@ public sealed class YoloDetector : IDisposable
     /// <summary>共用图像推理实现，置信度只在后处理阶段覆盖，保留模型/设备缓存。</summary>
     /// <param name="pixels">源像素。</param><param name="width">源宽度。</param><param name="height">源高度。</param><param name="confidence">当前阈值。</param>
     /// <param name="bgr">是否交换通道。</param><param name="rowStride">源行跨度。</param><returns>本次解码结果。</returns>
-    private IReadOnlyList<YoloInstance> PredictImage(ReadOnlySpan<byte> pixels, int width, int height, float confidence, bool bgr, int rowStride)
+    /// <param name="decodeMasks">是否为分割结果计算实例掩码。</param>
+    private IReadOnlyList<YoloInstance> PredictImage(ReadOnlySpan<byte> pixels, int width, int height, float confidence,
+                                                     bool bgr, int rowStride, bool decodeMasks = true)
     {
         if (!float.IsFinite(confidence) || confidence is < 0 or > 1) throw new ArgumentException("Confidence must be between 0 and 1.");
-        int tw = model.InputShape.ElementAtOrDefault(3) > 0 ? model.InputShape[3] : options.Width;
-        int th = model.InputShape.ElementAtOrDefault(2) > 0 ? model.InputShape[2] : options.Height;
-        var (input, transform) = ImagePreprocessor.Letterbox(pixels, width, height, tw, th, bgr, rowStride);
-        var outputs = PredictRaw(input); var effective = EffectiveOptions(outputs);
-        return VisionDecoder.Decode(outputs, transform, confidence == effective.Confidence ? effective : effective with { Confidence = confidence });
+        lock (gate)
+        {
+            CheckPredictionState();
+            int tw = model.InputShape.ElementAtOrDefault(3) > 0 ? model.InputShape[3] : options.Width;
+            int th = model.InputShape.ElementAtOrDefault(2) > 0 ? model.InputShape[2] : options.Height;
+            var (input, transform) = ImagePreprocessor.Letterbox(pixels, width, height, tw, th, bgr, rowStride, imageInput);
+            imageInput = input;
+            try
+            {
+                var outputs = RunInference(input, borrowOutputs: true);
+                var effective = confidence == decodeOptions.Confidence ? decodeOptions : decodeOptions with { Confidence = confidence };
+                return VisionDecoder.Decode(outputs, transform, effective, decodeMasks);
+            }
+            finally { tensorPool.ReturnAll(); }
+        }
     }
     /// <summary>用模型元数据补齐自动任务、类别数、关键点维度和输出布局。</summary>
-    /// <param name="outputs">本次推理输出数组。</param>
-    /// <returns>供本次输出解码使用的配置副本。</returns>
-    private DetectorOptions EffectiveOptions(Tensor[] outputs)
+    /// <returns>供会话解码使用的配置副本。</returns>
+    private DetectorOptions EffectiveOptions()
     {
         int[] kp = model.KeypointShape;
         return options with
@@ -365,7 +391,17 @@ public sealed class YoloDetector : IDisposable
         };
     }
     /// <summary>等待正在执行的推理离开会话锁，释放计算后端并清空 CPU 缓冲区池；重复调用无副作用。</summary>
-    public void Dispose() { lock (gate) { if (disposed) return; disposed = true; backend.Dispose(); tensorPool.Clear(); } }
+    public void Dispose()
+    {
+        lock (gate)
+        {
+            if (disposed) return;
+            disposed = true;
+            imageInput = null;
+            backend.Dispose();
+            tensorPool.Clear();
+        }
+    }
 }
 
 /// <summary>按设备选项创建计算后端，并处理 Auto 模式的 GPU 初始化回退。</summary>
@@ -406,39 +442,76 @@ public static class ImagePreprocessor
     /// <returns>归一化输入张量以及对应的缩放和填边变换。</returns>
     /// <exception cref="ArgumentException">图像或目标尺寸不是正数、行跨度不足，或图像缓冲区长度不够。</exception>
     /// <exception cref="OverflowException">图像尺寸或字节跨度计算超过 Int32 范围。</exception>
-    public static unsafe (Tensor Input, Letterbox Transform) Letterbox(ReadOnlySpan<byte> pixels, int width, int height, int targetWidth, int targetHeight, bool bgr = false, int rowStride = 0)
+    public static (Tensor Input, Letterbox Transform) Letterbox(ReadOnlySpan<byte> pixels, int width, int height, int targetWidth, int targetHeight, bool bgr = false, int rowStride = 0)
+        => Letterbox(pixels, width, height, targetWidth, targetHeight, bgr, rowStride, reuse: null);
+
+    internal static unsafe (Tensor Input, Letterbox Transform) Letterbox(ReadOnlySpan<byte> pixels, int width, int height, int targetWidth, int targetHeight,
+                                                                         bool bgr, int rowStride, Tensor? reuse)
     {
         if (width <= 0 || height <= 0 || targetWidth <= 0 || targetHeight <= 0) throw new ArgumentException("Image dimensions must be positive.");
         rowStride = rowStride == 0 ? checked(width * 3) : rowStride;
         if (rowStride < checked(width * 3) || pixels.Length < checked((height - 1) * rowStride + width * 3)) throw new ArgumentException("Image buffer too short.");
         float gain = MathF.Min((float)targetWidth / width, (float)targetHeight / height);
         int rw = Math.Clamp((int)MathF.Round(width * gain), 1, targetWidth), rh = Math.Clamp((int)MathF.Round(height * gain), 1, targetHeight);
-        int px = (targetWidth - rw) / 2, py = (targetHeight - rh) / 2, plane = checked(targetWidth * targetHeight); var input = new Tensor(1, 3, targetHeight, targetWidth);
-        Array.Fill(input.Data, 114f / 255f);
+        int px = (targetWidth - rw) / 2, py = (targetHeight - rh) / 2, plane = checked(targetWidth * targetHeight);
+        var input = reuse is { Shape: [1, 3, var h, var w] } && h == targetHeight && w == targetWidth
+            ? reuse : new Tensor(GC.AllocateUninitializedArray<float>(checked(3 * plane)), 1, 3, targetHeight, targetWidth);
+        float[] output = input.Data;
+        // The resize writes every interior pixel. Only the padding needs to be filled.
+        for (int channel = 0; channel < 3; channel++)
+        {
+            var pixelsInPlane = output.AsSpan(channel * plane, plane);
+            pixelsInPlane[..(py * targetWidth)].Fill(114f / 255f);
+            pixelsInPlane[((py + rh) * targetWidth)..].Fill(114f / 255f);
+            if (rw == targetWidth) continue;
+            for (int y = py; y < py + rh; y++)
+            {
+                var row = pixelsInPlane.Slice(y * targetWidth, targetWidth);
+                row[..px].Fill(114f / 255f);
+                row[(px + rw)..].Fill(114f / 255f);
+            }
+        }
+
         var x0Map = new int[rw]; var x1Map = new int[rw]; var fractions = new float[rw];
-        for (int x = 0; x < rw; x++) { float sx = Math.Clamp((x + .5f) * width / rw - .5f, 0, width - 1); x0Map[x] = (int)sx; x1Map[x] = Math.Min(x0Map[x] + 1, width - 1); fractions[x] = sx - x0Map[x]; }
-        fixed (byte* source = pixels) fixed (float* destination = input.Data)
+        for (int x = 0; x < rw; x++)
+        {
+            float sx = Math.Clamp((x + .5f) * width / rw - .5f, 0, width - 1);
+            int left = (int)sx;
+            x0Map[x] = left * 3;
+            x1Map[x] = Math.Min(left + 1, width - 1) * 3;
+            fractions[x] = sx - left;
+        }
+        int red = bgr ? 2 : 0, blue = 2 - red;
+        fixed (byte* source = pixels) fixed (float* destination = output)
         {
             nint sourceAddress = (nint)source, targetAddress = (nint)destination;
-            // 处理缩放后的第 y 行；双线性取样写入三个 RGB 平面，不产生返回值。
             void Row(int y)
             {
-                byte* src = (byte*)sourceAddress; float* dst = (float*)targetAddress;
-                float sy = Math.Clamp((y + .5f) * height / rh - .5f, 0, height - 1); int y0 = (int)sy, y1 = Math.Min(y0 + 1, height - 1); float fy = sy - y0;
+                float sy = Math.Clamp((y + .5f) * height / rh - .5f, 0, height - 1);
+                int y0 = (int)sy, y1 = Math.Min(y0 + 1, height - 1);
+                float fy = sy - y0, wy = 1 - fy;
+                byte* top = (byte*)sourceAddress + y0 * rowStride, bottom = (byte*)sourceAddress + y1 * rowStride;
+                float* r = (float*)targetAddress + (y + py) * targetWidth + px, g = r + plane, b = g + plane;
                 for (int x = 0; x < rw; x++)
                 {
-                    int x0 = x0Map[x], x1 = x1Map[x]; float fx = fractions[x];
-                    for (int c = 0; c < 3; c++)
-                    {
-                        int channel = bgr ? 2 - c : c; float top = src[y0 * rowStride + x0 * 3 + channel] * (1 - fx) + src[y0 * rowStride + x1 * 3 + channel] * fx;
-                        float bottom = src[y1 * rowStride + x0 * 3 + channel] * (1 - fx) + src[y1 * rowStride + x1 * 3 + channel] * fx;
-                        dst[c * plane + (y + py) * targetWidth + x + px] = (top * (1 - fy) + bottom * fy) / 255f;
-                    }
+                    int left = x0Map[x], right = x1Map[x];
+                    float fx = fractions[x], wx = 1 - fx;
+                    r[x] = Sample(top + red, bottom + red, left, right, wx, fx, wy, fy);
+                    g[x] = Sample(top + 1, bottom + 1, left, right, wx, fx, wy, fy);
+                    b[x] = Sample(top + blue, bottom + blue, left, right, wx, fx, wy, fy);
                 }
             }
             if ((long)rw * rh >= 32768) Parallel.For(0, rh, Row); else for (int y = 0; y < rh; y++) Row(y);
         }
         return (input, new(width, height, targetWidth, targetHeight, (float)rw / width, (float)rh / height, px, py));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe float Sample(byte* top, byte* bottom, int left, int right, float wx, float fx, float wy, float fy)
+    {
+        float upper = top[left] * wx + top[right] * fx;
+        float lower = bottom[left] * wx + bottom[right] * fx;
+        return (upper * wy + lower * fy) / 255f;
     }
 }
 
@@ -483,31 +556,81 @@ public static class DetectionDecoder
         bool end2end = layout == OutputLayout.EndToEnd, channelsFirst = layout == OutputLayout.ChannelsFirst;
         int count = channelsFirst ? output.Shape[2] : output.Shape[1], fields = channelsFirst ? output.Shape[1] : output.Shape[2];
         if (fields < 5 || end2end && fields != 6) throw new ArgumentException("Invalid detection output.");
-        // a 为原输出锚点编号，c 为字段编号；按当前布局返回对应字段值。
-        float At(int a, int c) => output.Data[channelsFirst ? c * count + a : a * fields + c];
         var candidates = new List<(Detection Box, int Anchor)>();
         int classFields = options.ClassCount > 0 ? 4 + options.ClassCount : fields;
         if (!end2end && (classFields < 5 || classFields > fields)) throw new ArgumentException("ClassCount does not match output.");
-        for (int a = 0; a < count; a++)
+        float[] data = output.Data;
+        float At(int a, int c) => data[channelsFirst ? c * count + a : a * fields + c];
+        void AddCandidate(int a, int cls, float confidence)
         {
-            int cls = 0; float confidence;
-            if (end2end)
-            { confidence = At(a, 4); float cv = At(a, 5); if (!float.IsFinite(cv) || cv < 0 || cv != MathF.Truncate(cv)) continue; cls = checked((int)cv); }
-            else
-            { confidence = float.NegativeInfinity; for (int c = 4; c < classFields; c++) if (At(a, c) > confidence) { confidence = At(a, c); cls = c - 4; } }
-            if (!float.IsFinite(confidence) || confidence < options.Confidence) continue;
+            if (!float.IsFinite(confidence) || confidence < options.Confidence) return;
             float x = At(a, 0), y = At(a, 1), w = At(a, 2), h = At(a, 3);
-            if (!float.IsFinite(x) || !float.IsFinite(y) || !float.IsFinite(w) || !float.IsFinite(h)) continue;
+            if (!float.IsFinite(x) || !float.IsFinite(y) || !float.IsFinite(w) || !float.IsFinite(h)) return;
             if (end2end) { w -= x; h -= y; } else { x -= w * .5f; y -= h * .5f; }
-            if (w <= 0 || h <= 0) continue;
+            if (w <= 0 || h <= 0) return;
             // 先在模型坐标中执行 NMS，再还原并裁剪到原图边界，保持标准 YOLO 后处理顺序。
             candidates.Add((new(cls, confidence, x, y, w, h), a));
         }
-        candidates = candidates.OrderByDescending(d => d.Box.Confidence).Take(options.MaxCandidates).ToList();
-        var kept = new List<(Detection Box, int Anchor)>();
-        foreach (var d in candidates)
+
+        int anchor = 0;
+        if (channelsFirst && Vector.IsHardwareAccelerated && classFields > 5)
         {
-            if (!end2end && kept.Any(k => (options.ClassAgnosticNms || k.Box.ClassId == d.Box.ClassId) && Iou(k.Box, d.Box) > options.IouThreshold)) continue;
+            int lanes = Vector<float>.Count;
+            var threshold = new Vector<float>(options.Confidence);
+            for (; anchor <= count - lanes; anchor += lanes)
+            {
+                var confidence = new Vector<float>(float.NegativeInfinity);
+                var classes = Vector<int>.Zero;
+                for (int c = 4; c < classFields; c++)
+                {
+                    var scores = new Vector<float>(data, c * count + anchor);
+                    // Strict comparison preserves the first class on ties and ignores NaN.
+                    var better = Vector.GreaterThan(scores, confidence);
+                    confidence = Vector.ConditionalSelect(better, scores, confidence);
+                    classes = Vector.ConditionalSelect(better, new Vector<int>(c - 4), classes);
+                }
+                if (Vector.LessThanAll(confidence, threshold)) continue;
+                for (int lane = 0; lane < lanes; lane++)
+                    AddCandidate(anchor + lane, classes[lane], confidence[lane]);
+            }
+        }
+        for (; anchor < count; anchor++)
+        {
+            int cls = 0;
+            float confidence;
+            if (end2end)
+            {
+                confidence = At(anchor, 4);
+                float cv = At(anchor, 5);
+                if (!float.IsFinite(cv) || cv < 0 || cv != MathF.Truncate(cv)) continue;
+                cls = checked((int)cv);
+            }
+            else
+            {
+                confidence = float.NegativeInfinity;
+                for (int c = 4; c < classFields; c++)
+                {
+                    float score = At(anchor, c);
+                    if (score > confidence) { confidence = score; cls = c - 4; }
+                }
+            }
+            AddCandidate(anchor, cls, confidence);
+        }
+
+        var kept = new List<(Detection Box, int Anchor)>();
+        foreach (var d in candidates.OrderByDescending(d => d.Box.Confidence).Take(options.MaxCandidates))
+        {
+            if (!end2end)
+            {
+                bool suppressed = false;
+                foreach (var k in kept)
+                {
+                    if (!(options.ClassAgnosticNms || k.Box.ClassId == d.Box.ClassId) || !(Iou(k.Box, d.Box) > options.IouThreshold)) continue;
+                    suppressed = true;
+                    break;
+                }
+                if (suppressed) continue;
+            }
             kept.Add(d); if (kept.Count >= options.MaxDetections) break;
         }
         return kept.Select(item =>

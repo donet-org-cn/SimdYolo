@@ -56,7 +56,75 @@ internal static class MaskPipelineTests
             bool rejected = false; try { detector.Predict(pixels, 64, 64, float.NaN); } catch (ArgumentException) { rejected = true; }
             if (!rejected) throw new Exception("Invalid per-call confidence accepted");
         });
+        test("Reusable image input handles changing padding, BGR stride, and raw output ownership", () =>
+        {
+            var options = new DetectorOptions
+            {
+                Device = ComputeDevice.Cpu, Width = 64, Height = 64, CpuThreads = 2, Confidence = .01f,
+                ClassCount = 80, Task = YoloTask.Detection, OutputLayout = OutputLayout.ChannelsFirst
+            };
+            using var detector = new YoloDetector("models/pt/yolov8n.pt", options);
+            Tensor? held = null;
+            float[]? before = null;
+            foreach (var (width, height, stride, bgr) in new[] { (73, 32, 224, false), (31, 76, 98, true), (64, 64, 192, false) })
+            {
+                var pixels = new byte[height * stride];
+                new Random(width).NextBytes(pixels);
+                var (input, transform) = ImagePreprocessor.Letterbox(pixels, width, height, 64, 64, bgr, stride);
+                var raw = detector.PredictRaw(input);
+                var expected = VisionDecoder.Decode(raw, transform, options).Select(x => x.Box).ToArray();
+                var actual = detector.Predict(pixels, width, height, bgr, stride).Select(x => x.Box).ToArray();
+                var detected = detector.Detect(pixels, width, height, bgr, stride);
+                // Repeated calls in the published CPU build also have small FP32 differences.
+                // Check box geometry within tolerance and require identical selection and order.
+                CheckBoxes(expected, actual);
+                CheckBoxes(expected, detected);
+                if (held is not null && !held.Data.AsSpan().SequenceEqual(before))
+                    throw new Exception("An image prediction overwrote a previous public raw output.");
+                held = raw[0];
+                before = (float[])held.Data.Clone();
+            }
+        });
+        test("Channels-first SIMD scoring preserves ties, nonfinite scores and scalar tails", () =>
+        {
+            const int anchors = 35, fields = 9;
+            var first = new Tensor(1, fields, anchors);
+            var last = new Tensor(1, anchors, fields);
+            for (int a = 0; a < anchors; a++)
+            {
+                float[] values = [a * 3 + 4, 5, 7, 3, a % 5 == 0 ? float.NaN : .5f, .5f,
+                    a % 7 == 0 ? float.PositiveInfinity : .7f * (a % 2), 100f, 100f];
+                for (int c = 0; c < fields; c++)
+                {
+                    first.Data[c * anchors + a] = values[c];
+                    last.Data[a * fields + c] = values[c];
+                }
+            }
+            var transform = new Letterbox(128, 32, 128, 32, 1, 1, 0, 0);
+            var options = new DetectorOptions { ClassCount = 3, MaxCandidates = 23, IouThreshold = .3f };
+            foreach (float confidence in new[] { .25f, .6f, float.NaN })
+            {
+                var a = DetectionDecoder.Decode(first, transform, options with { Confidence = confidence, OutputLayout = OutputLayout.ChannelsFirst });
+                var b = DetectionDecoder.Decode(last, transform, options with { Confidence = confidence, OutputLayout = OutputLayout.ChannelsLast });
+                if (a.Count == 0 || !a.SequenceEqual(b)) throw new Exception("SIMD scoring changed candidate selection.");
+            }
+        });
     }
+
+    private static void CheckBoxes(IReadOnlyList<Detection> expected, IReadOnlyList<Detection> actual)
+    {
+        if (expected.Count != actual.Count) throw new Exception("Image buffer reuse changed the detection count.");
+        for (int i = 0; i < expected.Count; i++)
+        {
+            var left = expected[i];
+            var right = actual[i];
+            if (left.ClassId != right.ClassId || MathF.Abs(left.Confidence - right.Confidence) > 1e-5f ||
+                MathF.Abs(left.X - right.X) > .001f || MathF.Abs(left.Y - right.Y) > .001f ||
+                MathF.Abs(left.Width - right.Width) > .001f || MathF.Abs(left.Height - right.Height) > .001f)
+                throw new Exception($"Image buffer reuse changed detection {i}: {left} vs {right}.");
+        }
+    }
+
     private static InstanceMask Reference(Detection box, Tensor prototype, float[] coefficients, Letterbox t)
     {
         int mw = prototype.Shape[3], mh = prototype.Shape[2], plane = mw * mh;

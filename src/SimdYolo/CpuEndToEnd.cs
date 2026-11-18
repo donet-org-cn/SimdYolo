@@ -24,8 +24,14 @@ internal static class CpuEndToEnd
     /// <param name="classes">类别总数。</param>
     /// <returns>形状为 [批次,检测数量,6+附加字段] 的张量，先保存边框、得分和类别，再收集同一锚点的实例字段。</returns>
     internal static Tensor SelectPt(Tensor input, int maximum, int classes)
+        => SelectPtWithExtras(input, maximum, classes, null);
+
+    // With separate levels, only the winning anchors read the mask or keypoint channels.
+    internal static Tensor SelectPtWithExtras(Tensor input, int maximum, int classes, Tensor[]? separateExtras)
     {
-        int anchors = input.Shape[2], count = Math.Min(maximum, anchors), extra = input.Shape[1] - classes - 4, fields = 6 + extra;
+        int anchors = input.Shape[2], count = Math.Min(maximum, anchors);
+        int extra = separateExtras is null ? input.Shape[1] - classes - 4 : separateExtras[0].Shape[1];
+        int fields = 6 + extra;
         float[] source = input.Data;
         var result = Tensor.TemporaryUninitialized(input.Shape[0], count, fields);
         if (count == 0 || input.Shape[0] == 0) return result;
@@ -64,7 +70,22 @@ internal static class CpuEndToEnd
                     for (int coordinate = 0; coordinate < 4; coordinate++) target[dst + coordinate] = source[offset + coordinate * anchors + anchor];
                     target[dst + 4] = selected[i].Score;
                     target[dst + 5] = index % classes;
-                    for (int field = 0; field < extra; field++) target[dst + 6 + field] = source[offset + (classes + 4 + field) * anchors + anchor];
+                    if (separateExtras is null)
+                    {
+                        for (int field = 0; field < extra; field++)
+                            target[dst + 6 + field] = source[offset + (classes + 4 + field) * anchors + anchor];
+                    }
+                    else
+                    {
+                        int level = 0, local = anchor;
+                        while (local >= separateExtras[level].Shape[2])
+                            local -= separateExtras[level++].Shape[2];
+                        var payload = separateExtras[level];
+                        int width = payload.Shape[2], start = b * extra * width + local;
+                        float[] values = payload.Data;
+                        for (int field = 0; field < extra; field++)
+                            target[dst + 6 + field] = values[start + field * width];
+                    }
                 }
             }
             return result;

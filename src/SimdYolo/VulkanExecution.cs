@@ -62,7 +62,7 @@ public sealed unsafe partial class VulkanBackend
             }
             timestampTotals.Clear();
             arenaIndex = uploadIndex = 0; arenaOffset = uploadOffset = 0; commandsRecorded = 0;
-            frameInputs.Clear(); winogradInputs.Clear(); pendingConstants.Clear(); StartRecording();
+            frameInputs.Clear(); ResetWinogradInputs(); pendingConstants.Clear(); StartRecording();
         }
         catch { frameActive = false; DeviceScope.Current = null; Monitor.Exit(gate); throw; }
     }
@@ -73,6 +73,7 @@ public sealed unsafe partial class VulkanBackend
         {
             if (!frameActive) return;
             if (!replayCommandRetained) { FlushFrame(); Check(Vk.EndCommand(command), "EndCommandBuffer(empty)"); }
+            FreeRetiredWinogradWorkspaces();
             if (gpuProfile)
             {
                 foreach (var item in timestampTotals.OrderByDescending(t => t.Value))
@@ -83,7 +84,7 @@ public sealed unsafe partial class VulkanBackend
                 Console.Error.WriteLine($"GPU_FRAME_TICKS {timestampTotals.Values.Aggregate(0UL, (sum, value) => sum + value)} {timestampTotals.Count}");
             }
         }
-        finally { EndReplayCapture(); frameActive = false; DeviceScope.Current = null; frameInputs.Clear(); winogradInputs.Clear(); Monitor.Exit(gate); }
+        finally { EndReplayCapture(); frameActive = false; DeviceScope.Current = null; frameInputs.Clear(); ResetWinogradInputs(); Monitor.Exit(gate); }
     }
     /// <summary>提交当前帧已录制的命令并等待完成，随后恢复可继续录制的状态。</summary>
     void IDeviceBackend.Flush() => FlushFrame();

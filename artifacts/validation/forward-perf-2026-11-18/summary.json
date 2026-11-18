@@ -1,0 +1,1269 @@
+{
+  "Status": "complete",
+  "StartedUtc": "2026-11-18T05:43:03.565291+00:00",
+  "Hardware": {
+    "Cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "LogicalProcessors": 20,
+    "Os": "Windows-11-10.0.28000-SP0",
+    "Architecture": "AMD64",
+    "NvidiaGpuQuery": [
+      "NVIDIA GeForce RTX 3060, 610.88, 12288 MiB"
+    ],
+    "GpuQueryScope": "Optional driver utility; actual worker backend/device is recorded per window."
+  },
+  "NuGet": [
+    {
+      "Id": "simdyolo",
+      "Version": "0.11.5",
+      "Uri": "https://api.nuget.org/v3-flatcontainer/simdyolo/0.11.5/simdyolo.0.11.5.nupkg",
+      "SHA256": "bfa40a5000f5f311110f66fb68217854ce30e8be942dc7803aba0ef79f3c5730"
+    },
+    {
+      "Id": "simdyolo.training",
+      "Version": "0.11.5",
+      "Uri": "https://api.nuget.org/v3-flatcontainer/simdyolo.training/0.11.5/simdyolo.training.0.11.5.nupkg",
+      "SHA256": "8b85d4ad8e9dd05d981465ba3a8964a80dc12a92a9c3414b0f5ae07daaa155e4"
+    }
+  ],
+  "Dlls": {
+    "nuget": "c5a21b4e6fd1abae1f3517fe986579f2d191addf6e54d4589ea454baf21cad11",
+    "previous": "0c89f1a5c03024527de39540c856a2590d11e09f4e64b87dcdfc8b2f49623763",
+    "candidate": "7688d1de5f62ede2578b02ec4df025a1d1c7f393a42b90737ac684fb985949c3"
+  },
+  "WorkerSha256": "56962cc3aadbc0864bf5118592bc3203354508d89cb7ab3cbdf1d3442d79e8b4",
+  "Inputs": {
+    "raw": {
+      "Path": "E:\\temp\\SimdYolo\\.cache\\perf-bus.f32",
+      "Sha256": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af"
+    },
+    "image": {
+      "Path": "E:\\temp\\SimdYolo\\.cache\\overall-perf-2026-11-18\\bus.rgb",
+      "Sha256": "8739ae2c34b8713bcc185201414014011b601159d5ec717275e4a2625f9fbded"
+    }
+  },
+  "Models": {
+    "pt/yolov8n.pt": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+    "pt/yolo26n-seg.pt": "361fbfabab285c3237700b6bb91d7ecfa602cd945fffda8dbe1242829b71e73f",
+    "onnx/yolo26n-seg.onnx": "ca315b9709f316949a17f5c606afcf8bfda46c6fca85fd120f01a8af7eac8668"
+  },
+  "Settings": {
+    "Size": 640,
+    "Threads": 8,
+    "AffinityHex": "5555",
+    "HighQos": true,
+    "Warmup": 40,
+    "MinFrames": 40,
+    "MinSeconds": 2,
+    "RoundOrders": [
+      [
+        "nuget",
+        "previous",
+        "candidate"
+      ],
+      [
+        "previous",
+        "candidate",
+        "nuget"
+      ],
+      [
+        "candidate",
+        "nuget",
+        "previous"
+      ]
+    ],
+    "VulkanAppCache": "disabled",
+    "Avx512": "off"
+  },
+  "FinishedUtc": "2026-11-18T05:48:43.152464+00:00",
+  "Runtime": [
+    ".NET 10.0.15"
+  ],
+  "Frames": 17832,
+  "Windows": 90,
+  "Comparisons": [
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.pt",
+      "Backend": "Cpu",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 28.202,
+          "P95Ms": 32.224,
+          "CpuMillisecondsPerFrame": 183.31866197183098,
+          "CpuPercent": 81.14771639158278,
+          "WorkingSetMiB": 422.03515625,
+          "PeakWorkingSetMiB": 422.03515625,
+          "PrivateMemoryMiB": 405.3125,
+          "AllocatedBytesPerFrame": 2956968.7887323946,
+          "ModelLoadMs": 78.46,
+          "FirstInferenceMs": 221.4684,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 35.41274653381534
+        },
+        "previous": {
+          "MedianMs": 27.90935,
+          "P95Ms": 35.2393,
+          "CpuMillisecondsPerFrame": 185.1455479452055,
+          "CpuPercent": 79.04617993365233,
+          "WorkingSetMiB": 388.08984375,
+          "PeakWorkingSetMiB": 388.08984375,
+          "PrivateMemoryMiB": 370.25,
+          "AllocatedBytesPerFrame": 2957352.109589041,
+          "ModelLoadMs": 73.9202,
+          "FirstInferenceMs": 224.4461,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 34.85084188182996
+        },
+        "candidate": {
+          "MedianMs": 26.8122,
+          "P95Ms": 30.8527,
+          "CpuMillisecondsPerFrame": 153.33333333333334,
+          "CpuPercent": 71.26353393658721,
+          "WorkingSetMiB": 388.69921875,
+          "PeakWorkingSetMiB": 388.69921875,
+          "PrivateMemoryMiB": 370.76171875,
+          "AllocatedBytesPerFrame": 2958729.3866666667,
+          "ModelLoadMs": 82.1747,
+          "FirstInferenceMs": 227.07,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 37.18097422778463
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -4.9280192894121,
+          "P95Ms": -4.255523833167818,
+          "CpuMillisecondsPerFrame": -16.356942777110838,
+          "CpuPercent": -12.180481342566562,
+          "WorkingSetMiB": -7.8988532131320515,
+          "PeakWorkingSetMiB": -7.8988532131320515,
+          "PrivateMemoryMiB": -8.524479568234389,
+          "AllocatedBytesPerFrame": 0.05954063299487,
+          "ModelLoadMs": 4.734514402243195,
+          "FirstInferenceMs": 2.529299891090564,
+          "Gen2Collections": 0.0,
+          "FPS": 4.993195577984411
+        },
+        "previous": {
+          "MedianMs": -3.931119857682097,
+          "P95Ms": -12.4480338712744,
+          "CpuMillisecondsPerFrame": -17.182273603082855,
+          "CpuPercent": -9.845695267750454,
+          "WorkingSetMiB": 0.1570190536582361,
+          "PeakWorkingSetMiB": 0.1570190536582361,
+          "PrivateMemoryMiB": 0.1382089804186304,
+          "AllocatedBytesPerFrame": 0.04657129170246854,
+          "ModelLoadMs": 11.166771734924975,
+          "FirstInferenceMs": 1.1690557332027618,
+          "Gen2Collections": 0.0,
+          "FPS": 6.686014512520355
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -4.9280192894121,
+          "AgainstPreviousPercent": 0.4367760979337554
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -2.9780790704223903,
+          "AgainstPreviousPercent": -12.454663362056163
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -6.996504865130748,
+          "AgainstPreviousPercent": -3.799622707085615
+        }
+      ],
+      "OutputChecks": {
+        "Count": 16,
+        "Identical": 8,
+        "CandidateCount": 6,
+        "CandidateIdentical": 4,
+        "MaxAbsTensor": 0.0030517578125,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.pt",
+      "Backend": "Vulkan",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 4.1977,
+          "P95Ms": 5.6617,
+          "CpuMillisecondsPerFrame": 1.42353579175705,
+          "CpuPercent": 4.19535063671295,
+          "WorkingSetMiB": 395.0234375,
+          "PeakWorkingSetMiB": 395.0234375,
+          "PrivateMemoryMiB": 643.60546875,
+          "AllocatedBytesPerFrame": 2822593.9830508474,
+          "VulkanFrameBufferCapacityMiB": 224,
+          "ModelLoadMs": 236.9792,
+          "FirstInferenceMs": 363.3509,
+          "ReplayedSteadyFrames": 461,
+          "Gen2Collections": 15,
+          "ReplayShare": 1.0,
+          "FPS": 230.3665141233912
+        },
+        "previous": {
+          "MedianMs": 4.09405,
+          "P95Ms": 5.8459,
+          "CpuMillisecondsPerFrame": 1.5831497797356828,
+          "CpuPercent": 4.4851489557437505,
+          "WorkingSetMiB": 297.7265625,
+          "PeakWorkingSetMiB": 356.40625,
+          "PrivateMemoryMiB": 485.515625,
+          "AllocatedBytesPerFrame": 2822608.2466960354,
+          "VulkanFrameBufferCapacityMiB": 164.39453125,
+          "ModelLoadMs": 245.8626,
+          "FirstInferenceMs": 245.535,
+          "ReplayedSteadyFrames": 454,
+          "Gen2Collections": 20,
+          "ReplayShare": 1.0,
+          "FPS": 226.91606374801964
+        },
+        "candidate": {
+          "MedianMs": 3.993,
+          "P95Ms": 5.4542,
+          "CpuMillisecondsPerFrame": 1.4880952380952381,
+          "CpuPercent": 4.487250402744381,
+          "WorkingSetMiB": 310.5859375,
+          "PeakWorkingSetMiB": 356.37109375,
+          "PrivateMemoryMiB": 481.47265625,
+          "AllocatedBytesPerFrame": 2822610.4513457557,
+          "VulkanFrameBufferCapacityMiB": 140.3046875,
+          "ModelLoadMs": 237.341,
+          "FirstInferenceMs": 256.4953,
+          "ReplayedSteadyFrames": 473,
+          "Gen2Collections": 20,
+          "ReplayShare": 1.0,
+          "FPS": 236.4294139984508
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -4.8764799771303435,
+          "P95Ms": -3.664976950385923,
+          "CpuMillisecondsPerFrame": 4.53514739229024,
+          "CpuPercent": 6.957696538569524,
+          "WorkingSetMiB": -21.375313964756838,
+          "PeakWorkingSetMiB": -9.784822894211187,
+          "PrivateMemoryMiB": -25.191335433319374,
+          "AllocatedBytesPerFrame": 0.0005834454054332028,
+          "VulkanFrameBufferCapacityMiB": -37.36397879464286,
+          "ModelLoadMs": 0.15267162687695457,
+          "FirstInferenceMs": -29.40837631061325,
+          "ReplayedSteadyFrames": 2.6030368763557465,
+          "Gen2Collections": 33.33333333333333,
+          "ReplayShare": 0.0,
+          "FPS": 2.6318494674152815
+        },
+        "previous": {
+          "MedianMs": -2.468216069662077,
+          "P95Ms": -6.700422518346194,
+          "CpuMillisecondsPerFrame": -6.004140786749479,
+          "CpuPercent": 0.046853449492223476,
+          "WorkingSetMiB": 4.319189692723513,
+          "PeakWorkingSetMiB": -0.009864094695311021,
+          "PrivateMemoryMiB": -0.8327165062916309,
+          "AllocatedBytesPerFrame": 7.810682629560972e-05,
+          "VulkanFrameBufferCapacityMiB": -14.653677082095761,
+          "ModelLoadMs": -3.4660009289741445,
+          "FirstInferenceMs": 4.463844258456029,
+          "ReplayedSteadyFrames": 4.185022026431717,
+          "Gen2Collections": 0.0,
+          "ReplayShare": 0.0,
+          "FPS": 4.192453409114005
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": 0.6373501397905601,
+          "AgainstPreviousPercent": 2.4283785087296117
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -3.807359174396463,
+          "AgainstPreviousPercent": -0.2649546519922441
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -4.8764799771303435,
+          "AgainstPreviousPercent": -2.468216069662077
+        }
+      ],
+      "OutputChecks": {
+        "Count": 16,
+        "Identical": 16,
+        "CandidateCount": 6,
+        "CandidateIdentical": 6,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Cpu",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 37.9796,
+          "P95Ms": 43.8186,
+          "CpuMillisecondsPerFrame": 229.65801886792454,
+          "CpuPercent": 75.14196247831651,
+          "WorkingSetMiB": 434.8125,
+          "PeakWorkingSetMiB": 444.078125,
+          "PrivateMemoryMiB": 414.3828125,
+          "AllocatedBytesPerFrame": 3569161.3584905663,
+          "ModelLoadMs": 86.6576,
+          "FirstInferenceMs": 256.0712,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 26.125412528890145
+        },
+        "previous": {
+          "MedianMs": 38.9787,
+          "P95Ms": 45.3714,
+          "CpuMillisecondsPerFrame": 240.50245098039215,
+          "CpuPercent": 75.42345297623919,
+          "WorkingSetMiB": 434.94140625,
+          "PeakWorkingSetMiB": 444.21875,
+          "PrivateMemoryMiB": 414.375,
+          "AllocatedBytesPerFrame": 3567493.8039215687,
+          "ModelLoadMs": 94.4396,
+          "FirstInferenceMs": 265.1489,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 25.088626804019846
+        },
+        "candidate": {
+          "MedianMs": 36.82455,
+          "P95Ms": 42.4156,
+          "CpuMillisecondsPerFrame": 208.6226851851852,
+          "CpuPercent": 70.95910961037436,
+          "WorkingSetMiB": 432.8671875,
+          "PeakWorkingSetMiB": 432.8671875,
+          "PrivateMemoryMiB": 412.65625,
+          "AllocatedBytesPerFrame": 3568820.714285714,
+          "ModelLoadMs": 91.6452,
+          "FirstInferenceMs": 266.0848,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 26.879809619268407
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -3.041237927729612,
+          "P95Ms": -3.201836662969615,
+          "CpuMillisecondsPerFrame": -9.15941615556507,
+          "CpuPercent": -5.566600511863385,
+          "WorkingSetMiB": -0.4473911168607181,
+          "PeakWorkingSetMiB": -2.524541712114281,
+          "PrivateMemoryMiB": -0.41665881110838354,
+          "AllocatedBytesPerFrame": -0.009544096515612388,
+          "ModelLoadMs": 5.7555251934048535,
+          "FirstInferenceMs": 3.91047489916867,
+          "Gen2Collections": 0.0,
+          "FPS": 2.8875987682262627
+        },
+        "previous": {
+          "MedianMs": -5.526479846685506,
+          "P95Ms": -6.514676646521822,
+          "CpuMillisecondsPerFrame": -13.255484784147198,
+          "CpuPercent": -5.919038693801582,
+          "WorkingSetMiB": -0.47689613363869343,
+          "PeakWorkingSetMiB": -2.5553992261695413,
+          "PrivateMemoryMiB": -0.41478129713423684,
+          "AllocatedBytesPerFrame": 0.0371944686403225,
+          "ModelLoadMs": -2.9589282462017974,
+          "FirstInferenceMs": 0.35297148130728484,
+          "Gen2Collections": 0.0,
+          "FPS": 7.139421496602472
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -7.454528220413071,
+          "AgainstPreviousPercent": -15.464557232979715
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -2.586482833055137,
+          "AgainstPreviousPercent": -3.863896242226783
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -2.925392907228852,
+          "AgainstPreviousPercent": -3.749483692375577
+        }
+      ],
+      "OutputChecks": {
+        "Count": 32,
+        "Identical": 6,
+        "CandidateCount": 12,
+        "CandidateIdentical": 2,
+        "MaxAbsTensor": 0.000701904296875,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Vulkan",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 6.5676000000000005,
+          "P95Ms": 8.3942,
+          "CpuMillisecondsPerFrame": 1.900337837837838,
+          "CpuPercent": 3.5059165910718337,
+          "WorkingSetMiB": 341.73046875,
+          "PeakWorkingSetMiB": 375.54296875,
+          "PrivateMemoryMiB": 634.06640625,
+          "AllocatedBytesPerFrame": 3323159.2473867596,
+          "VulkanFrameBufferCapacityMiB": 288,
+          "ModelLoadMs": 255.6023,
+          "FirstInferenceMs": 350.0721,
+          "ReplayedSteadyFrames": 296,
+          "Gen2Collections": 17,
+          "ReplayShare": 1.0,
+          "FPS": 147.59129755836625
+        },
+        "previous": {
+          "MedianMs": 6.42875,
+          "P95Ms": 7.9996,
+          "CpuMillisecondsPerFrame": 1.6778523489932886,
+          "CpuPercent": 3.1206308048101854,
+          "WorkingSetMiB": 264.796875,
+          "PeakWorkingSetMiB": 344.39453125,
+          "PrivateMemoryMiB": 512.12890625,
+          "AllocatedBytesPerFrame": 3323061.930599369,
+          "VulkanFrameBufferCapacityMiB": 238.0625,
+          "ModelLoadMs": 247.9744,
+          "FirstInferenceMs": 297.1186,
+          "ReplayedSteadyFrames": 306,
+          "Gen2Collections": 19,
+          "ReplayShare": 1.0,
+          "FPS": 152.71587211992087
+        },
+        "candidate": {
+          "MedianMs": 5.954,
+          "P95Ms": 7.4739,
+          "CpuMillisecondsPerFrame": 1.7201834862385321,
+          "CpuPercent": 3.5068575055503737,
+          "WorkingSetMiB": 264.58984375,
+          "PeakWorkingSetMiB": 344.3046875,
+          "PrivateMemoryMiB": 503.80078125,
+          "AllocatedBytesPerFrame": 3323029.9323076922,
+          "VulkanFrameBufferCapacityMiB": 223.640625,
+          "ModelLoadMs": 247.41,
+          "FirstInferenceMs": 308.685,
+          "ReplayedSteadyFrames": 327,
+          "Gen2Collections": 21,
+          "ReplayShare": 1.0,
+          "FPS": 163.09225305812936
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -9.342834520981802,
+          "P95Ms": -10.963522432155525,
+          "CpuMillisecondsPerFrame": -9.480122324159023,
+          "CpuPercent": 0.026837902559795346,
+          "WorkingSetMiB": -22.57352857126528,
+          "PeakWorkingSetMiB": -8.318164324571708,
+          "PrivateMemoryMiB": -20.544476685086956,
+          "AllocatedBytesPerFrame": -0.003891329588523451,
+          "VulkanFrameBufferCapacityMiB": -22.347005208333336,
+          "ModelLoadMs": -3.2050963547667677,
+          "FirstInferenceMs": -11.822450289526065,
+          "ReplayedSteadyFrames": 10.472972972972983,
+          "Gen2Collections": 23.529411764705888,
+          "ReplayShare": 0.0,
+          "FPS": 10.502621601814365
+        },
+        "previous": {
+          "MedianMs": -7.384794866809264,
+          "P95Ms": -6.571578578928938,
+          "CpuMillisecondsPerFrame": 2.522935779816504,
+          "CpuPercent": 12.376558615804623,
+          "WorkingSetMiB": -0.07818492948604705,
+          "PeakWorkingSetMiB": -0.026087449668232843,
+          "PrivateMemoryMiB": -1.6261774913237437,
+          "AllocatedBytesPerFrame": -0.0009629158994051146,
+          "VulkanFrameBufferCapacityMiB": -6.058020477815695,
+          "ModelLoadMs": -0.2276041397821782,
+          "FirstInferenceMs": 3.892856253361443,
+          "ReplayedSteadyFrames": 6.8627450980392135,
+          "Gen2Collections": 10.526315789473696,
+          "ReplayShare": 0.0,
+          "FPS": 6.79456614048628
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -8.84364375317519,
+          "AgainstPreviousPercent": -7.23035316576518
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -13.561069090170008,
+          "AgainstPreviousPercent": -11.301135178619315
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -9.207320786893236,
+          "AgainstPreviousPercent": -7.246354267936994
+        }
+      ],
+      "OutputChecks": {
+        "Count": 32,
+        "Identical": 32,
+        "CandidateCount": 12,
+        "CandidateIdentical": 12,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.onnx",
+      "Backend": "Cpu",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 33.40505,
+          "P95Ms": 39.2331,
+          "CpuMillisecondsPerFrame": 205.109126984127,
+          "CpuPercent": 79.0390309009868,
+          "WorkingSetMiB": 345.671875,
+          "PeakWorkingSetMiB": 345.671875,
+          "PrivateMemoryMiB": 324.9140625,
+          "AllocatedBytesPerFrame": 3665841.015873016,
+          "ModelLoadMs": 90.3853,
+          "FirstInferenceMs": 258.8328,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 29.582777813961897
+        },
+        "previous": {
+          "MedianMs": 34.13115,
+          "P95Ms": 43.6147,
+          "CpuMillisecondsPerFrame": 219.5581896551724,
+          "CpuPercent": 79.2497198025514,
+          "WorkingSetMiB": 376.58984375,
+          "PeakWorkingSetMiB": 376.65234375,
+          "PrivateMemoryMiB": 356.0625,
+          "AllocatedBytesPerFrame": 3665192,
+          "ModelLoadMs": 83.2915,
+          "FirstInferenceMs": 263.6008,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 28.87606968412965
+        },
+        "candidate": {
+          "MedianMs": 32.1622,
+          "P95Ms": 36.9482,
+          "CpuMillisecondsPerFrame": 171.09375,
+          "CpuPercent": 64.24981799659378,
+          "WorkingSetMiB": 376.76171875,
+          "PeakWorkingSetMiB": 376.76171875,
+          "PrivateMemoryMiB": 356.234375,
+          "AllocatedBytesPerFrame": 3667553.7333333334,
+          "ModelLoadMs": 137.7183,
+          "FirstInferenceMs": 278.6291,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 2,
+          "ReplayShare": 0.0,
+          "FPS": 30.17519271683634
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -3.720545246901308,
+          "P95Ms": -5.823908893255947,
+          "CpuMillisecondsPerFrame": -16.584038694074977,
+          "CpuPercent": -18.71127813158496,
+          "WorkingSetMiB": 8.994033358947707,
+          "PeakWorkingSetMiB": 8.994033358947707,
+          "PrivateMemoryMiB": 9.63956815504099,
+          "AllocatedBytesPerFrame": 0.046720996707216855,
+          "ModelLoadMs": 52.36802887195151,
+          "FirstInferenceMs": 7.648296506470587,
+          "Gen2Collections": 0.0,
+          "FPS": 2.002566853592924
+        },
+        "previous": {
+          "MedianMs": -5.768777202057363,
+          "P95Ms": -15.284984191109874,
+          "CpuMillisecondsPerFrame": -22.073619631901842,
+          "CpuPercent": -18.92738781074492,
+          "WorkingSetMiB": 0.04563983943075556,
+          "PeakWorkingSetMiB": 0.029038714829443535,
+          "PrivateMemoryMiB": 0.04827101983500004,
+          "AllocatedBytesPerFrame": 0.0644368244101079,
+          "ModelLoadMs": 65.3449631715121,
+          "FirstInferenceMs": 5.701158721824817,
+          "Gen2Collections": 0.0,
+          "FPS": 4.498960720477441
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": 1.8174565738363402,
+          "AgainstPreviousPercent": -5.768777202057363
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -11.131242779610862,
+          "AgainstPreviousPercent": -15.995914733148265
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -1.6277479003923179,
+          "AgainstPreviousPercent": -0.3239495148340321
+        }
+      ],
+      "OutputChecks": {
+        "Count": 32,
+        "Identical": 0,
+        "CandidateCount": 12,
+        "CandidateIdentical": 0,
+        "MaxAbsTensor": 0.001007080078125,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.onnx",
+      "Backend": "Vulkan",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 6.52125,
+          "P95Ms": 7.5618,
+          "CpuMillisecondsPerFrame": 1.6922382671480145,
+          "CpuPercent": 2.928379831986027,
+          "WorkingSetMiB": 298.2421875,
+          "PeakWorkingSetMiB": 395.87890625,
+          "PrivateMemoryMiB": 594.91796875,
+          "AllocatedBytesPerFrame": 3323028.3684210526,
+          "VulkanFrameBufferCapacityMiB": 288,
+          "ModelLoadMs": 237.6365,
+          "FirstInferenceMs": 360.9749,
+          "ReplayedSteadyFrames": 304,
+          "Gen2Collections": 19,
+          "ReplayShare": 1.0,
+          "FPS": 151.79670626113978
+        },
+        "previous": {
+          "MedianMs": 6.29465,
+          "P95Ms": 7.6736,
+          "CpuMillisecondsPerFrame": 1.2376237623762376,
+          "CpuPercent": 2.3426911036211635,
+          "WorkingSetMiB": 240.06640625,
+          "PeakWorkingSetMiB": 330.44921875,
+          "PrivateMemoryMiB": 489.94921875,
+          "AllocatedBytesPerFrame": 3323053.088607595,
+          "VulkanFrameBufferCapacityMiB": 238.0625,
+          "ModelLoadMs": 227.8872,
+          "FirstInferenceMs": 293.4003,
+          "ReplayedSteadyFrames": 314,
+          "Gen2Collections": 25,
+          "ReplayShare": 1.0,
+          "FPS": 156.8315394019514
+        },
+        "candidate": {
+          "MedianMs": 6.18,
+          "P95Ms": 7.3217,
+          "CpuMillisecondsPerFrame": 1.6891891891891893,
+          "CpuPercent": 3.507680279550831,
+          "WorkingSetMiB": 247.0078125,
+          "PeakWorkingSetMiB": 330.8203125,
+          "PrivateMemoryMiB": 489.3984375,
+          "AllocatedBytesPerFrame": 3323017.777777778,
+          "VulkanFrameBufferCapacityMiB": 223.640625,
+          "ModelLoadMs": 232.8267,
+          "FirstInferenceMs": 297.0531,
+          "ReplayedSteadyFrames": 321,
+          "Gen2Collections": 25,
+          "ReplayShare": 1.0,
+          "FPS": 160.41371346352796
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -5.232892466935024,
+          "P95Ms": -3.1751699330847205,
+          "CpuMillisecondsPerFrame": -0.18018018018017834,
+          "CpuPercent": 19.78228511333253,
+          "WorkingSetMiB": -17.178781925343813,
+          "PeakWorkingSetMiB": -16.43396319502689,
+          "PrivateMemoryMiB": -17.73682033368571,
+          "AllocatedBytesPerFrame": -0.0003187045700570046,
+          "VulkanFrameBufferCapacityMiB": -22.347005208333336,
+          "ModelLoadMs": -2.0240156709933177,
+          "FirstInferenceMs": -17.70810103417163,
+          "ReplayedSteadyFrames": 5.592105263157898,
+          "Gen2Collections": 31.578947368421062,
+          "ReplayShare": 0.0,
+          "FPS": 5.676676006107884
+        },
+        "previous": {
+          "MedianMs": -1.821388004098723,
+          "P95Ms": -4.585852793995004,
+          "CpuMillisecondsPerFrame": 36.48648648648649,
+          "CpuPercent": 49.72867204425333,
+          "WorkingSetMiB": 2.891452560326724,
+          "PeakWorkingSetMiB": 0.11229978131095386,
+          "PrivateMemoryMiB": -0.11241598698844557,
+          "AllocatedBytesPerFrame": -0.001062602037205096,
+          "VulkanFrameBufferCapacityMiB": -6.058020477815695,
+          "ModelLoadMs": 2.1675197202826624,
+          "FirstInferenceMs": 1.2449885020567208,
+          "ReplayedSteadyFrames": 2.2292993630573354,
+          "Gen2Collections": 0.0,
+          "ReplayShare": 0.0,
+          "FPS": 2.284090352767376
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -9.54801610120759,
+          "AgainstPreviousPercent": -6.291851016339267
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -9.502099911582674,
+          "AgainstPreviousPercent": 0.8871091945171772
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -4.348431732175618,
+          "AgainstPreviousPercent": -0.9885127449252629
+        }
+      ],
+      "OutputChecks": {
+        "Count": 32,
+        "Identical": 32,
+        "CandidateCount": 12,
+        "CandidateIdentical": 12,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.pt",
+      "Backend": "Cpu",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 29.3068,
+          "P95Ms": 35.5952,
+          "CpuMillisecondsPerFrame": 183.8768115942029,
+          "CpuPercent": 74.48725236311867,
+          "WorkingSetMiB": 449.5078125,
+          "PeakWorkingSetMiB": 484.671875,
+          "PrivateMemoryMiB": 430.953125,
+          "AllocatedBytesPerFrame": 7897252.413793104,
+          "ModelLoadMs": 79.0232,
+          "FirstInferenceMs": 248.8383,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 4,
+          "ReplayShare": 0.0,
+          "FPS": 33.31435078310851
+        },
+        "previous": {
+          "MedianMs": 28.3574,
+          "P95Ms": 33.4622,
+          "CpuMillisecondsPerFrame": 180.93297101449275,
+          "CpuPercent": 77.68478878959284,
+          "WorkingSetMiB": 226.13671875,
+          "PeakWorkingSetMiB": 226.13671875,
+          "PrivateMemoryMiB": 210.51171875,
+          "AllocatedBytesPerFrame": 149787.88571428572,
+          "ModelLoadMs": 77.6296,
+          "FirstInferenceMs": 247.0432,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 0,
+          "ReplayShare": 0.0,
+          "FPS": 34.66890674029418
+        },
+        "candidate": {
+          "MedianMs": 28.4756,
+          "P95Ms": 36.8327,
+          "CpuMillisecondsPerFrame": 159.55105633802816,
+          "CpuPercent": 68.43347979491989,
+          "WorkingSetMiB": 222.25,
+          "PeakWorkingSetMiB": 222.25,
+          "PrivateMemoryMiB": 203.7578125,
+          "AllocatedBytesPerFrame": 151882.14084507042,
+          "ModelLoadMs": 79.4031,
+          "FirstInferenceMs": 243.0069,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 0,
+          "ReplayShare": 0.0,
+          "FPS": 35.05856533338943
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -2.8362018371162923,
+          "P95Ms": 3.476592349530283,
+          "CpuMillisecondsPerFrame": -13.229376257545278,
+          "CpuPercent": -8.127259868154601,
+          "WorkingSetMiB": -50.55703286580808,
+          "PeakWorkingSetMiB": -54.144234179051544,
+          "PrivateMemoryMiB": -52.719263260940494,
+          "AllocatedBytesPerFrame": -98.07677236478098,
+          "ModelLoadMs": 0.4807448951700266,
+          "FirstInferenceMs": -2.343449541328646,
+          "Gen2Collections": -100.0,
+          "FPS": 5.235625216401618
+        },
+        "previous": {
+          "MedianMs": 0.41682241672367226,
+          "P95Ms": 10.072559485030874,
+          "CpuMillisecondsPerFrame": -11.81758888751785,
+          "CpuPercent": -11.908777945872872,
+          "WorkingSetMiB": -1.7187473009621534,
+          "PeakWorkingSetMiB": -1.7187473009621534,
+          "PrivateMemoryMiB": -3.2083279211742255,
+          "AllocatedBytesPerFrame": 1.3981472004881645,
+          "ModelLoadMs": 2.28456671166668,
+          "FirstInferenceMs": -1.633843797360146,
+          "FPS": 1.1239425460231267
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": 16.90444517388525,
+          "AgainstPreviousPercent": 18.71606341787764
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -19.982288037166086,
+          "AgainstPreviousPercent": 1.5321132183220065
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -2.8362018371162923,
+          "AgainstPreviousPercent": 0.41682241672367226
+        }
+      ],
+      "OutputChecks": {
+        "Count": 16,
+        "Identical": 6,
+        "CandidateCount": 6,
+        "CandidateIdentical": 2,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.00020999999998139174,
+        "MaxConfidence": 5.699999999775329e-07
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.pt",
+      "Backend": "Vulkan",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 7.0268,
+          "P95Ms": 9.3968,
+          "CpuMillisecondsPerFrame": 7.624570446735395,
+          "CpuPercent": 13.832542514019389,
+          "WorkingSetMiB": 429.71875,
+          "PeakWorkingSetMiB": 456.63671875,
+          "PrivateMemoryMiB": 675.58203125,
+          "AllocatedBytesPerFrame": 7762584.434782608,
+          "VulkanFrameBufferCapacityMiB": 224,
+          "ModelLoadMs": 238.6261,
+          "FirstInferenceMs": 387.9225,
+          "ReplayedSteadyFrames": 276,
+          "Gen2Collections": 26,
+          "ReplayShare": 1.0,
+          "FPS": 137.71672358542097
+        },
+        "previous": {
+          "MedianMs": 4.7708,
+          "P95Ms": 6.3716,
+          "CpuMillisecondsPerFrame": 3.647214854111406,
+          "CpuPercent": 8.58704738016741,
+          "WorkingSetMiB": 228.31640625,
+          "PeakWorkingSetMiB": 228.609375,
+          "PrivateMemoryMiB": 414.8515625,
+          "AllocatedBytesPerFrame": 16850.99751861042,
+          "VulkanFrameBufferCapacityMiB": 164.39453125,
+          "ModelLoadMs": 238.1137,
+          "FirstInferenceMs": 267.9608,
+          "ReplayedSteadyFrames": 403,
+          "Gen2Collections": 0,
+          "ReplayShare": 1.0,
+          "FPS": 201.44591177268904
+        },
+        "candidate": {
+          "MedianMs": 4.66605,
+          "P95Ms": 6.2273,
+          "CpuMillisecondsPerFrame": 4.220971563981043,
+          "CpuPercent": 11.108629014635138,
+          "WorkingSetMiB": 228.25,
+          "PeakWorkingSetMiB": 228.52734375,
+          "PrivateMemoryMiB": 398.8046875,
+          "AllocatedBytesPerFrame": 17098.260869565216,
+          "VulkanFrameBufferCapacityMiB": 140.3046875,
+          "ModelLoadMs": 232.2891,
+          "FirstInferenceMs": 266.1799,
+          "ReplayedSteadyFrames": 414,
+          "Gen2Collections": 0,
+          "ReplayShare": 1.0,
+          "FPS": 206.33536284596872
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -33.59637388284852,
+          "P95Ms": -33.72956751234464,
+          "CpuMillisecondsPerFrame": -44.63987717775849,
+          "CpuPercent": -19.692066708803125,
+          "WorkingSetMiB": -46.88386299178242,
+          "PeakWorkingSetMiB": -49.95423399686909,
+          "PrivateMemoryMiB": -40.968724884214424,
+          "AllocatedBytesPerFrame": -99.7797349450661,
+          "VulkanFrameBufferCapacityMiB": -37.36397879464286,
+          "ModelLoadMs": -2.6556189788124684,
+          "FirstInferenceMs": -31.38322731988994,
+          "ReplayedSteadyFrames": 50.0,
+          "Gen2Collections": -100.0,
+          "ReplayShare": 0.0,
+          "FPS": 49.825930703315024
+        },
+        "previous": {
+          "MedianMs": -2.195648528548677,
+          "P95Ms": -2.264737271642925,
+          "CpuMillisecondsPerFrame": 15.731365790607498,
+          "CpuPercent": 29.364943767418318,
+          "WorkingSetMiB": -0.02908518537528826,
+          "PeakWorkingSetMiB": -0.035882714783674885,
+          "PrivateMemoryMiB": -3.8681004124216156,
+          "AllocatedBytesPerFrame": 1.4673514175152835,
+          "VulkanFrameBufferCapacityMiB": -14.653677082095761,
+          "ModelLoadMs": -2.4461423261240345,
+          "FirstInferenceMs": -0.6646121372977043,
+          "ReplayedSteadyFrames": 2.7295285359801413,
+          "ReplayShare": 0.0,
+          "FPS": 2.4271781096242506
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -30.438444795611076,
+          "AgainstPreviousPercent": -0.12735445205478424
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -34.34778277452041,
+          "AgainstPreviousPercent": -3.3023811520080604
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -33.67860353409991,
+          "AgainstPreviousPercent": -3.847650171179584
+        }
+      ],
+      "OutputChecks": {
+        "Count": 16,
+        "Identical": 16,
+        "CandidateCount": 6,
+        "CandidateIdentical": 6,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Cpu",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 41.5417,
+          "P95Ms": 50.1741,
+          "CpuMillisecondsPerFrame": 243.75,
+          "CpuPercent": 73.49121188821965,
+          "WorkingSetMiB": 422.25,
+          "PeakWorkingSetMiB": 441.5625,
+          "PrivateMemoryMiB": 400.73828125,
+          "AllocatedBytesPerFrame": 10980179.826086957,
+          "ModelLoadMs": 86.0676,
+          "FirstInferenceMs": 299.1609,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 4,
+          "ReplayShare": 0.0,
+          "FPS": 22.942682296817857
+        },
+        "previous": {
+          "MedianMs": 43.7682,
+          "P95Ms": 53.7544,
+          "CpuMillisecondsPerFrame": 250,
+          "CpuPercent": 72.1558790324681,
+          "WorkingSetMiB": 415.203125,
+          "PeakWorkingSetMiB": 415.203125,
+          "PrivateMemoryMiB": 398.5078125,
+          "AllocatedBytesPerFrame": 2737647.822222222,
+          "ModelLoadMs": 89.9724,
+          "FirstInferenceMs": 297.839,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 0,
+          "ReplayShare": 0.0,
+          "FPS": 22.496230756536743
+        },
+        "candidate": {
+          "MedianMs": 36.616,
+          "P95Ms": 43.3048,
+          "CpuMillisecondsPerFrame": 200.8101851851852,
+          "CpuPercent": 65.18126382969622,
+          "WorkingSetMiB": 428.046875,
+          "PeakWorkingSetMiB": 428.046875,
+          "PrivateMemoryMiB": 406.49609375,
+          "AllocatedBytesPerFrame": 2738658.814814815,
+          "ModelLoadMs": 89.0461,
+          "FirstInferenceMs": 303.6845,
+          "ReplayedSteadyFrames": 0,
+          "Gen2Collections": 1,
+          "ReplayShare": 0.0,
+          "FPS": 26.857400631347858
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -11.85724224092899,
+          "P95Ms": -13.690928188049211,
+          "CpuMillisecondsPerFrame": -17.616334283000946,
+          "CpuPercent": -11.307403763000789,
+          "WorkingSetMiB": 1.3728537596210844,
+          "PeakWorkingSetMiB": -3.06086341118188,
+          "PrivateMemoryMiB": 1.4368012165046906,
+          "AllocatedBytesPerFrame": -75.05816062949854,
+          "ModelLoadMs": 3.4606518597009694,
+          "FirstInferenceMs": 1.512095999176366,
+          "Gen2Collections": -75.0,
+          "FPS": 17.063036849326775
+        },
+        "previous": {
+          "MedianMs": -16.341087821751866,
+          "P95Ms": -19.439524950515676,
+          "CpuMillisecondsPerFrame": -19.67592592592592,
+          "CpuPercent": -9.666038715478065,
+          "WorkingSetMiB": 3.0933654461295257,
+          "PeakWorkingSetMiB": 3.0933654461295257,
+          "PrivateMemoryMiB": 2.004548216981328,
+          "AllocatedBytesPerFrame": 0.03692924211748938,
+          "ModelLoadMs": -1.0295379471926935,
+          "FirstInferenceMs": 1.9626375323580803,
+          "FPS": 19.38622483921617
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -0.4569640296553379,
+          "AgainstPreviousPercent": -10.787107233535142
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -11.85724224092899,
+          "AgainstPreviousPercent": -16.341087821751866
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -14.591389503294439,
+          "AgainstPreviousPercent": -9.256700951662866
+        }
+      ],
+      "OutputChecks": {
+        "Count": 80,
+        "Identical": 15,
+        "CandidateCount": 30,
+        "CandidateIdentical": 5,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 4.947185516357422e-06,
+        "MaxCoordinatePx": 0.0003000000000383807,
+        "MaxConfidence": 1.4750000000063324e-05
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Vulkan",
+      "Windows": 9,
+      "Variants": {
+        "nuget": {
+          "MedianMs": 8.7766,
+          "P95Ms": 10.778,
+          "CpuMillisecondsPerFrame": 9.444444444444445,
+          "CpuPercent": 13.278341379320857,
+          "WorkingSetMiB": 299.9375,
+          "PeakWorkingSetMiB": 469.68359375,
+          "PrivateMemoryMiB": 589.953125,
+          "AllocatedBytesPerFrame": 10735992,
+          "VulkanFrameBufferCapacityMiB": 288,
+          "ModelLoadMs": 249.8931,
+          "FirstInferenceMs": 382.9428,
+          "ReplayedSteadyFrames": 225,
+          "Gen2Collections": 36,
+          "ReplayShare": 1.0,
+          "FPS": 112.47536227189433
+        },
+        "previous": {
+          "MedianMs": 8.113299999999999,
+          "P95Ms": 9.5046,
+          "CpuMillisecondsPerFrame": 6.851946721311475,
+          "CpuPercent": 10.414927600874123,
+          "WorkingSetMiB": 414.27734375,
+          "PeakWorkingSetMiB": 418.02734375,
+          "PrivateMemoryMiB": 661.3671875,
+          "AllocatedBytesPerFrame": 2493694.0840336136,
+          "VulkanFrameBufferCapacityMiB": 238.0625,
+          "ModelLoadMs": 243.3251,
+          "FirstInferenceMs": 336.6164,
+          "ReplayedSteadyFrames": 244,
+          "Gen2Collections": 6,
+          "ReplayShare": 1.0,
+          "FPS": 121.59963320766377
+        },
+        "candidate": {
+          "MedianMs": 7.8392,
+          "P95Ms": 9.7266,
+          "CpuMillisecondsPerFrame": 6.745594713656388,
+          "CpuPercent": 11.113770166197238,
+          "WorkingSetMiB": 313.27734375,
+          "PeakWorkingSetMiB": 386.9609375,
+          "PrivateMemoryMiB": 552.12890625,
+          "AllocatedBytesPerFrame": 2494181.0184501847,
+          "VulkanFrameBufferCapacityMiB": 223.640625,
+          "ModelLoadMs": 250.9109,
+          "FirstInferenceMs": 336.4859,
+          "ReplayedSteadyFrames": 250,
+          "Gen2Collections": 9,
+          "ReplayShare": 1.0,
+          "FPS": 124.61032482273059
+        }
+      },
+      "ChangePercent": {
+        "nuget": {
+          "MedianMs": -10.680673609370373,
+          "P95Ms": -9.755056596771205,
+          "CpuMillisecondsPerFrame": -28.576055973050007,
+          "CpuPercent": -16.301518023136786,
+          "WorkingSetMiB": 4.447541154407175,
+          "PeakWorkingSetMiB": -17.612421926330057,
+          "PrivateMemoryMiB": -6.411393913711361,
+          "AllocatedBytesPerFrame": -76.76804324695674,
+          "VulkanFrameBufferCapacityMiB": -22.347005208333336,
+          "ModelLoadMs": 0.4072941589823742,
+          "FirstInferenceMs": -12.13155071723504,
+          "ReplayedSteadyFrames": 11.111111111111116,
+          "Gen2Collections": -75.0,
+          "ReplayShare": 0.0,
+          "FPS": 10.788996190562683
+        },
+        "previous": {
+          "MedianMs": -3.378403362380278,
+          "P95Ms": 2.335711129347895,
+          "CpuMillisecondsPerFrame": -1.5521429453662083,
+          "CpuPercent": 6.710008865202877,
+          "WorkingSetMiB": -24.379802932440718,
+          "PeakWorkingSetMiB": -7.431668457692842,
+          "PrivateMemoryMiB": -16.517039749571794,
+          "AllocatedBytesPerFrame": 0.019526629977950627,
+          "VulkanFrameBufferCapacityMiB": -6.058020477815695,
+          "ModelLoadMs": 3.1175575392756505,
+          "FirstInferenceMs": -0.03876816459328358,
+          "ReplayedSteadyFrames": 2.4590163934426146,
+          "Gen2Collections": 50.0,
+          "ReplayShare": 0.0,
+          "FPS": 2.475905178040505
+        }
+      },
+      "RoundLatencyChange": [
+        {
+          "Round": 1,
+          "AgainstNuGetPercent": -10.680673609370373,
+          "AgainstPreviousPercent": -3.378403362380278
+        },
+        {
+          "Round": 2,
+          "AgainstNuGetPercent": -18.856737350252562,
+          "AgainstPreviousPercent": 3.5984430787938226
+        },
+        {
+          "Round": 3,
+          "AgainstNuGetPercent": -16.926961349952585,
+          "AgainstPreviousPercent": -6.811657353770439
+        }
+      ],
+      "OutputChecks": {
+        "Count": 80,
+        "Identical": 80,
+        "CandidateCount": 30,
+        "CandidateIdentical": 30,
+        "MaxAbsTensor": 0.0,
+        "MaxAbsMask": 0.0,
+        "MaxCoordinatePx": 0.0,
+        "MaxConfidence": 0.0
+      }
+    }
+  ],
+  "ArchiveSha256": "535731044dbf0e68a894c47b7dd4eec376518767c4f62e6a672ad0ed47127fe4",
+  "RawSha256": "e01c23e641cdda8c05539d7da295b70e2d94df2e2f20a77283ca8948acb73d75",
+  "Tests": {
+    "Cpu": 109,
+    "CpuAndVulkan": 136,
+    "Training": 11
+  },
+  "Shaders": {
+    "topk_block.spv": "fb6737012f4bb9fbbe4a109ca62a0233fa4f4fd277b500c3c09149e44a69dcc8",
+    "topk_merge.spv": "786e3bc40bff8e19c10f5bb82f72a1c9227508e24659cabc937ef7d358f7edf5",
+    "topk_head_gather.spv": "0f487df40c5e3e187eead4dbbc557bc29b5963718c98bc5234820398bc430117"
+  }
+}

@@ -19,6 +19,10 @@ Windows 可选 `--windows-high-qos`，让两个版本的测试子进程都显式
 
 默认继承 Vulkan 应用缓存。可以用 `--cache-mode isolated` 为每个窗口建立新的应用缓存目录，或用 `disabled` 禁用应用管线缓存；两者都不会清除显卡驱动缓存和操作系统文件缓存，不能称为硬件冷启动。
 
+`--input` 配合 `--rgb-size WIDTH HEIGHT` 可测内存中的 RGB24 图像，从填边缩放开始计时，包含推理、回读和后处理。每个窗口保存首帧和末帧的检测框、关键点及掩码数据。Windows 上可通过 `--windows-affinity` 指定测试子进程的十六进制亲和性掩码。
+
+报告记录每帧累计 CPU 时间、窗口末尾工作集和私有内存、进程峰值工作集及每帧托管分配。Vulkan 窗口还记录实现可识别的设备中间缓冲区容量。该容量统计包括帧分配区和 Winograd 中间结果工作区。
+
 独立输出核验需要原版 CPU PyTorch、Ultralytics 8.4.0、NumPy 和仓库内模型。这些只用于对照，不是主库依赖：
 
 ```powershell

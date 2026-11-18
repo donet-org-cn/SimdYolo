@@ -3,12 +3,15 @@ namespace SimdYolo;
 /// <summary>实现 Vulkan 帧最终输出的合并下载与主机数组物化。</summary>
 public sealed unsafe partial class VulkanBackend
 {
+    void IDeviceBackend.MaterializeOutputs(Tensor[] outputs) => DownloadFrameOutputs(outputs, outputPool: null);
+
     /// <summary>把同一帧的设备输出合并到对齐下载区，仅提交一次并为各输出建立独立主机数组。</summary>
     /// <param name="outputs">当前帧的最终输出张量数组。</param>
+    /// <param name="outputPool">同步解码返回前归还的主机数组池。</param>
     /// <exception cref="InvalidOperationException">输出属于其他后端或已结束的帧，或下载提交失败。</exception>
     /// <exception cref="OverflowException">合并下载区的字节数溢出。</exception>
     /// <remarks>每次推理的公开输出使用独立主机数组；后续帧复用上传/下载区不会改写已返回的数据。</remarks>
-    void IDeviceBackend.MaterializeOutputs(Tensor[] outputs)
+    internal void DownloadFrameOutputs(Tensor[] outputs, CpuTensorPool? outputPool)
     {
         var pending = new List<(Tensor Tensor, DeviceStorage Storage, ulong Offset)>();
         ulong bytes = 0;
@@ -34,7 +37,7 @@ public sealed unsafe partial class VulkanBackend
         if (retainCommand) CompleteReplay(outputs, pending);
         foreach (var item in pending)
         {
-            float[] values = GC.AllocateUninitializedArray<float>(item.Storage.Length);
+            float[] values = outputPool?.Rent(item.Storage.Length, clear: false) ?? GC.AllocateUninitializedArray<float>(item.Storage.Length);
             fixed (float* target = values) Buffer.MemoryCopy((byte*)staging[2].Mapped + item.Offset, target, (long)values.Length * sizeof(float), (long)values.Length * sizeof(float));
             item.Tensor.AcceptDownloadedData(values);
         }

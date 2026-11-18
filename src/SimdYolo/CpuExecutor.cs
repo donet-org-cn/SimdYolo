@@ -39,8 +39,10 @@ internal sealed class CpuExecutor : IDisposable
         degree = options.MaxDegreeOfParallelism > 0 ? options.MaxDegreeOfParallelism : Environment.ProcessorCount;
         int.TryParse(Environment.GetEnvironmentVariable("SIMDYOLO_CPU_EXECUTOR_GRAIN"), out configuredGrain);
         configuredGrain = Math.Clamp(configuredGrain, 0, 1024);
+        // At higher concurrency, let idle workers park promptly so active
+        // kernels have more CPU time.
         spinAttempts = int.TryParse(Environment.GetEnvironmentVariable("SIMDYOLO_CPU_EXECUTOR_SPINS"), out int attempts)
-            ? Math.Clamp(attempts, 0, 4096) : 64;
+            ? Math.Clamp(attempts, 0, 4096) : degree >= 4 ? 0 : 64;
     }
 
     /// <summary>在半开索引区间内执行回调，并等待所有参与线程完成；泛型版本每个线程独享局部状态。</summary>

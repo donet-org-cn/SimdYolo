@@ -356,8 +356,8 @@ internal sealed partial class PtModel : IModel
                 var proto = p.Child("proto").Type.Name == "Proto26" ? (Tensor)Forward(p.Child("proto"), features.Cast<object>().ToArray()) : C(p, "proto", features[0]);
                 bool segmentEndToEnd = ModelInfo.IsEndToEnd(p); var maskBranches = p.Child(segmentEndToEnd ? "one2one_cv4" : "cv4").Children;
                 var coefficients = features.Select((t, i) => F(maskBranches[i], t).Reshape(t.Shape[0], p.Int("nm"), t.Shape[2] * t.Shape[3])).ToArray();
-                var maskHead = TensorOps.Concat([Detect(p, features, false), TensorOps.Concat(coefficients, 2)], 1);
-                return new[] { segmentEndToEnd ? EndToEndTopK(maskHead, p.Int("max_det", 300), p.Int("nc")) : maskHead, proto };
+                var maskHead = CompleteInstanceHead(p, Detect(p, features, false), coefficients, segmentEndToEnd);
+                return new[] { maskHead, proto };
             case "Pose":
             case "Pose26":
                 features = ((object[])input).Cast<Tensor>().ToArray(); bool poseEndToEnd = ModelInfo.IsEndToEnd(p), pose26 = p.Type.Name == "Pose26";
@@ -385,8 +385,7 @@ internal sealed partial class PtModel : IModel
                     }
                     pointLevels.Add(logits);
                 }
-                var poseHead = TensorOps.Concat([Detect(p, features, false), TensorOps.Concat(pointLevels, 2)], 1);
-                return poseEndToEnd ? EndToEndTopK(poseHead, p.Int("max_det", 300), p.Int("nc")) : poseHead;
+                return CompleteInstanceHead(p, Detect(p, features, false), [.. pointLevels], poseEndToEnd);
             case "DFL":
                 int bins = p.Int("c1", 16); int batch = X().Shape[0], anchors = X().Shape[2]; var dfl = TensorOps.Softmax(X().Reshape(batch, 4, bins, anchors), 2); var distance = new Tensor(batch, 4, anchors);
                 for (int b = 0; b < batch; b++) for (int c = 0; c < 4; c++) for (int a = 0; a < anchors; a++) for (int r = 0; r < bins; r++) distance.Data[(b * 4 + c) * anchors + a] += dfl.Data[((b * 4 + c) * bins + r) * anchors + a] * r;
@@ -503,6 +502,26 @@ internal sealed partial class PtModel : IModel
         DetectionHeadLevel RunLevel(int i) => new(F(boxes[i], inputs[i]), F(classes[i], inputs[i]), stride.Data[i]);
         Tensor Finish(Tensor output) => end2end && selectEndToEnd ? EndToEndTopK(output, p.Int("max_det", 300), nc) : output;
     }
+
+    private static Tensor CompleteInstanceHead(PyObject head, Tensor detection, Tensor[] levels, bool endToEnd)
+    {
+        int maximum = head.Int("max_det", 300), classes = head.Int("nc");
+        bool canGather = endToEnd && detection.Rank == 3 && classes > 0 && detection.Shape[1] == classes + 4 &&
+            maximum > 0 && detection.Shape[2] > 0 && levels.Length > 0 &&
+            levels.All(level => level.Rank == 3 && level.Shape[0] == detection.Shape[0] &&
+                level.Shape[1] == levels[0].Shape[1] && level.Shape[2] > 0) &&
+            levels.Sum(level => (long)level.Shape[2]) == detection.Shape[2];
+        var owner = canGather ? DeviceScope.For(detection) : null;
+        if (canGather && owner is null && CpuEndToEnd.PtEnabled)
+            return CpuEndToEnd.SelectPtWithExtras(detection, maximum, classes, levels);
+
+        var extras = TensorOps.Concat(levels, 2);
+        if (owner is VulkanBackend vulkan && vulkan.TryEndToEndTopKWithExtras(detection, extras, maximum, classes) is { } selected)
+            return selected;
+        var joined = TensorOps.Concat([detection, extras], 1);
+        return endToEnd ? EndToEndTopK(joined, maximum, classes) : joined;
+    }
+
     /// <summary>先筛选最大类别分数最高的锚点，再筛选锚点与类别组合，保持确定的相同分数顺序。</summary>
     /// <param name="x">参与计算的输入张量。</param>
     /// <param name="maximum">端到端检测头允许保留的最大结果数量。</param>

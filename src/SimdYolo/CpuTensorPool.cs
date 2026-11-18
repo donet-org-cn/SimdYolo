@@ -39,6 +39,11 @@ internal sealed class CpuTensorPool
     /// <returns>已脱离池且重复别名具有独立数组的同一个输出序列。</returns>
     public Tensor[] DetachOutputs(Tensor[] tensors)
     {
+        if (tensors.Length == 1)
+        {
+            leased.Remove(tensors[0].Data);
+            return tensors;
+        }
         // 计算完成的公开输出数组直接转移给调用方，并永久脱离池。
         // 后续推理因此不能覆盖已返回结果；同一输出数组的重复别名复制成独立数组。
         var transferred = new HashSet<float[]>(ReferenceEqualityComparer.Instance);

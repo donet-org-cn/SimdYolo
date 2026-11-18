@@ -1,0 +1,1951 @@
+{
+  "NuGet": [
+    {
+      "Id": "simdyolo",
+      "Version": "0.11.5",
+      "Uri": "https://api.nuget.org/v3-flatcontainer/simdyolo/0.11.5/simdyolo.0.11.5.nupkg",
+      "SHA256": "bfa40a5000f5f311110f66fb68217854ce30e8be942dc7803aba0ef79f3c5730"
+    },
+    {
+      "Id": "simdyolo.training",
+      "Version": "0.11.5",
+      "Uri": "https://api.nuget.org/v3-flatcontainer/simdyolo.training/0.11.5/simdyolo.training.0.11.5.nupkg",
+      "SHA256": "8b85d4ad8e9dd05d981465ba3a8964a80dc12a92a9c3414b0f5ae07daaa155e4"
+    }
+  ],
+  "Hardware": {
+    "Cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "LogicalProcessors": 20,
+    "Os": "Windows-11-10.0.28000-SP0",
+    "Architecture": "AMD64",
+    "NvidiaGpuQuery": [
+      "NVIDIA GeForce RTX 3060, 610.88, 12288 MiB"
+    ],
+    "GpuQueryScope": "Optional driver utility; actual worker backend/device is recorded per window."
+  },
+  "Runtime": [
+    ".NET 10.0.15"
+  ],
+  "Dlls": {
+    "baseline": "c5a21b4e6fd1abae1f3517fe986579f2d191addf6e54d4589ea454baf21cad11",
+    "candidate": "0c89f1a5c03024527de39540c856a2590d11e09f4e64b87dcdfc8b2f49623763"
+  },
+  "InputSha256": {
+    "image": "8739ae2c34b8713bcc185201414014011b601159d5ec717275e4a2625f9fbded",
+    "raw": "4312bccf98b9fcd92bbb73c7530f757d62bebb46da5a585bf1da1d642d8040af"
+  },
+  "Models": {
+    "yolov8n.pt": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+    "yolo26n-seg.pt": "361fbfabab285c3237700b6bb91d7ecfa602cd945fffda8dbe1242829b71e73f",
+    "yolov8n.onnx": "abc0ddbab9f194039ff41216a8cc6c8b0b2133f1bdadeb6591d4fee7ad270aa7",
+    "yolo11n-pose.onnx": "d200a02caba08f4d0dc13fdc1ae7e2e1f1ae267f271473acec05811feecbfbd9"
+  },
+  "WorkerSha256": [
+    "017f5638e955381bdfef58a56dd21822045aa50cd73fe1df0c403c34a41a4293"
+  ],
+  "WindowCount": 128,
+  "Frames": 36062,
+  "WindowsSha256": "b7a1376db0865e40a05b996de224bd931afb531beabef4e3dd5aa54fcb2e4122",
+  "Settings": {
+    "Size": 640,
+    "Threads": 8,
+    "WindowsHighQosRequested": true,
+    "WindowsAffinity": 21845,
+    "RgbSize": [
+      810,
+      1080
+    ],
+    "WarmupFrames": 40,
+    "DurationSeconds": 2.5,
+    "MinimumFrames": 48,
+    "Repeats": 2
+  },
+  "Comparisons": [
+    {
+      "Mode": "image",
+      "Model": "yolov8n.pt",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 75.35105,
+          "Candidate": 72.63535,
+          "BaselineOverCandidate": 1.037388131261156,
+          "CandidateChangePercent": -3.6040639115181516
+        },
+        "FirstInferenceMs": {
+          "Baseline": 228.5017,
+          "Candidate": 230.01105,
+          "BaselineOverCandidate": 0.9934379239606097,
+          "CandidateChangePercent": 0.6605421316340454
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 311.5979,
+          "Candidate": 308.84344999999996,
+          "BaselineOverCandidate": 1.0089185961366511,
+          "CandidateChangePercent": -0.8839757905942269
+        },
+        "MedianMs": {
+          "Baseline": 25.61055,
+          "Candidate": 24.695324999999997,
+          "BaselineOverCandidate": 1.0370606582419952,
+          "CandidateChangePercent": -3.5736249319128333
+        },
+        "MeanMs": {
+          "Baseline": 26.251200964912282,
+          "Candidate": 25.13068516851685,
+          "BaselineOverCandidate": 1.0445875545724947,
+          "CandidateChangePercent": -4.268436319896862
+        },
+        "P95Ms": {
+          "Baseline": 31.176000000000002,
+          "Candidate": 28.60655,
+          "BaselineOverCandidate": 1.0898203383490845,
+          "CandidateChangePercent": -8.241756479343099
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 7897476.450800916,
+          "Candidate": 150246.8783993784,
+          "BaselineOverCandidate": 52.56333133130565,
+          "CandidateChangePercent": -98.09753306217024
+        },
+        "WorkingSetMiB": {
+          "Baseline": 420.806640625,
+          "Candidate": 226.10546875,
+          "BaselineOverCandidate": 1.8611077518442376,
+          "CandidateChangePercent": -46.268559732285
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 487.369140625,
+          "Candidate": 226.10546875,
+          "BaselineOverCandidate": 2.1554947048356166,
+          "CandidateChangePercent": -53.60693775973518
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 402.091796875,
+          "Candidate": 211.72265625,
+          "BaselineOverCandidate": 1.8991439272338149,
+          "CandidateChangePercent": -47.34469643611776
+        },
+        "CpuPercent": {
+          "Baseline": 79.65849215232778,
+          "Candidate": 85.35066020998795,
+          "BaselineOverCandidate": 0.933308447249784,
+          "CandidateChangePercent": 7.145714039848072
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 170.6155248855835,
+          "Candidate": 169.6820974164724,
+          "BaselineOverCandidate": 1.0055010368407935,
+          "CandidateChangePercent": -0.5470940992837958
+        },
+        "Gen2Collections": {
+          "Baseline": 6.0,
+          "Candidate": 0.0,
+          "BaselineOverCandidate": null,
+          "CandidateChangePercent": -100.0
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -2.8577714136432286,
+        -6.84246827818672
+      ],
+      "FPS": {
+        "baseline": 38.08520178701664,
+        "candidate": 39.787659123709574
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.pt",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 226.11815,
+          "Candidate": 218.9399,
+          "BaselineOverCandidate": 1.0327863948051499,
+          "CandidateChangePercent": -3.1745571949885587
+        },
+        "FirstInferenceMs": {
+          "Baseline": 357.6442,
+          "Candidate": 253.53205,
+          "BaselineOverCandidate": 1.410646898488771,
+          "CandidateChangePercent": -29.11053779146985
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 590.2194999999999,
+          "Candidate": 478.68795,
+          "BaselineOverCandidate": 1.2329942711112738,
+          "CandidateChangePercent": -18.896622358292113
+        },
+        "MedianMs": {
+          "Baseline": 6.38955,
+          "Candidate": 4.48635,
+          "BaselineOverCandidate": 1.4242201344077035,
+          "CandidateChangePercent": -29.786135173838534
+        },
+        "MeanMs": {
+          "Baseline": 6.567913171026767,
+          "Candidate": 4.674943923111822,
+          "BaselineOverCandidate": 1.4049180651251345,
+          "CandidateChangePercent": -28.82147188342039
+        },
+        "P95Ms": {
+          "Baseline": 7.9482,
+          "Candidate": 5.774,
+          "BaselineOverCandidate": 1.3765500519570488,
+          "CandidateChangePercent": -27.354621172089278
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 7762310.16559669,
+          "Candidate": 16446.426176183162,
+          "BaselineOverCandidate": 471.97549683089534,
+          "CandidateChangePercent": -99.78812459402775
+        },
+        "WorkingSetMiB": {
+          "Baseline": 416.380859375,
+          "Candidate": 228.166015625,
+          "BaselineOverCandidate": 1.8249030568134155,
+          "CandidateChangePercent": -45.20256863692439
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 458.408203125,
+          "Candidate": 228.58203125,
+          "BaselineOverCandidate": 2.005442862757831,
+          "CandidateChangePercent": -50.135702264544854
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 662.0234375,
+          "Candidate": 416.390625,
+          "BaselineOverCandidate": 1.58990956508687,
+          "CandidateChangePercent": -37.103340846599565
+        },
+        "CpuPercent": {
+          "Baseline": 12.122708670102668,
+          "Candidate": 10.26442430749599,
+          "BaselineOverCandidate": 1.1810412651442708,
+          "CandidateChangePercent": -15.328953397928524
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 6.481560994888159,
+          "Candidate": 3.824531228186514,
+          "BaselineOverCandidate": 1.6947334478849412,
+          "CandidateChangePercent": -40.993670641951475
+        },
+        "Gen2Collections": {
+          "Baseline": 36.5,
+          "Candidate": 0.0,
+          "BaselineOverCandidate": null,
+          "CandidateChangePercent": -100.0
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 224.0,
+          "Candidate": 164.39453125,
+          "BaselineOverCandidate": 1.3625757395746703,
+          "CandidateChangePercent": -26.60958426339286
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -30.38364889033106,
+        -32.48361966267477
+      ],
+      "FPS": {
+        "baseline": 152.27583202342075,
+        "candidate": 214.03025639349104
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 82.62295,
+          "Candidate": 83.02035000000001,
+          "BaselineOverCandidate": 0.9952132218185059,
+          "CandidateChangePercent": 0.4809801635017985
+        },
+        "FirstInferenceMs": {
+          "Baseline": 290.10125000000005,
+          "Candidate": 293.1503,
+          "BaselineOverCandidate": 0.9895990213893693,
+          "CandidateChangePercent": 1.0510295974250239
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 379.1739,
+          "Candidate": 385.53340000000003,
+          "BaselineOverCandidate": 0.9835046717093772,
+          "CandidateChangePercent": 1.6771987734387928
+        },
+        "MedianMs": {
+          "Baseline": 36.0285,
+          "Candidate": 33.464299999999994,
+          "BaselineOverCandidate": 1.07662494060835,
+          "CandidateChangePercent": -7.117143372607815
+        },
+        "MeanMs": {
+          "Baseline": 36.654971845694796,
+          "Candidate": 34.127946621621625,
+          "BaselineOverCandidate": 1.0740456275348305,
+          "CandidateChangePercent": -6.894085841099818
+        },
+        "P95Ms": {
+          "Baseline": 42.549350000000004,
+          "Candidate": 41.11035,
+          "BaselineOverCandidate": 1.0350033507377099,
+          "CandidateChangePercent": -3.381955306015272
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 10979749.712560385,
+          "Candidate": 2738483.0155610153,
+          "BaselineOverCandidate": 4.009427719715484,
+          "CandidateChangePercent": -75.0587846968105
+        },
+        "WorkingSetMiB": {
+          "Baseline": 427.63671875,
+          "Candidate": 439.48046875,
+          "BaselineOverCandidate": 0.973050565742576,
+          "CandidateChangePercent": 2.7695820963690387
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 453.12109375,
+          "Candidate": 439.48046875,
+          "BaselineOverCandidate": 1.0310380687423895,
+          "CandidateChangePercent": -3.0103707790584355
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 407.033203125,
+          "Candidate": 417.751953125,
+          "BaselineOverCandidate": 0.9743418315107368,
+          "CandidateChangePercent": 2.6333846766570135
+        },
+        "CpuPercent": {
+          "Baseline": 81.95913421508209,
+          "Candidate": 81.67403885703649,
+          "BaselineOverCandidate": 1.0034906484610688,
+          "CandidateChangePercent": -0.34785062186898363
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 240.31096813725492,
+          "Candidate": 224.55658783783784,
+          "BaselineOverCandidate": 1.0701577292882363,
+          "CandidateChangePercent": -6.555830731129541
+        },
+        "Gen2Collections": {
+          "Baseline": 6.0,
+          "Candidate": 1.0,
+          "BaselineOverCandidate": 6.0,
+          "CandidateChangePercent": -83.33333333333334
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -5.5894484900952275,
+        -7.741163245763771
+      ],
+      "FPS": {
+        "baseline": 27.276273508466048,
+        "candidate": 29.295504320110602
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 236.53365000000002,
+          "Candidate": 233.33035,
+          "BaselineOverCandidate": 1.0137286041014382,
+          "CandidateChangePercent": -1.354268198203512
+        },
+        "FirstInferenceMs": {
+          "Baseline": 365.04705,
+          "Candidate": 313.16505,
+          "BaselineOverCandidate": 1.1656698280986337,
+          "CandidateChangePercent": -14.212414536701502
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 608.4989,
+          "Candidate": 550.7932000000001,
+          "BaselineOverCandidate": 1.1047683595222308,
+          "CandidateChangePercent": -9.483287480059532
+        },
+        "MedianMs": {
+          "Baseline": 8.337625,
+          "Candidate": 7.0195,
+          "BaselineOverCandidate": 1.1877804686943514,
+          "CandidateChangePercent": -15.809358180537014
+        },
+        "MeanMs": {
+          "Baseline": 8.497604247088669,
+          "Candidate": 7.246305282315488,
+          "BaselineOverCandidate": 1.172680961679459,
+          "CandidateChangePercent": -14.725314669742161
+        },
+        "P95Ms": {
+          "Baseline": 9.98995,
+          "Candidate": 8.5617,
+          "BaselineOverCandidate": 1.1668185056706029,
+          "CandidateChangePercent": -14.296868352694458
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 10736186.233672317,
+          "Candidate": 2494525.3137906967,
+          "BaselineOverCandidate": 4.303899493149476,
+          "CandidateChangePercent": -76.76525667962967
+        },
+        "WorkingSetMiB": {
+          "Baseline": 269.59765625,
+          "Candidate": 344.00390625,
+          "BaselineOverCandidate": 0.7837052177368988,
+          "CandidateChangePercent": 27.598997348479372
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 469.677734375,
+          "Candidate": 402.27734375,
+          "BaselineOverCandidate": 1.1675470708757756,
+          "CandidateChangePercent": -14.350348269050839
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 559.4765625,
+          "Candidate": 589.8125,
+          "BaselineOverCandidate": 0.9485668114867013,
+          "CandidateChangePercent": 5.422199879910061
+        },
+        "CpuPercent": {
+          "Baseline": 13.068308636071517,
+          "Candidate": 11.471408598233523,
+          "BaselineOverCandidate": 1.1392069704573071,
+          "CandidateChangePercent": -12.219638227935514
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 9.057816247002398,
+          "Candidate": 6.677942916296954,
+          "BaselineOverCandidate": 1.3563782081601155,
+          "CandidateChangePercent": -26.274250501527252
+        },
+        "Gen2Collections": {
+          "Baseline": 47.5,
+          "Candidate": 11.0,
+          "BaselineOverCandidate": 4.318181818181818,
+          "CandidateChangePercent": -76.84210526315789
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 288.0,
+          "Candidate": 238.0625,
+          "BaselineOverCandidate": 1.209766342872145,
+          "CandidateChangePercent": -17.33940972222222
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -15.568855042968366,
+        -17.78619119789807
+      ],
+      "FPS": {
+        "baseline": 117.62975303711774,
+        "candidate": 137.9672199054369
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.onnx",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 72.13730000000001,
+          "Candidate": 70.38454999999999,
+          "BaselineOverCandidate": 1.0249024821498471,
+          "CandidateChangePercent": -2.429741617720682
+        },
+        "FirstInferenceMs": {
+          "Baseline": 238.04680000000002,
+          "Candidate": 236.04625,
+          "BaselineOverCandidate": 1.0084752458469475,
+          "CandidateChangePercent": -0.8404019713770694
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 316.36145,
+          "Candidate": 315.3031,
+          "BaselineOverCandidate": 1.0033566114636996,
+          "CandidateChangePercent": -0.3345382315070422
+        },
+        "MedianMs": {
+          "Baseline": 25.08215,
+          "Candidate": 23.546225,
+          "BaselineOverCandidate": 1.0652302014441806,
+          "CandidateChangePercent": -6.1235779229452
+        },
+        "MeanMs": {
+          "Baseline": 25.63532712350181,
+          "Candidate": 24.03669360347986,
+          "BaselineOverCandidate": 1.0665080458399865,
+          "CandidateChangePercent": -6.23605664292991
+        },
+        "P95Ms": {
+          "Baseline": 30.7397,
+          "Candidate": 28.642400000000002,
+          "BaselineOverCandidate": 1.0732236125464345,
+          "CandidateChangePercent": -6.822773156536977
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 7960075.868681605,
+          "Candidate": 214532.80639868745,
+          "BaselineOverCandidate": 37.104235954889866,
+          "CandidateChangePercent": -97.30488992896723
+        },
+        "WorkingSetMiB": {
+          "Baseline": 368.47265625,
+          "Candidate": 211.265625,
+          "BaselineOverCandidate": 1.7441202573774128,
+          "CandidateChangePercent": -42.66450402315301
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 395.34375,
+          "Candidate": 211.349609375,
+          "BaselineOverCandidate": 1.8705676872037038,
+          "CandidateChangePercent": -46.54029325745
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 346.6484375,
+          "Candidate": 187.8046875,
+          "BaselineOverCandidate": 1.8457922542535048,
+          "CandidateChangePercent": -45.82272204818463
+        },
+        "CpuPercent": {
+          "Baseline": 76.86545548737739,
+          "Candidate": 81.9390571040621,
+          "BaselineOverCandidate": 0.9380807908218755,
+          "CandidateChangePercent": 6.6006264901635525
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 160.76244137571652,
+          "Candidate": 159.99813988095238,
+          "BaselineOverCandidate": 1.0047769398777562,
+          "CandidateChangePercent": -0.4754229210651828
+        },
+        "Gen2Collections": {
+          "Baseline": 9.0,
+          "Candidate": 0.0,
+          "BaselineOverCandidate": null,
+          "CandidateChangePercent": -100.0
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -0.7803713012205393,
+        -6.548535746083695
+      ],
+      "FPS": {
+        "baseline": 39.03614922877782,
+        "candidate": 41.59687611986456
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.onnx",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 224.36825,
+          "Candidate": 214.872,
+          "BaselineOverCandidate": 1.0441949160430395,
+          "CandidateChangePercent": -4.232439304580737
+        },
+        "FirstInferenceMs": {
+          "Baseline": 374.08299999999997,
+          "Candidate": 255.31195000000002,
+          "BaselineOverCandidate": 1.4651997291940309,
+          "CandidateChangePercent": -31.749919135592897
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 604.40255,
+          "Candidate": 476.06585,
+          "BaselineOverCandidate": 1.2695776225074746,
+          "CandidateChangePercent": -21.233646350433165
+        },
+        "MedianMs": {
+          "Baseline": 6.459025,
+          "Candidate": 4.4112,
+          "BaselineOverCandidate": 1.4642330885019947,
+          "CandidateChangePercent": -31.704862576007987
+        },
+        "MeanMs": {
+          "Baseline": 6.647392594708997,
+          "Candidate": 4.532162046812797,
+          "BaselineOverCandidate": 1.466715560045722,
+          "CandidateChangePercent": -31.82045467842265
+        },
+        "P95Ms": {
+          "Baseline": 7.902,
+          "Candidate": 5.3589,
+          "BaselineOverCandidate": 1.4745563455186699,
+          "CandidateChangePercent": -32.18299164768413
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 7762187.459965096,
+          "Candidate": 16703.376771137897,
+          "BaselineOverCandidate": 464.7076795500139,
+          "CandidateChangePercent": -99.78481095880139
+        },
+        "WorkingSetMiB": {
+          "Baseline": 348.75,
+          "Candidate": 224.357421875,
+          "BaselineOverCandidate": 1.5544393275935615,
+          "CandidateChangePercent": -35.66812275985664
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 370.705078125,
+          "Candidate": 224.783203125,
+          "BaselineOverCandidate": 1.6491671662800094,
+          "CandidateChangePercent": -39.363333175273056
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 595.05078125,
+          "Candidate": 412.330078125,
+          "BaselineOverCandidate": 1.4431418245205174,
+          "CandidateChangePercent": -30.706741152606465
+        },
+        "CpuPercent": {
+          "Baseline": 13.029779409470049,
+          "Candidate": 9.47883018548356,
+          "BaselineOverCandidate": 1.374618930237259,
+          "CandidateChangePercent": -27.25256592913352
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 7.0054150132275135,
+          "Candidate": 3.542607949114033,
+          "BaselineOverCandidate": 1.9774739722411254,
+          "CandidateChangePercent": -49.4304342794119
+        },
+        "Gen2Collections": {
+          "Baseline": 40.0,
+          "Candidate": 0.0,
+          "BaselineOverCandidate": null,
+          "CandidateChangePercent": -100.0
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 224.0,
+          "Candidate": 164.39453125,
+          "BaselineOverCandidate": 1.3625757395746703,
+          "CandidateChangePercent": -26.60958426339286
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -32.8497749472739,
+        -32.74714643489658
+      ],
+      "FPS": {
+        "baseline": 150.40073143554673,
+        "candidate": 220.59419113939163
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 72.2885,
+          "Candidate": 76.17925,
+          "BaselineOverCandidate": 0.9489263808714316,
+          "CandidateChangePercent": 5.382253055465247
+        },
+        "FirstInferenceMs": {
+          "Baseline": 247.425,
+          "Candidate": 243.4042,
+          "BaselineOverCandidate": 1.0165190247333449,
+          "CandidateChangePercent": -1.6250580984136676
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 330.47125,
+          "Candidate": 326.29695000000004,
+          "BaselineOverCandidate": 1.0127929482638436,
+          "CandidateChangePercent": -1.2631355980285641
+        },
+        "MedianMs": {
+          "Baseline": 24.297024999999998,
+          "Candidate": 23.43005,
+          "BaselineOverCandidate": 1.0370026952567322,
+          "CandidateChangePercent": -3.5682352057504807
+        },
+        "MeanMs": {
+          "Baseline": 24.851108862745086,
+          "Candidate": 23.929745092525394,
+          "BaselineOverCandidate": 1.0385028660630191,
+          "CandidateChangePercent": -3.7075358500438194
+        },
+        "P95Ms": {
+          "Baseline": 29.6884,
+          "Candidate": 28.73435,
+          "BaselineOverCandidate": 1.033202421492047,
+          "CandidateChangePercent": -3.213544684119063
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 7105325.93592233,
+          "Candidate": 302139.59506531205,
+          "BaselineOverCandidate": 23.51669907542706,
+          "CandidateChangePercent": -95.74770252920014
+        },
+        "WorkingSetMiB": {
+          "Baseline": 300.072265625,
+          "Candidate": 186.337890625,
+          "BaselineOverCandidate": 1.610366333001415,
+          "CandidateChangePercent": -37.902328215208584
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 390.955078125,
+          "Candidate": 186.375,
+          "BaselineOverCandidate": 2.097679828973843,
+          "CandidateChangePercent": -52.32828260120199
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 276.720703125,
+          "Candidate": 162.255859375,
+          "BaselineOverCandidate": 1.7054589226602468,
+          "CandidateChangePercent": -41.36475603644808
+        },
+        "CpuPercent": {
+          "Baseline": 79.74921030188332,
+          "Candidate": 84.05968917818777,
+          "BaselineOverCandidate": 0.9487212132420905,
+          "CandidateChangePercent": 5.405042708244401
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 161.0217524509804,
+          "Candidate": 161.56227322206098,
+          "BaselineOverCandidate": 0.9966544121947475,
+          "CandidateChangePercent": 0.3356818335740863
+        },
+        "Gen2Collections": {
+          "Baseline": 8.0,
+          "Candidate": 0.0,
+          "BaselineOverCandidate": null,
+          "CandidateChangePercent": -100.0
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -9.031084917105902,
+        -2.207031290422057
+      ],
+      "FPS": {
+        "baseline": 40.232401408639745,
+        "candidate": 41.7822037132471
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 219.71945,
+          "Candidate": 217.1332,
+          "BaselineOverCandidate": 1.0119108915633352,
+          "CandidateChangePercent": -1.177069212579951
+        },
+        "FirstInferenceMs": {
+          "Baseline": 371.5488,
+          "Candidate": 308.15525,
+          "BaselineOverCandidate": 1.205719519625254,
+          "CandidateChangePercent": -17.061971401872377
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 598.22315,
+          "Candidate": 532.1221,
+          "BaselineOverCandidate": 1.124221583730501,
+          "CandidateChangePercent": -11.049564029743753
+        },
+        "MedianMs": {
+          "Baseline": 6.0919,
+          "Candidate": 4.812150000000001,
+          "BaselineOverCandidate": 1.2659414191161953,
+          "CandidateChangePercent": -21.007403273198822
+        },
+        "MeanMs": {
+          "Baseline": 6.316205735297851,
+          "Candidate": 4.9824345502406935,
+          "BaselineOverCandidate": 1.2676946724754719,
+          "CandidateChangePercent": -21.11665200522892
+        },
+        "P95Ms": {
+          "Baseline": 7.6876,
+          "Candidate": 5.9953,
+          "BaselineOverCandidate": 1.2822711123713575,
+          "CandidateChangePercent": -22.013372183776468
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 6819746.924465241,
+          "Candidate": 16725.04748185136,
+          "BaselineOverCandidate": 407.75650603476413,
+          "CandidateChangePercent": -99.75475559918723
+        },
+        "WorkingSetMiB": {
+          "Baseline": 290.55859375,
+          "Candidate": 208.033203125,
+          "BaselineOverCandidate": 1.3966933613737291,
+          "CandidateChangePercent": -28.402323111463645
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 305.6484375,
+          "Candidate": 208.03515625,
+          "BaselineOverCandidate": 1.4692153144187619,
+          "CandidateChangePercent": -31.93645681568387
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 513.96875,
+          "Candidate": 417.240234375,
+          "BaselineOverCandidate": 1.2318293099655007,
+          "CandidateChangePercent": -18.81992156624308
+        },
+        "CpuPercent": {
+          "Baseline": 10.209570211642598,
+          "Candidate": 8.352216788171969,
+          "BaselineOverCandidate": 1.222378497897819,
+          "CandidateChangePercent": -18.192278273894193
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 5.183996265682847,
+          "Candidate": 3.3235268479776847,
+          "BaselineOverCandidate": 1.5597876902475543,
+          "CandidateChangePercent": -35.88871060770522
+        },
+        "Gen2Collections": {
+          "Baseline": 52.5,
+          "Candidate": 0.0,
+          "BaselineOverCandidate": null,
+          "CandidateChangePercent": -100.0
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 224.0,
+          "Candidate": 195.515625,
+          "BaselineOverCandidate": 1.1456884839766643,
+          "CandidateChangePercent": -12.71623883928571
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -18.738228937935574,
+        -22.823406787439428
+      ],
+      "FPS": {
+        "baseline": 158.6310316997957,
+        "candidate": 200.81602296363377
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.pt",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 71.17925,
+          "Candidate": 69.4238,
+          "BaselineOverCandidate": 1.0252859970211945,
+          "CandidateChangePercent": -2.466238405153187
+        },
+        "FirstInferenceMs": {
+          "Baseline": 217.2789,
+          "Candidate": 211.7459,
+          "BaselineOverCandidate": 1.02613037607812,
+          "CandidateChangePercent": -2.5464966915793474
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 295.47865,
+          "Candidate": 295.29315,
+          "BaselineOverCandidate": 1.0006281893095048,
+          "CandidateChangePercent": -0.06277949354377421
+        },
+        "MedianMs": {
+          "Baseline": 23.788449999999997,
+          "Candidate": 23.028350000000003,
+          "BaselineOverCandidate": 1.0330071411976973,
+          "CandidateChangePercent": -3.1952481141057754
+        },
+        "MeanMs": {
+          "Baseline": 24.234140714953263,
+          "Candidate": 23.741113870416967,
+          "BaselineOverCandidate": 1.0207667949881087,
+          "CandidateChangePercent": -2.034430889608896
+        },
+        "P95Ms": {
+          "Baseline": 28.0315,
+          "Candidate": 27.894399999999997,
+          "BaselineOverCandidate": 1.0049149650108984,
+          "CandidateChangePercent": -0.48909262793643826
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 2957227.699065421,
+          "Candidate": 2957657.2311286842,
+          "BaselineOverCandidate": 0.9998547728726835,
+          "CandidateChangePercent": 0.014524822129824422
+        },
+        "WorkingSetMiB": {
+          "Baseline": 421.5390625,
+          "Candidate": 395.865234375,
+          "BaselineOverCandidate": 1.064854970569806,
+          "CandidateChangePercent": -6.090497989139498
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 421.603515625,
+          "Candidate": 410.640625,
+          "BaselineOverCandidate": 1.0266970434914957,
+          "CandidateChangePercent": -2.600284442303147
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 404.103515625,
+          "Candidate": 378.306640625,
+          "BaselineOverCandidate": 1.068190383751607,
+          "CandidateChangePercent": -6.383729416484208
+        },
+        "CpuPercent": {
+          "Baseline": 89.81187056038911,
+          "Candidate": 88.22719283946027,
+          "BaselineOverCandidate": 1.0179613299474726,
+          "CandidateChangePercent": -1.7644412826958167
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 171.04629088785046,
+          "Candidate": 167.57006454150087,
+          "BaselineOverCandidate": 1.0207449126182597,
+          "CandidateChangePercent": -2.032330738249588
+        },
+        "Gen2Collections": {
+          "Baseline": 2.5,
+          "Candidate": 3.0,
+          "BaselineOverCandidate": 0.8333333333333334,
+          "CandidateChangePercent": 19.999999999999996
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -1.1699183015605463,
+        -3.1952481141057754
+      ],
+      "FPS": {
+        "baseline": 41.302419491030555,
+        "candidate": 42.11705721370727
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.pt",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 223.94934999999998,
+          "Candidate": 219.96280000000002,
+          "BaselineOverCandidate": 1.018123746378933,
+          "CandidateChangePercent": -1.7801123334360902
+        },
+        "FirstInferenceMs": {
+          "Baseline": 329.9859,
+          "Candidate": 230.94240000000002,
+          "BaselineOverCandidate": 1.4288666784444952,
+          "CandidateChangePercent": -30.014464254381778
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 563.54925,
+          "Candidate": 461.6236,
+          "BaselineOverCandidate": 1.2207981784293525,
+          "CandidateChangePercent": -18.086378430988958
+        },
+        "MedianMs": {
+          "Baseline": 3.62005,
+          "Candidate": 3.694675,
+          "BaselineOverCandidate": 0.9798020123556199,
+          "CandidateChangePercent": 2.0614356155301827
+        },
+        "MeanMs": {
+          "Baseline": 3.722161623001752,
+          "Candidate": 3.8032487355865223,
+          "BaselineOverCandidate": 0.9786795136941614,
+          "CandidateChangePercent": 2.1784952078297337
+        },
+        "P95Ms": {
+          "Baseline": 4.377549999999999,
+          "Candidate": 4.5424500000000005,
+          "BaselineOverCandidate": 0.9636980043808955,
+          "CandidateChangePercent": 3.766947265022691
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 2822599.8144394276,
+          "Candidate": 2822602.819886389,
+          "BaselineOverCandidate": 0.9999989352214416,
+          "CandidateChangePercent": 0.00010647796921947617
+        },
+        "WorkingSetMiB": {
+          "Baseline": 383.1953125,
+          "Candidate": 312.306640625,
+          "BaselineOverCandidate": 1.2269841964715669,
+          "CandidateChangePercent": -18.499357785072068
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 396.560546875,
+          "Candidate": 356.44140625,
+          "BaselineOverCandidate": 1.1125546581332397,
+          "CandidateChangePercent": -10.116775594836458
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 630.5,
+          "Candidate": 498.533203125,
+          "BaselineOverCandidate": 1.2647101457792196,
+          "CandidateChangePercent": -20.93049910785091
+        },
+        "CpuPercent": {
+          "Baseline": 3.9830021956346244,
+          "Candidate": 4.058293844163194,
+          "BaselineOverCandidate": 0.9814474625495989,
+          "CandidateChangePercent": 1.8903240528235221
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 1.1840638930163447,
+          "Candidate": 1.2753138491251987,
+          "BaselineOverCandidate": 0.928449019689195,
+          "CandidateChangePercent": 7.706506097099131
+        },
+        "Gen2Collections": {
+          "Baseline": 22.0,
+          "Candidate": 29.0,
+          "BaselineOverCandidate": 0.7586206896551724,
+          "CandidateChangePercent": 31.818181818181813
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 224.0,
+          "Candidate": 164.39453125,
+          "BaselineOverCandidate": 1.3625757395746703,
+          "CandidateChangePercent": -26.60958426339286
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        3.0207083040161065,
+        2.274740484429083
+      ],
+      "FPS": {
+        "baseline": 268.6019753864341,
+        "candidate": 262.8955209361234
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 80.96209999999999,
+          "Candidate": 80.8375,
+          "BaselineOverCandidate": 1.0015413638472241,
+          "CandidateChangePercent": -0.15389917010549814
+        },
+        "FirstInferenceMs": {
+          "Baseline": 247.57855,
+          "Candidate": 243.3207,
+          "BaselineOverCandidate": 1.0174989222043174,
+          "CandidateChangePercent": -1.71979761574661
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 348.34595,
+          "Candidate": 337.62235,
+          "BaselineOverCandidate": 1.0317621152746554,
+          "CandidateChangePercent": -3.078433953373083
+        },
+        "MedianMs": {
+          "Baseline": 32.26255,
+          "Candidate": 34.183925,
+          "BaselineOverCandidate": 0.9437930255229613,
+          "CandidateChangePercent": 5.955434396847137
+        },
+        "MeanMs": {
+          "Baseline": 33.23522946320346,
+          "Candidate": 34.43807554429429,
+          "BaselineOverCandidate": 0.9650722038882884,
+          "CandidateChangePercent": 3.619189939466394
+        },
+        "P95Ms": {
+          "Baseline": 39.41075,
+          "Candidate": 40.47475,
+          "BaselineOverCandidate": 0.9737120056331416,
+          "CandidateChangePercent": 2.699771001566842
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 3568699.948051948,
+          "Candidate": 3568281.5675675673,
+          "BaselineOverCandidate": 1.0001172498516326,
+          "CandidateChangePercent": -0.01172361057166782
+        },
+        "WorkingSetMiB": {
+          "Baseline": 444.021484375,
+          "Candidate": 444.216796875,
+          "BaselineOverCandidate": 0.9995603216686672,
+          "CandidateChangePercent": 0.043987173340243046
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 444.021484375,
+          "Candidate": 444.216796875,
+          "BaselineOverCandidate": 0.9995603216686672,
+          "CandidateChangePercent": 0.043987173340243046
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 423.55859375,
+          "Candidate": 423.662109375,
+          "BaselineOverCandidate": 0.9997556646612729,
+          "CandidateChangePercent": 0.024439505307527476
+        },
+        "CpuPercent": {
+          "Baseline": 84.49278499976919,
+          "Candidate": 83.51019852323293,
+          "BaselineOverCandidate": 1.0117660656292524,
+          "CandidateChangePercent": -1.1629235283686534
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 223.1452922077922,
+          "Candidate": 230.21047290688574,
+          "BaselineOverCandidate": 0.9693099075386061,
+          "CandidateChangePercent": 3.166179590521878
+        },
+        "Gen2Collections": {
+          "Baseline": 2.0,
+          "Candidate": 2.0,
+          "BaselineOverCandidate": 1.0,
+          "CandidateChangePercent": 0.0
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        3.2472036828742334,
+        3.769670947368109
+      ],
+      "FPS": {
+        "baseline": 30.08695893498718,
+        "candidate": 29.034528995166678
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 234.98255,
+          "Candidate": 228.78305,
+          "BaselineOverCandidate": 1.027097724241372,
+          "CandidateChangePercent": -2.6382810127815848
+        },
+        "FirstInferenceMs": {
+          "Baseline": 329.96295,
+          "Candidate": 279.177,
+          "BaselineOverCandidate": 1.1819130873961678,
+          "CandidateChangePercent": -15.391409853742655
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 577.1385,
+          "Candidate": 518.2503,
+          "BaselineOverCandidate": 1.1136288777835728,
+          "CandidateChangePercent": -10.203478021306845
+        },
+        "MedianMs": {
+          "Baseline": 5.9021,
+          "Candidate": 6.0045,
+          "BaselineOverCandidate": 0.9829461237405279,
+          "CandidateChangePercent": 1.7349756866200217
+        },
+        "MeanMs": {
+          "Baseline": 6.029229643952064,
+          "Candidate": 6.132653223015355,
+          "BaselineOverCandidate": 0.9831355898821817,
+          "CandidateChangePercent": 1.7153697100762422
+        },
+        "P95Ms": {
+          "Baseline": 6.82845,
+          "Candidate": 7.11325,
+          "BaselineOverCandidate": 0.9599620426668541,
+          "CandidateChangePercent": 4.170785463758242
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 3323178.0292612063,
+          "Candidate": 3323306.4001730476,
+          "BaselineOverCandidate": 0.9999613725319355,
+          "CandidateChangePercent": 0.0038628960203457297
+        },
+        "WorkingSetMiB": {
+          "Baseline": 267.423828125,
+          "Candidate": 261.501953125,
+          "BaselineOverCandidate": 1.0226456243604778,
+          "CandidateChangePercent": -2.2144156119222047
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 343.66015625,
+          "Candidate": 317.62109375,
+          "BaselineOverCandidate": 1.0819815277145775,
+          "CandidateChangePercent": -7.576980347136186
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 560.27734375,
+          "Candidate": 509.6328125,
+          "BaselineOverCandidate": 1.0993745496911074,
+          "CandidateChangePercent": -9.039189575475316
+        },
+        "CpuPercent": {
+          "Baseline": 2.811492421520478,
+          "Candidate": 3.0830814920341387,
+          "BaselineOverCandidate": 0.9119098631627562,
+          "CandidateChangePercent": 9.659960967164306
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 1.3619934571549177,
+          "Candidate": 1.5144499423173985,
+          "BaselineOverCandidate": 0.899332106725698,
+          "CandidateChangePercent": 11.193628307212933
+        },
+        "Gen2Collections": {
+          "Baseline": 24.0,
+          "Candidate": 29.0,
+          "BaselineOverCandidate": 0.8275862068965517,
+          "CandidateChangePercent": 20.833333333333325
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 288.0,
+          "Candidate": 238.0625,
+          "BaselineOverCandidate": 1.209766342872145,
+          "CandidateChangePercent": -17.33940972222222
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        2.2696570762118284,
+        -0.02121664743025553
+      ],
+      "FPS": {
+        "baseline": 165.82028451432927,
+        "candidate": 163.04858832866393
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.onnx",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 73.828,
+          "Candidate": 75.42275000000001,
+          "BaselineOverCandidate": 0.9788558491966945,
+          "CandidateChangePercent": 2.16008831337704
+        },
+        "FirstInferenceMs": {
+          "Baseline": 230.06245,
+          "Candidate": 230.9174,
+          "BaselineOverCandidate": 0.9962975938582369,
+          "CandidateChangePercent": 0.37161648934886937
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 318.48760000000004,
+          "Candidate": 319.91454999999996,
+          "BaselineOverCandidate": 0.9955395901811909,
+          "CandidateChangePercent": 0.4480394213149719
+        },
+        "MedianMs": {
+          "Baseline": 24.857499999999998,
+          "Candidate": 23.8998,
+          "BaselineOverCandidate": 1.0400714650331802,
+          "CandidateChangePercent": -3.8527607361963145
+        },
+        "MeanMs": {
+          "Baseline": 25.481694148720038,
+          "Candidate": 24.825386180880056,
+          "BaselineOverCandidate": 1.0264369691193547,
+          "CandidateChangePercent": -2.5756057034887148
+        },
+        "P95Ms": {
+          "Baseline": 30.726550000000003,
+          "Candidate": 33.46465,
+          "BaselineOverCandidate": 0.9181793325195394,
+          "CandidateChangePercent": 8.911185928781439
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 3020459.5060574594,
+          "Candidate": 3020212.4224137934,
+          "BaselineOverCandidate": 1.0000818100216502,
+          "CandidateChangePercent": -0.008180332931806422
+        },
+        "WorkingSetMiB": {
+          "Baseline": 359.865234375,
+          "Candidate": 358.978515625,
+          "BaselineOverCandidate": 1.0024701164872114,
+          "CandidateChangePercent": -0.2464030045969845
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 359.875,
+          "Candidate": 360.142578125,
+          "BaselineOverCandidate": 0.9992570216873743,
+          "CandidateChangePercent": 0.07435307398402369
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 341.61328125,
+          "Candidate": 340.794921875,
+          "BaselineOverCandidate": 1.0024013250270793,
+          "CandidateChangePercent": -0.2395572478931518
+        },
+        "CpuPercent": {
+          "Baseline": 83.12133570195144,
+          "Candidate": 83.30055562961411,
+          "BaselineOverCandidate": 0.9978485146190434,
+          "CandidateChangePercent": 0.21561242507615042
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 166.5275167614791,
+          "Candidate": 165.44368185358258,
+          "BaselineOverCandidate": 1.006551080680468,
+          "CandidateChangePercent": -0.6508443343023695
+        },
+        "Gen2Collections": {
+          "Baseline": 3.0,
+          "Candidate": 3.0,
+          "BaselineOverCandidate": 1.0,
+          "CandidateChangePercent": 0.0
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -5.367600553467689,
+        0.8393537894314074
+      ],
+      "FPS": {
+        "baseline": 39.459901336900046,
+        "candidate": 40.37983400761054
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.onnx",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 222.6654,
+          "Candidate": 262.57425,
+          "BaselineOverCandidate": 0.848009277375828,
+          "CandidateChangePercent": 17.9232381860855
+        },
+        "FirstInferenceMs": {
+          "Baseline": 349.52545,
+          "Candidate": 246.79725000000002,
+          "BaselineOverCandidate": 1.416245318778876,
+          "CandidateChangePercent": -29.39076396296749
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 586.5608500000001,
+          "Candidate": 539.5680500000001,
+          "BaselineOverCandidate": 1.0870933703357712,
+          "CandidateChangePercent": -8.011581407112322
+        },
+        "MedianMs": {
+          "Baseline": 3.9676,
+          "Candidate": 3.9795,
+          "BaselineOverCandidate": 0.997009674582234,
+          "CandidateChangePercent": 0.29992942836978287
+        },
+        "MeanMs": {
+          "Baseline": 4.107666342230669,
+          "Candidate": 4.115421908800843,
+          "BaselineOverCandidate": 0.9981154868827449,
+          "CandidateChangePercent": 0.18880712122208987
+        },
+        "P95Ms": {
+          "Baseline": 5.0737,
+          "Candidate": 5.0889,
+          "BaselineOverCandidate": 0.9970131069582817,
+          "CandidateChangePercent": 0.29958412992490135
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 2822600.6821701257,
+          "Candidate": 2822606.6423636666,
+          "BaselineOverCandidate": 0.9999978884080227,
+          "CandidateChangePercent": 0.00021115964361495543
+        },
+        "WorkingSetMiB": {
+          "Baseline": 360.958984375,
+          "Candidate": 287.109375,
+          "BaselineOverCandidate": 1.25721768707483,
+          "CandidateChangePercent": -20.45928002121086
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 449.240234375,
+          "Candidate": 418.4296875,
+          "BaselineOverCandidate": 1.0736337496965962,
+          "CandidateChangePercent": -6.8583676432866225
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 609.9296875,
+          "Candidate": 477.0390625,
+          "BaselineOverCandidate": 1.2785738851312622,
+          "CandidateChangePercent": -21.787859768672103
+        },
+        "CpuPercent": {
+          "Baseline": 3.8257254848208473,
+          "Candidate": 3.5507787010456147,
+          "BaselineOverCandidate": 1.0774328131725774,
+          "CandidateChangePercent": -7.1867880972151905
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 1.2731915292353824,
+          "Candidate": 1.2669427949703729,
+          "BaselineOverCandidate": 1.0049321360757695,
+          "CandidateChangePercent": -0.49079294996269285
+        },
+        "Gen2Collections": {
+          "Baseline": 21.0,
+          "Candidate": 28.5,
+          "BaselineOverCandidate": 0.7368421052631579,
+          "CandidateChangePercent": 35.71428571428572
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 224.0,
+          "Candidate": 164.39453125,
+          "BaselineOverCandidate": 1.3625757395746703,
+          "CandidateChangePercent": -26.60958426339286
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        1.226721035563294,
+        -0.5342702840373081
+      ],
+      "FPS": {
+        "baseline": 245.25588826135197,
+        "candidate": 244.18681385594664
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Cpu",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 75.36945,
+          "Candidate": 76.06165,
+          "BaselineOverCandidate": 0.9908994874552419,
+          "CandidateChangePercent": 0.9184092493709217
+        },
+        "FirstInferenceMs": {
+          "Baseline": 225.46744999999999,
+          "Candidate": 228.7346,
+          "BaselineOverCandidate": 0.9857164154439249,
+          "CandidateChangePercent": 1.4490561719662898
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 328.65075,
+          "Candidate": 317.17305,
+          "BaselineOverCandidate": 1.036187500798066,
+          "CandidateChangePercent": -3.4923699398221486
+        },
+        "MedianMs": {
+          "Baseline": 25.992399999999996,
+          "Candidate": 24.685499999999998,
+          "BaselineOverCandidate": 1.052942010491989,
+          "CandidateChangePercent": -5.028008187008504
+        },
+        "MeanMs": {
+          "Baseline": 28.0593,
+          "Candidate": 25.307676685049017,
+          "BaselineOverCandidate": 1.1087268242436714,
+          "CandidateChangePercent": -9.80645744887072
+        },
+        "P95Ms": {
+          "Baseline": 34.0236,
+          "Candidate": 31.023,
+          "BaselineOverCandidate": 1.0967217870612127,
+          "CandidateChangePercent": -8.81917257433077
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 2167575.6969696973,
+          "Candidate": 2167051.8735024286,
+          "BaselineOverCandidate": 1.0002417217020385,
+          "CandidateChangePercent": -0.02416632867774382
+        },
+        "WorkingSetMiB": {
+          "Baseline": 323.4765625,
+          "Candidate": 324.6015625,
+          "BaselineOverCandidate": 0.9965342126164288,
+          "CandidateChangePercent": 0.3477840840478308
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 324.2890625,
+          "Candidate": 324.6015625,
+          "BaselineOverCandidate": 0.9990372812823414,
+          "CandidateChangePercent": 0.09636464381217458
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 301.88671875,
+          "Candidate": 302.771484375,
+          "BaselineOverCandidate": 0.9970777775627504,
+          "CandidateChangePercent": 0.2930786848336586
+        },
+        "CpuPercent": {
+          "Baseline": 80.88061171482734,
+          "Candidate": 83.19497456353812,
+          "BaselineOverCandidate": 0.9721814585453927,
+          "CandidateChangePercent": 2.861455668598145
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 171.28976254480287,
+          "Candidate": 168.58149509803923,
+          "BaselineOverCandidate": 1.0160650339777129,
+          "CandidateChangePercent": -1.5811029255500708
+        },
+        "Gen2Collections": {
+          "Baseline": 2.0,
+          "Candidate": 2.0,
+          "BaselineOverCandidate": 1.0,
+          "CandidateChangePercent": 0.0
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        -0.8839723567827917,
+        -1.3565792776308538
+      ],
+      "FPS": {
+        "baseline": 35.630105226369636,
+        "candidate": 39.54251876349487
+      },
+      "ReplayRate": {
+        "baseline": 0.0,
+        "candidate": 0.0
+      }
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Vulkan",
+      "Metrics": {
+        "ModelLoadMs": {
+          "Baseline": 381.3419,
+          "Candidate": 325.97375,
+          "BaselineOverCandidate": 1.1698546278649737,
+          "CandidateChangePercent": -14.519293578806847
+        },
+        "FirstInferenceMs": {
+          "Baseline": 510.912,
+          "Candidate": 401.94375,
+          "BaselineOverCandidate": 1.27110323272846,
+          "CandidateChangePercent": -21.328183718526862
+        },
+        "ReadyToFirstOutputMs": {
+          "Baseline": 920.1601,
+          "Candidate": 745.2135499999999,
+          "BaselineOverCandidate": 1.2347602911943834,
+          "CandidateChangePercent": -19.012620738499752
+        },
+        "MedianMs": {
+          "Baseline": 6.298475,
+          "Candidate": 6.05265,
+          "BaselineOverCandidate": 1.0406144416082213,
+          "CandidateChangePercent": -3.90292888357896
+        },
+        "MeanMs": {
+          "Baseline": 6.5191426015194835,
+          "Candidate": 6.116633767116779,
+          "BaselineOverCandidate": 1.065805612977289,
+          "CandidateChangePercent": -6.174260313141289
+        },
+        "P95Ms": {
+          "Baseline": 8.0345,
+          "Candidate": 7.567550000000001,
+          "BaselineOverCandidate": 1.0617042503848668,
+          "CandidateChangePercent": -5.811811562636116
+        },
+        "AllocatedBytesPerFrame": {
+          "Baseline": 1881824.8119061699,
+          "Candidate": 1881880.5236245142,
+          "BaselineOverCandidate": 0.9999703957197893,
+          "CandidateChangePercent": 0.0029605156649958886
+        },
+        "WorkingSetMiB": {
+          "Baseline": 313.994140625,
+          "Candidate": 255.361328125,
+          "BaselineOverCandidate": 1.229607250755287,
+          "CandidateChangePercent": -18.67321867321867
+        },
+        "PeakWorkingSetMiB": {
+          "Baseline": 388.89453125,
+          "Candidate": 342.3828125,
+          "BaselineOverCandidate": 1.135847119224187,
+          "CandidateChangePercent": -11.959982723464947
+        },
+        "PrivateMemoryMiB": {
+          "Baseline": 547.611328125,
+          "Candidate": 465.728515625,
+          "BaselineOverCandidate": 1.1758166179498686,
+          "CandidateChangePercent": -14.952724367547976
+        },
+        "CpuPercent": {
+          "Baseline": 3.864948047124337,
+          "Candidate": 4.019426016518223,
+          "BaselineOverCandidate": 0.9615671569126925,
+          "CandidateChangePercent": 3.996896400944472
+        },
+        "CpuMillisecondsPerFrame": {
+          "Baseline": 2.0969474089295446,
+          "Candidate": 1.9712410630515078,
+          "BaselineOverCandidate": 1.0637701538559883,
+          "CandidateChangePercent": -5.9947304993312915
+        },
+        "Gen2Collections": {
+          "Baseline": 11.0,
+          "Candidate": 17.0,
+          "BaselineOverCandidate": 0.6470588235294118,
+          "CandidateChangePercent": 54.54545454545454
+        },
+        "VulkanFrameBufferCapacityMiB": {
+          "Baseline": 224.0,
+          "Candidate": 195.515625,
+          "BaselineOverCandidate": 1.1456884839766643,
+          "CandidateChangePercent": -12.71623883928571
+        }
+      },
+      "LatencyChangePerRoundPct": [
+        10.513670162493316,
+        -7.4875236769043285
+      ],
+      "FPS": {
+        "baseline": 153.47371071939926,
+        "candidate": 164.27491217581138
+      },
+      "ReplayRate": {
+        "baseline": 1.0,
+        "candidate": 1.0
+      }
+    }
+  ],
+  "OutputValidation": [
+    {
+      "Mode": "image",
+      "Model": "yolov8n.pt",
+      "Backend": "Cpu",
+      "Checks": 14,
+      "ExactChecks": 7,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.00018999999997504347,
+      "MaxAbsScores": 1.9900000000072637e-06
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.pt",
+      "Backend": "Vulkan",
+      "Checks": 14,
+      "ExactChecks": 14,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Cpu",
+      "Checks": 70,
+      "ExactChecks": 0,
+      "MaxAbsTensorOrMask": 5.0067901611328125e-06,
+      "MaxAbsCoordinatesPx": 0.00020000000006348273,
+      "MaxAbsScores": 2.173999999999232e-05
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Vulkan",
+      "Checks": 70,
+      "ExactChecks": 70,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.onnx",
+      "Backend": "Cpu",
+      "Checks": 14,
+      "ExactChecks": 11,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.00013000000001284207,
+      "MaxAbsScores": 1.0000000000287557e-06
+    },
+    {
+      "Mode": "image",
+      "Model": "yolov8n.onnx",
+      "Backend": "Vulkan",
+      "Checks": 14,
+      "ExactChecks": 14,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Cpu",
+      "Checks": 14,
+      "ExactChecks": 0,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.00037999999997850864,
+      "MaxAbsScores": 2.2700000000264176e-06
+    },
+    {
+      "Mode": "image",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Vulkan",
+      "Checks": 14,
+      "ExactChecks": 14,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.pt",
+      "Backend": "Cpu",
+      "Checks": 14,
+      "ExactChecks": 7,
+      "MaxAbsTensorOrMask": 0.003021240234375,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.pt",
+      "Backend": "Vulkan",
+      "Checks": 14,
+      "ExactChecks": 14,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Cpu",
+      "Checks": 28,
+      "ExactChecks": 12,
+      "MaxAbsTensorOrMask": 0.0008544921875,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo26n-seg.pt",
+      "Backend": "Vulkan",
+      "Checks": 28,
+      "ExactChecks": 28,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.onnx",
+      "Backend": "Cpu",
+      "Checks": 14,
+      "ExactChecks": 9,
+      "MaxAbsTensorOrMask": 0.00152587890625,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolov8n.onnx",
+      "Backend": "Vulkan",
+      "Checks": 14,
+      "ExactChecks": 14,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Cpu",
+      "Checks": 14,
+      "ExactChecks": 8,
+      "MaxAbsTensorOrMask": 0.001373291015625,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    },
+    {
+      "Mode": "raw",
+      "Model": "yolo11n-pose.onnx",
+      "Backend": "Vulkan",
+      "Checks": 14,
+      "ExactChecks": 14,
+      "MaxAbsTensorOrMask": 0.0,
+      "MaxAbsCoordinatesPx": 0.0,
+      "MaxAbsScores": 0.0
+    }
+  ],
+  "Confirmation": {
+    "Results": [
+      {
+        "Mode": "raw",
+        "Model": "yolo26n-seg.pt",
+        "Backend": "Cpu",
+        "Metrics": {
+          "ModelLoadMs": {
+            "Baseline": 87.42235,
+            "Candidate": 86.9546,
+            "BaselineOverCandidate": 1.0053792438812896,
+            "CandidateChangePercent": -0.5350462438952874
+          },
+          "FirstInferenceMs": {
+            "Baseline": 270.954,
+            "Candidate": 255.85924999999997,
+            "BaselineOverCandidate": 1.058996303631782,
+            "CandidateChangePercent": -5.570964075082863
+          },
+          "ReadyToFirstOutputMs": {
+            "Baseline": 371.40385000000003,
+            "Candidate": 392.60315,
+            "BaselineOverCandidate": 0.9460032350733814,
+            "CandidateChangePercent": 5.707883749724196
+          },
+          "MedianMs": {
+            "Baseline": 38.579175000000006,
+            "Candidate": 40.943125,
+            "BaselineOverCandidate": 0.9422625898731473,
+            "CandidateChangePercent": 6.12752864725592
+          },
+          "MeanMs": {
+            "Baseline": 39.96071156627699,
+            "Candidate": 43.89275154306221,
+            "BaselineOverCandidate": 0.9104170998956951,
+            "CandidateChangePercent": 9.83976466551082
+          },
+          "P95Ms": {
+            "Baseline": 49.7782,
+            "Candidate": 58.995400000000004,
+            "BaselineOverCandidate": 0.8437640900815995,
+            "CandidateChangePercent": 18.516539368639286
+          },
+          "AllocatedBytesPerFrame": {
+            "Baseline": 3568732.1097926404,
+            "Candidate": 3568605.048484849,
+            "BaselineOverCandidate": 1.0000356053152606,
+            "CandidateChangePercent": -0.003560404756719482
+          },
+          "WorkingSetMiB": {
+            "Baseline": 431.91796875,
+            "Candidate": 436.66015625,
+            "BaselineOverCandidate": 0.9891398667084135,
+            "CandidateChangePercent": 1.0979370721075243
+          },
+          "PeakWorkingSetMiB": {
+            "Baseline": 444.265625,
+            "Candidate": 444.171875,
+            "BaselineOverCandidate": 1.0002110669433988,
+            "CandidateChangePercent": -0.02110224035452024
+          },
+          "PrivateMemoryMiB": {
+            "Baseline": 412.0,
+            "Candidate": 416.689453125,
+            "BaselineOverCandidate": 0.9887459279570648,
+            "CandidateChangePercent": 1.138216777912615
+          },
+          "CpuPercent": {
+            "Baseline": 75.48364035231347,
+            "Candidate": 75.87710646468533,
+            "BaselineOverCandidate": 0.9948144291380565,
+            "CandidateChangePercent": 0.5212601174710008
+          },
+          "CpuMillisecondsPerFrame": {
+            "Baseline": 241.32064840499305,
+            "Candidate": 257.79754784689,
+            "BaselineOverCandidate": 0.9360858953876364,
+            "CandidateChangePercent": 6.827803402154298
+          },
+          "Gen2Collections": {
+            "Baseline": 2.5,
+            "Candidate": 2.5,
+            "BaselineOverCandidate": 1.0,
+            "CandidateChangePercent": 0.0
+          }
+        },
+        "LatencyChangePerRoundPct": [
+          7.3701473877687995,
+          -1.6904069623436602
+        ],
+        "FPS": {
+          "baseline": 25.033858278659224,
+          "candidate": 22.806318641678843
+        },
+        "ReplayRate": {
+          "baseline": 0.0,
+          "candidate": 0.0
+        }
+      }
+    ],
+    "Settings": {
+      "Size": 640,
+      "Threads": 8,
+      "WindowsHighQosRequested": true,
+      "WindowsAffinity": 21845,
+      "RgbSize": null,
+      "WarmupFrames": 75,
+      "DurationSeconds": 4.0,
+      "MinimumFrames": 80,
+      "Repeats": 2
+    },
+    "Windows": 8,
+    "OutputValidation": [
+      {
+        "Model": "yolo26n-seg.pt",
+        "Backend": "Cpu",
+        "Checks": 28,
+        "ExactChecks": 0,
+        "MaxAbsTensorOrMask": 0.00054931640625,
+        "MaxAbsCoordinatesPx": 0.0,
+        "MaxAbsScores": 0.0
+      }
+    ]
+  }
+}

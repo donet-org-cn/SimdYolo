@@ -88,6 +88,9 @@ public sealed class CpuBackend : IComputeBackend
 /// <param name="backend">此算子集合使用的计算后端。</param>
 public sealed class TensorOps(IComputeBackend backend)
 {
+    private const int CpuMemoryBlockSize = 32 * 1024;
+    private const int CpuParallelMemoryThreshold = 8 * CpuMemoryBlockSize;
+
     /// <summary>此算子集合使用的计算后端。</summary>
     /// <value>此算子集合使用的计算后端。</value>
     public IComputeBackend Backend { get; } = backend;
@@ -433,25 +436,43 @@ public sealed class TensorOps(IComputeBackend backend)
         float[] ad = a.Data, bd = b.Data, output = result.Data;
         int inner = shape.Length == 0 ? 1 : shape[^1], outer = result.Length / inner;
         bool scalarA = a.Rank == 0 || a.Shape[^1] == 1, scalarB = b.Rank == 0 || b.Shape[^1] == 1;
-        if (a.Shape.SequenceEqual(shape) && b.Shape.SequenceEqual(shape)) { inner = result.Length; outer = 1; scalarA = scalarB = false; }
+        bool sameShape = a.Shape.SequenceEqual(shape) && b.Shape.SequenceEqual(shape);
+        if (sameShape) { inner = result.Length; outer = 1; scalarA = scalarB = false; }
         else if (a.Length == 1 && b.Shape.SequenceEqual(shape)) { inner = result.Length; outer = 1; scalarA = true; scalarB = false; }
         else if (b.Length == 1 && a.Shape.SequenceEqual(shape)) { inner = result.Length; outer = 1; scalarA = false; scalarB = true; }
+        if (sameShape && result.Length >= CpuParallelMemoryThreshold &&
+            CpuTensorPool.Current?.Parallel is { MaxDegreeOfParallelism: > 1 } parallel)
+        {
+            CpuScheduling.For(0, 1 + (result.Length - 1) / CpuMemoryBlockSize, parallel, block =>
+            {
+                int start = block * CpuMemoryBlockSize;
+                Apply(start, start, start, Math.Min(CpuMemoryBlockSize, result.Length - start));
+            });
+            return result;
+        }
         for (int o = 0; o < outer; o++)
         {
-            int dst = o * inner, ai = BroadcastIndex(dst, shape, a.Shape), bi = BroadcastIndex(dst, shape, b.Shape), j = 0;
-            var va = new Vector<float>(ad[ai]); var vb = new Vector<float>(bd[bi]);
-            for (; j <= inner - Vector<float>.Count; j += Vector<float>.Count)
+            int dst = o * inner;
+            Apply(dst, BroadcastIndex(dst, shape, a.Shape), BroadcastIndex(dst, shape, b.Shape), inner);
+        }
+        return result;
+
+        void Apply(int dst, int ai, int bi, int count)
+        {
+            int j = 0;
+            var va = scalarA ? new Vector<float>(ad[ai]) : default;
+            var vb = scalarB ? new Vector<float>(bd[bi]) : default;
+            for (; j <= count - Vector<float>.Count; j += Vector<float>.Count)
             {
                 var x = scalarA ? va : new Vector<float>(ad, ai + j); var y = scalarB ? vb : new Vector<float>(bd, bi + j);
                 (operation switch { 10 => x + y, 11 => x - y, 12 => x * y, _ => x / y }).CopyTo(output, dst + j);
             }
-            for (; j < inner; j++)
+            for (; j < count; j++)
             {
                 float x = ad[ai + (scalarA ? 0 : j)], y = bd[bi + (scalarB ? 0 : j)];
                 output[dst + j] = operation switch { 10 => x + y, 11 => x - y, 12 => x * y, _ => x / y };
             }
         }
-        return result;
     }
     /// <summary>将张量每个元素乘以同一个 FP32 系数。</summary>
     /// <param name="x">输入张量；空间算子使用 NCHW 布局。</param>
@@ -507,6 +528,27 @@ public sealed class TensorOps(IComputeBackend backend)
         }
         if (DeviceScope.For(tensors.ToArray()) is { } owner) return owner.DeviceConcat(tensors, axis, shape);
         var y = Tensor.TemporaryUninitialized(shape); int inner = Tensor.Count(shape[(axis + 1)..]), outer = Tensor.Count(shape[..axis]);
+        if (outer == 1 && y.Length >= CpuParallelMemoryThreshold &&
+            CpuTensorPool.Current?.Parallel is { MaxDegreeOfParallelism: > 1 } parallel)
+        {
+            float[] target = y.Data;
+            var sources = tensors.Select(x => (Data: x.Data, x.Length)).ToArray();
+            CpuScheduling.For(0, 1 + (y.Length - 1) / CpuMemoryBlockSize, parallel, block =>
+            {
+                int start = block * CpuMemoryBlockSize;
+                int end = start + Math.Min(CpuMemoryBlockSize, y.Length - start);
+                int offset = 0;
+                foreach (var source in sources)
+                {
+                    int next = offset + source.Length;
+                    int first = Math.Max(start, offset), last = Math.Min(end, next);
+                    if (first < last) Array.Copy(source.Data, first - offset, target, first, last - first);
+                    if (next >= end) break;
+                    offset = next;
+                }
+            });
+            return y;
+        }
         for (int o = 0; o < outer; o++)
         {
             int dst = o * shape[axis] * inner;
